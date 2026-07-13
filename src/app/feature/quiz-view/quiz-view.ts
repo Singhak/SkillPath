@@ -6,7 +6,6 @@ import { CardModule } from 'primeng/card';
 import { QuizService } from '../service/quiz-service';
 import { MessageService } from 'primeng/api';
 import { Timer } from '../../shared/services/timer';
-import { ChartService } from '../../shared/services/chart';
 
 @Component({
   selector: 'app-quiz-view',
@@ -18,7 +17,6 @@ import { ChartService } from '../../shared/services/chart';
 export class QuizView implements OnInit, OnDestroy {
 
 //Services
-  chartService = inject(ChartService);
   quizService = inject(QuizService);
   messanger = inject(MessageService)
   timer = inject(Timer);
