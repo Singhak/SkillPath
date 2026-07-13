@@ -1,0 +1,41 @@
+<div class="card mb-4">
+    <div class="flex items-center space-x-4">
+
+        <div class="flex-1">
+            <p-floatlabel>
+                <p-select [(ngModel)]="skill" inputId="skill_select" [options]="skills()" [showClear]="true"
+                    class="w-full">
+                </p-select>
+                <label for="skill_select">Skill</label>
+            </p-floatlabel>
+        </div>
+
+        <div class="flex-1">
+            <p-floatlabel>
+                <p-select [(ngModel)]="rating" inputId="rating_select" [options]="ratings()" [showClear]="true"
+                    class="w-full">
+                </p-select>
+                <label for="rating_select">Rating</label>
+            </p-floatlabel>
+        </div>
+
+        <div>
+            <p-button label="Add" icon="pi pi-plus-circle" (click)="onClickAdd()">
+            </p-button>
+        </div>
+
+    </div>
+</div>
+
+<!-- <p-panel header="Skill Rating" class="p-4"> -->
+<p-fieldset legend="Skill Rating" [toggleable]="true">
+    <div class="grid grid-cols-2 gap-3 mt-2">
+        <p-metergroup [value]="value"></p-metergroup>
+        <p-metergroup [value]="value"></p-metergroup>
+        <p-metergroup [value]="value"></p-metergroup>
+        <p-metergroup [value]="value"></p-metergroup>
+    </div>
+</p-fieldset>
+<!-- </p-panel> -->
+
+<app-chart-view></app-chart-view>
