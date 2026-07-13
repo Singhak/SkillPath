@@ -5,13 +5,12 @@ import { SelectModule } from 'primeng/select';
 import { FloatLabel } from "primeng/floatlabel"
 import { PanelModule } from 'primeng/panel';
 import { MeterGroup } from 'primeng/metergroup';
-import { ChartView } from "../../shared/components/chart-view/chart-view";
 import { Fieldset } from "primeng/fieldset";
 
 @Component({
   selector: 'app-skill-rate',
   standalone: true,
-  imports: [ButtonModule, SelectModule, FormsModule, FloatLabel, PanelModule, MeterGroup, ChartView,  Fieldset],
+  imports: [ButtonModule, SelectModule, FormsModule, FloatLabel, PanelModule, MeterGroup, Fieldset],
   templateUrl: './skill-rate.html',
   styleUrl: './skill-rate.css',
 })
