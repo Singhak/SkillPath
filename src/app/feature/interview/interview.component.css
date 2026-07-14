@@ -1,0 +1,19 @@
+.interview-container {
+  max-width: 800px;
+  margin: 2rem auto;
+}
+
+.question-text {
+  font-size: 1.2rem;
+  margin-bottom: 1.5rem;
+  font-weight: 500;
+}
+
+.answer-section, .feedback-section {
+  margin-top: 1.5rem;
+}
+
+.feedback-section {
+    border-top: 1px solid var(--p-surface-border-color);
+    padding-top: 1.5rem;
+}
