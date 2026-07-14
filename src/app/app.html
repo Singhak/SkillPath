@@ -1,29 +1,60 @@
 <main class="app-shell">
   <p-toast />
-  <aside class="sidebar" [class.collapsed]="sidebarCollapsed()" [class.mobile-open]="mobileMenuOpen()">
+  <aside
+    class="sidebar"
+    [class.collapsed]="sidebarCollapsed()"
+    [class.mobile-open]="mobileMenuOpen()"
+  >
     <div class="sidebar-header">
       <div class="brand">
         <div class="brand-icon"><i class="pi pi-bolt"></i></div>
         <div class="brand-title">Mordenec</div>
       </div>
       <button class="icon-button" type="button" (click)="toggleSidebar()">
-        <i class="pi" [class.pi-angle-double-left]="!sidebarCollapsed()"
-          [class.pi-angle-double-right]="sidebarCollapsed()"></i>
+        <i
+          class="pi"
+          [class.pi-angle-double-left]="!sidebarCollapsed()"
+          [class.pi-angle-double-right]="sidebarCollapsed()"
+        ></i>
       </button>
     </div>
 
     <nav class="sidebar-nav">
-      <a class="nav-item" [routerLink]="'/'" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
+      <a
+        class="nav-item"
+        [routerLink]="'/'"
+        routerLinkActive="active"
+        [routerLinkActiveOptions]="{ exact: true }"
+      >
         <i class="pi pi-home"></i>
         <span>Overview</span>
       </a>
-      <a class="nav-item" [routerLink]="'/quiz'" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
+      <a
+        class="nav-item"
+        [routerLink]="'/quiz'"
+        routerLinkActive="active"
+        [routerLinkActiveOptions]="{ exact: true }"
+      >
         <i class="pi pi-play"></i>
         <span>Quizzes</span>
       </a>
-      <a class="nav-item" href="#">
+      <a
+        class="nav-item"
+        [routerLink]="'/skills'"
+        routerLinkActive="active"
+        [routerLinkActiveOptions]="{ exact: true }"
+      >
         <i class="pi pi-chart-bar"></i>
-        <span>Analytics</span>
+        <span>Skills</span>
+      </a>
+      <a
+        class="nav-item"
+        [routerLink]="'/interview'"
+        routerLinkActive="active"
+        [routerLinkActiveOptions]="{ exact: true }"
+      >
+        <i class="pi pi-microchip-ai"></i>
+        <span>Skills</span>
       </a>
       <a class="nav-item" href="#">
         <i class="pi pi-cog"></i>
@@ -41,8 +72,8 @@
       </div>
     </div>
   </aside>
-  @if(mobileMenuOpen()){
-  <div class="mobile-backdrop" (click)="closeSidebar()"></div>
+  @if (mobileMenuOpen()) {
+    <div class="mobile-backdrop" (click)="closeSidebar()"></div>
   }
 
   <div class="content-shell">
@@ -51,6 +82,8 @@
         <i class="pi pi-bars"></i>
       </button>
     </div>
-    <router-outlet />
+    <div class="page-content">
+      <router-outlet />
+    </div>
   </div>
 </main>

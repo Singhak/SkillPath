@@ -30,7 +30,7 @@
   display: flex;
   min-height: 100dvh;
   height: 100dvh;
-  overflow: hidden;
+  /* overflow: hidden; */
 }
 
 .content-shell {
@@ -55,6 +55,12 @@
   overflow: hidden;
 }
 
+.page-content {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
 .sidebar {
   width: 270px;
   background: rgba(15, 23, 42, 0.97);
@@ -64,7 +70,9 @@
   flex-direction: column;
   justify-content: space-between;
   gap: 1rem;
-  transition: width 0.25s ease, transform 0.25s ease;
+  transition:
+    width 0.25s ease,
+    transform 0.25s ease;
   position: sticky;
   top: 0;
   height: 100dvh;
@@ -149,7 +157,9 @@
   border-radius: 12px;
   color: #e2e8f0;
   text-decoration: none;
-  transition: background 0.2s ease, transform 0.2s ease;
+  transition:
+    background 0.2s ease,
+    transform 0.2s ease;
 }
 
 .nav-item:hover,
@@ -300,11 +310,21 @@
   color: white;
 }
 
-.accent-blue { background: linear-gradient(135deg, #3b82f6, #2563eb); }
-.accent-amber { background: linear-gradient(135deg, #f59e0b, #f97316); }
-.accent-green { background: linear-gradient(135deg, #10b981, #059669); }
-.accent-violet { background: linear-gradient(135deg, #8b5cf6, #6366f1); }
-.accent-orange { background: linear-gradient(135deg, #fb923c, #f97316); }
+.accent-blue {
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+}
+.accent-amber {
+  background: linear-gradient(135deg, #f59e0b, #f97316);
+}
+.accent-green {
+  background: linear-gradient(135deg, #10b981, #059669);
+}
+.accent-violet {
+  background: linear-gradient(135deg, #8b5cf6, #6366f1);
+}
+.accent-orange {
+  background: linear-gradient(135deg, #fb923c, #f97316);
+}
 
 .stat-label {
   margin: 0;
