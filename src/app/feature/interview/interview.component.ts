@@ -1,20 +1,20 @@
-import { Component, computed, DestroyRef, inject, signal } from '@angular/core';
+import { Component, DestroyRef, computed, inject, signal } from '@angular/core';
 
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
-import { InputTextModule } from 'primeng/inputtext';
-import { TextareaModule } from 'primeng/textarea';
-import { ProgressBarModule } from 'primeng/progressbar';
-import { KnobModule } from 'primeng/knob';
-import { TagModule } from 'primeng/tag';
 import { ChipModule } from 'primeng/chip';
 import { DividerModule } from 'primeng/divider';
+import { InputTextModule } from 'primeng/inputtext';
+import { KnobModule } from 'primeng/knob';
+import { ProgressBarModule } from 'primeng/progressbar';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
-
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { TagModule } from 'primeng/tag';
+import { TextareaModule } from 'primeng/textarea';
 
 import { InterviewService } from '../../core/services/interview.service';
 import { VoiceService } from '../../shared/services/voice-service';
@@ -30,85 +30,151 @@ import { VoiceService } from '../../shared/services/voice-service';
     InputTextModule,
     TextareaModule,
     ProgressBarModule,
-    KnobModule,
-    TagModule,
-    ChipModule,
     ProgressSpinnerModule,
     DividerModule,
+    ChipModule,
+    TagModule,
+    KnobModule,
   ],
   templateUrl: './interview.component.html',
   styleUrls: ['./interview.component.css'],
 })
 export class InterviewComponent {
-  private interviewService = inject(InterviewService);
-  private voiceService = inject(VoiceService);
-  private destroyRef = inject(DestroyRef);
+  private readonly interviewService = inject(InterviewService);
+  private readonly voiceService = inject(VoiceService);
+  private readonly destroyRef = inject(DestroyRef);
 
-  // --------------------
-  // Interview State
-  // --------------------
+  readonly interviewTips = [
+    'Explain concepts clearly',
+    'Give practical examples',
+    'Mention trade-offs',
+    'Speak confidently',
+  ];
+
+  // ------------------------------------------------
+  // UI State
+  // ------------------------------------------------
 
   topic = signal('');
 
-  interviewState = computed(() => this.interviewService.session());
-
-  currentQuestion = computed(() => this.interviewService.currentQuestion());
-
-  isFinished = computed(() => this.interviewService.isInterviewFinished());
-
-  // --------------------
-  // Voice
-  // --------------------
-
-  voiceState$ = this.voiceService.state$;
-
   userAnswer = signal('');
 
-  // --------------------
-  // AI Evaluation
-  // --------------------
+  // ------------------------------------------------
+  // Voice
+  // ------------------------------------------------
 
-  evaluating = signal(false);
+  readonly voiceState$ = this.voiceService.state$;
 
-  feedback = signal('');
+  // ------------------------------------------------
+  // Interview Store
+  // ------------------------------------------------
 
-  score = signal<number | null>(null);
+  readonly session = this.interviewService.session;
 
-  idealAnswer = signal<string | null>(null);
+  readonly currentQuestion = this.interviewService.currentQuestion;
 
-  // --------------------
-  // Final Result
-  // --------------------
+  readonly currentResult = this.interviewService.currentResult;
 
-  finalScore = signal<number | null>(null);
+  readonly results = this.interviewService.results;
+
+  readonly evaluating = this.interviewService.evaluating;
+
+  readonly progress = this.interviewService.progress;
+
+  readonly finalScore = this.interviewService.finalScore;
+
+  readonly isFinished = this.interviewService.isInterviewFinished;
+
+  isRecordinStop = signal(false);
 
   constructor() {
-    this.voiceService.state$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((state) => {
+    this.voiceState$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((state) => {
       if (state.transcript) {
         this.userAnswer.set(state.transcript);
+      }
+      if (!state.listening) {
+        this.isRecordinStop.set(true);
       }
     });
   }
 
-  // --------------------
-  // Start Interview
-  // --------------------
+  // ------------------------------------------------
+  // Interview
+  // ------------------------------------------------
 
-  startInterview() {
-    const value = this.topic().trim();
+  startInterview(): void {
+    const topic = this.topic().trim();
 
-    if (!value) {
+    if (!topic) {
       return;
     }
 
-    this.interviewService.startInterview(value).subscribe();
+    this.interviewService
+      .startInterview(topic)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe();
   }
 
-  // --------------------
-  // Read Question
-  // --------------------
+  endInterview(): void {
+    this.interviewService.endInterview();
 
-  speakQuestion(text?: string) {
+    this.topic.set('');
+
+    this.userAnswer.set('');
+
+    this.voiceService.stopListening();
+
+    this.voiceService.stopSpeaking();
+  }
+
+  nextQuestion(): void {
+    this.userAnswer.set('');
+
+    this.interviewService.nextQuestion();
+  }
+
+  // ------------------------------------------------
+  // Voice
+  // ------------------------------------------------
+
+  startRecording(): void {
+    this.userAnswer.set('');
+
+    this.interviewService.clearCurrentResult();
+
+    this.voiceService.startListening('en-US');
+  }
+
+  stopRecording() {
+    this.voiceService.stopListening();
+  }
+
+  stopRecordingAndEvaluate(): void {
+    this.voiceService.stopListening();
+
+    const answer = this.userAnswer().trim();
+
+    if (!answer) {
+      return;
+    }
+
+    this.interviewService
+      .submitAnswer(answer)
+      ?.pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => {
+        const result = this.currentResult();
+
+        if (result) {
+          this.voiceService.speak(result.feedback);
+        }
+      });
+  }
+
+  // ------------------------------------------------
+  // Speech
+  // ------------------------------------------------
+
+  speakQuestion(text?: string): void {
     const question = text ?? this.currentQuestion()?.text;
 
     if (!question) {
@@ -119,109 +185,5 @@ export class InterviewComponent {
       lang: 'en-US',
       rate: 0.9,
     });
-  }
-
-  // --------------------
-  // Voice Answer
-  // --------------------
-
-  startRecording() {
-    this.userAnswer.set('');
-
-    this.feedback.set('');
-
-    this.score.set(null);
-
-    this.idealAnswer.set(null);
-
-    this.voiceService.startListening('en-US');
-  }
-
-  stopRecordingAndEvaluate() {
-    this.voiceService.stopListening();
-
-    const answer = this.userAnswer().trim();
-
-    if (!answer) {
-      return;
-    }
-
-    this.evaluateAnswer(answer);
-  }
-
-  private evaluateAnswer(answer: string) {
-    this.evaluating.set(true);
-
-    this.interviewService
-      .submitAnswer(answer)
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: (response: any) => {
-          /*
-             Expected API response:
-
-             {
-                score:8,
-                feedback:"Good answer",
-                idealAnswer:"Signals are..."
-             }
-
-          */
-
-          this.score.set(response.score);
-
-          this.feedback.set(response.feedback);
-
-          this.idealAnswer.set(response.idealAnswer);
-
-          this.evaluating.set(false);
-
-          // AI speaks feedback
-
-          this.voiceService.speak(response.feedback);
-        },
-
-        error: () => {
-          this.evaluating.set(false);
-
-          this.feedback.set('Unable to evaluate answer. Please try again.');
-        },
-      });
-  }
-
-  // --------------------
-  // Next Question
-  // --------------------
-
-  nextQuestion() {
-    this.userAnswer.set('');
-
-    this.feedback.set('');
-
-    this.score.set(null);
-
-    this.idealAnswer.set(null);
-
-    this.interviewService.nextQuestion();
-  }
-
-  // --------------------
-  // Finish
-  // --------------------
-
-  endInterview() {
-    this.interviewService.endInterview();
-
-    this.topic.set('');
-
-    this.userAnswer.set('');
-
-    this.feedback.set('');
-
-    this.score.set(null);
-
-    this.idealAnswer.set(null);
-
-    this.finalScore.set(null);
   }
 }

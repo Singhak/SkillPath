@@ -1,7 +1,7 @@
-<div class="interview-container surface-ground p-4">
+<div class="interview-container surface-ground">
   <!-- START SCREEN -->
-  @if (!interviewState()) {
-    <div class="min-h-screen flex items-center justify-center bg-gray-50 p-6">
+  @if (!session()) {
+    <div class="max-h-screen flex items-center justify-center bg-gray-50 p-6">
       <p-card class="w-full max-w-xl shadow-lg rounded-2xl">
         <ng-template pTemplate="header">
           <div class="bg-linear-to-r from-blue-600 to-indigo-600 text-white p-6 rounded-t-2xl">
@@ -74,7 +74,7 @@
   }
 
   <!-- INTERVIEW ACTIVE -->
-  @if (interviewState(); as session) {
+  @if (session(); as session) {
     @if (!isFinished()) {
       <div class="grid grid-cols-12 gap-6">
         <!-- LEFT SIDE -->
@@ -87,7 +87,7 @@
                     <span class="text-sm text-gray-500"> Question </span>
 
                     <h3 class="text-2xl font-bold m-0 mt-1">
-                      {{ session.currentQuestionIndex + 1 }}
+                      {{ results().length }}
 
                       /
 
@@ -161,14 +161,23 @@
                       [disabled]="evaluating()"
                     >
                     </p-button>
-                  } @else {
+                  } @else if (isRecordinStop()) {
                     <p-button
-                      label="Stop & Evaluate"
+                      label="Evaluate"
+                      icon="pi pi-stop-circle"
+                      severity="warn"
+                      size="large"
+                      styleClass="px-6"
+                      (click)="stopRecordingAndEvaluate()"
+                    >
+                    </p-button>
+                    <p-button
+                      label="Stop"
                       icon="pi pi-stop-circle"
                       severity="danger"
                       size="large"
                       styleClass="px-6"
-                      (click)="stopRecordingAndEvaluate()"
+                      (click)="stopRecording()"
                     >
                     </p-button>
                   }
@@ -185,7 +194,7 @@
 
               @if (evaluating()) {
                 <div class="flex items-center justify-center gap-3 bg-blue-50 rounded-xl p-4 mt-6">
-                  <p-progressSpinner styleClass="w-8 h-8"> </p-progressSpinner>
+                  <p-progressSpinner class="w-8 h-8"> </p-progressSpinner>
 
                   <span class="text-gray-700"> AI is evaluating your answer... </span>
                 </div>
@@ -193,39 +202,35 @@
 
               <!-- FEEDBACK -->
 
-              @if (feedback(); as feedbackText) {
+              @if (currentResult(); as result) {
                 <p-divider></p-divider>
 
                 <div class="bg-white border rounded-xl p-5 shadow-sm">
                   <div class="flex items-center justify-between">
                     <div class="flex items-center gap-3">
-                      <i class="pi pi-star-fill text-yellow-500 text-xl"> </i>
+                      <i class="pi pi-star-fill text-yellow-500 text-xl"></i>
 
-                      <h3 class="text-xl font-bold m-0">AI Feedback</h3>
+                      <h3 class="text-xl font-bold">AI Feedback</h3>
                     </div>
 
-                    @if (score() !== null) {
-                      <p-chip icon="pi pi-chart-line" label="{{ score() }} / 10"> </p-chip>
-                    }
+                    <p-chip icon="pi pi-chart-line" [label]="result.score + ' / 10'"> </p-chip>
                   </div>
 
                   <p class="leading-relaxed mt-4 text-gray-700">
-                    {{ feedbackText }}
+                    {{ result.feedback }}
                   </p>
 
-                  @if (idealAnswer(); as answer) {
-                    <div class="bg-gray-100 rounded-xl p-4 mt-5">
-                      <h4 class="font-bold">
-                        <i class="pi pi-lightbulb text-yellow-500"></i>
+                  <div class="bg-gray-100 rounded-xl p-4 mt-5">
+                    <h4 class="font-bold">
+                      <i class="pi pi-lightbulb text-yellow-500 mr-2"></i>
 
-                        Ideal Answer
-                      </h4>
+                      Ideal Answer
+                    </h4>
 
-                      <p class="leading-relaxed">
-                        {{ answer }}
-                      </p>
-                    </div>
-                  }
+                    <p class="leading-relaxed mt-3">
+                      {{ result.idealAnswer }}
+                    </p>
+                  </div>
 
                   <div class="flex justify-end mt-6">
                     <p-button
@@ -247,15 +252,7 @@
         <div class="col-span-12 lg:col-span-4">
           <p-card header="Interview Tips" class="shadow-md">
             <div class="flex flex-col gap-4">
-              @for (
-                tip of [
-                  'Explain concepts clearly',
-                  'Give practical examples',
-                  'Mention trade-offs',
-                  'Speak confidently',
-                ];
-                track tip
-              ) {
+              @for (tip of interviewTips; track tip) {
                 <div class="flex items-center gap-3">
                   <i class="pi pi-check-circle text-green-500"></i>
 
@@ -278,6 +275,26 @@
               </div>
 
               <span class="text-gray-500 mt-2"> Questions Completed </span>
+            </div>
+          </p-card>
+          <!-- Previous Answers -->
+          <p-card header="Completed Questions" class="mt-5 shadow-md">
+            <div class="flex flex-col gap-3">
+              @for (result of results(); track result.question.id) {
+                <div class="flex justify-between items-center bg-gray-50 rounded-lg p-3">
+                  <div class="flex items-center gap-2">
+                    <i class="pi pi-check-circle text-green-500"></i>
+
+                    <span class="font-medium"> Q{{ result.question.id }} </span>
+                  </div>
+
+                  <p-chip [label]="result.score + '/10'"> </p-chip>
+                </div>
+              }
+
+              @if (results().length === 0) {
+                <p class="text-gray-500 text-center">No answers evaluated yet</p>
+              }
             </div>
           </p-card>
         </div>
@@ -312,14 +329,9 @@
               interview.
             </div>
 
-            @if (finalScore() !== null) {
+            @if (finalScore(); as score) {
               <div class="bg-gray-50 rounded-2xl p-5 shadow-inner">
-                <p-knob
-                  [ngModel]="finalScore()"
-                  [readonly]="true"
-                  [size]="150"
-                  valueTemplate="{value}%"
-                >
+                <p-knob [ngModel]="score" [readonly]="true" [size]="150" valueTemplate="{value}%">
                 </p-knob>
 
                 <p class="font-semibold mt-3 text-gray-700">Overall Score</p>
