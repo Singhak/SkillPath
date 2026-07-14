@@ -1,11 +1,11 @@
 import { Component, OnInit, signal } from '@angular/core';
-import { RouterOutlet, RouterLinkWithHref, RouterLinkActive } from '@angular/router';
+import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
 import { MenuItem, MessageService } from 'primeng/api';
 import { ToastModule } from 'primeng/toast';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, ToastModule, RouterLinkWithHref, RouterLinkActive],
+  imports: [RouterOutlet, ToastModule, RouterLink, RouterLinkActive],
   templateUrl: './app.html',
   styleUrl: './app.css'
 })
