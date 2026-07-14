@@ -1,4 +1,4 @@
-import { Component, DestroyRef, computed, inject, signal } from '@angular/core';
+import { Component, DestroyRef, computed, effect, inject, signal } from '@angular/core';
 
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -85,17 +85,32 @@ export class InterviewComponent {
 
   readonly isFinished = this.interviewService.isInterviewFinished;
 
-  isRecordinStop = signal(false);
+  isRecording = signal(false);
+  isEditingAnswer = signal(true); // User can edit answer by default (before recording)
 
   constructor() {
     this.voiceState$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((state) => {
       if (state.transcript) {
         this.userAnswer.set(state.transcript);
       }
-      if (!state.listening) {
-        this.isRecordinStop.set(true);
+      this.isRecording.set(state.listening);
+      if (!state.listening && !this.evaluating()) {
+        this.isEditingAnswer.set(true);
       }
     });
+
+    // Watch for evaluation state changes to control editing
+    effect(
+      () => {
+        if (this.evaluating()) {
+          this.isEditingAnswer.set(false); // Disable editing while evaluating
+        } else if (!this.isRecording()) {
+          this.isEditingAnswer.set(true); // Enable editing if not evaluating and not recording
+        }
+        console.log('Evaluation state changed (via effect):', this.evaluating());
+      },
+      { allowSignalWrites: false },
+    );
   }
 
   // ------------------------------------------------
@@ -122,6 +137,8 @@ export class InterviewComponent {
 
     this.userAnswer.set('');
 
+    this.isEditingAnswer.set(true); // Reset editing state
+    this.isRecording.set(false); // Reset recording state
     this.voiceService.stopListening();
 
     this.voiceService.stopSpeaking();
@@ -129,8 +146,14 @@ export class InterviewComponent {
 
   nextQuestion(): void {
     this.userAnswer.set('');
+    this.isEditingAnswer.set(true); // Allow editing for the next question
+    this.isRecording.set(false); // Ensure recording is off
 
     this.interviewService.nextQuestion();
+  }
+
+  onUserAnswerInput(value: string): void {
+    this.userAnswer.set(value);
   }
 
   // ------------------------------------------------
@@ -142,15 +165,18 @@ export class InterviewComponent {
 
     this.interviewService.clearCurrentResult();
 
+    this.isEditingAnswer.set(false); // Disable editing while recording
     this.voiceService.startListening('en-US');
   }
 
   stopRecording() {
     this.voiceService.stopListening();
+    // The voiceState$ subscription will handle setting isRecording to false and isEditingAnswer to true
   }
 
   stopRecordingAndEvaluate(): void {
     this.voiceService.stopListening();
+    this.isEditingAnswer.set(false); // Disable editing during evaluation
 
     const answer = this.userAnswer().trim();
 
@@ -163,7 +189,7 @@ export class InterviewComponent {
       ?.pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(() => {
         const result = this.currentResult();
-
+        this.voiceService.setStateIdle();
         if (result) {
           this.voiceService.speak(result.feedback);
         }

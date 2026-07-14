@@ -141,7 +141,7 @@
                   rows="6"
                   class="w-full mt-2 rounded-lg resize-none"
                   [value]="userAnswer()"
-                  readonly
+                  [readonly]="!isEditingAnswer()"
                   placeholder="Your spoken answer will appear here..."
                 >
                 </textarea>
@@ -151,39 +151,55 @@
 
               @if (voiceState$ | async; as voice) {
                 <div class="flex justify-center mt-6">
-                  @if (!voice.listening) {
+                  @if (voice.idle) {
                     <p-button
                       label="Start Speaking"
                       icon="pi pi-microphone"
                       size="large"
-                      styleClass="px-6"
+                      class="px-6"
                       (click)="startRecording()"
-                      [disabled]="evaluating()"
+                      [disabled]="evaluating() || !isEditingAnswer()"
                     >
                     </p-button>
-                  } @else if (isRecordinStop()) {
+                  }
+                  @if (isRecording()) {
                     <p-button
-                      label="Evaluate"
-                      icon="pi pi-stop-circle"
-                      severity="warn"
-                      size="large"
-                      styleClass="px-6"
-                      (click)="stopRecordingAndEvaluate()"
-                    >
-                    </p-button>
-                    <p-button
-                      label="Stop"
-                      icon="pi pi-stop-circle"
+                      label="Stop Recording"
+                      icon="pi pi-check"
                       severity="danger"
                       size="large"
-                      styleClass="px-6"
+                      class="px-6"
                       (click)="stopRecording()"
                     >
                     </p-button>
                   }
+                  @if (!isRecording() && !voice.idle) {
+                    <div class="flex gap-3">
+                      <p-button
+                        label="Start Again"
+                        icon="pi pi-refresh"
+                        severity="secondary"
+                        size="large"
+                        class="px-6"
+                        (click)="startRecording()"
+                      >
+                      </p-button>
+
+                      <p-button
+                        label="Evaluate"
+                        icon="pi pi-check"
+                        severity="warn"
+                        size="large"
+                        class="px-6"
+                        (click)="stopRecordingAndEvaluate()"
+                        [disabled]="evaluating() || !userAnswer().trim()"
+                      >
+                      </p-button>
+                    </div>
+                  }
                 </div>
 
-                @if (voice.listening) {
+                @if (isRecording()) {
                   <div class="flex justify-center mt-4">
                     <p-tag severity="danger" icon="pi pi-microphone" value="Listening..."> </p-tag>
                   </div>
