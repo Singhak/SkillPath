@@ -12,7 +12,7 @@ import { ToastModule } from 'primeng/toast';
 export class App implements OnInit {
 
   readonly mobileMenuOpen = signal(false);
-  protected readonly title = signal('mordenec');
+  protected readonly title = signal('SkillPath');
   readonly sidebarCollapsed = signal(true);
   constructor(private messageService: MessageService) { }
   ngOnInit(): void {
