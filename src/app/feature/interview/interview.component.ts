@@ -18,6 +18,7 @@ import { TextareaModule } from 'primeng/textarea';
 
 import { InterviewService } from '../../core/services/interview.service';
 import { VoiceService } from '../../shared/services/voice-service';
+import { PanelModule } from 'primeng/panel';
 
 @Component({
   selector: 'app-interview',
@@ -35,6 +36,7 @@ import { VoiceService } from '../../shared/services/voice-service';
     ChipModule,
     TagModule,
     KnobModule,
+    PanelModule
   ],
   templateUrl: './interview.component.html',
   styleUrls: ['./interview.component.css'],
@@ -111,6 +113,11 @@ export class InterviewComponent {
       },
       { allowSignalWrites: false },
     );
+
+    effect(() => {
+      console.log(this.currentQuestion())
+      this.speakQuestion(this.currentQuestion()?.text)
+    })
   }
 
   // ------------------------------------------------
@@ -210,6 +217,7 @@ export class InterviewComponent {
     this.voiceService.speak(question, {
       lang: 'en-US',
       rate: 0.9,
+      voiceName:'female'
     });
   }
 }

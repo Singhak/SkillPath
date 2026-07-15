@@ -2,7 +2,7 @@
   <!-- START SCREEN -->
   @if (!session()) {
     <div class="max-h-screen flex items-center justify-center bg-gray-50 p-6">
-      <p-card class="w-full max-w-xl shadow-lg rounded-2xl">
+      <p-card class="w-full shadow-lg rounded-2xl">
         <ng-template pTemplate="header">
           <div class="bg-linear-to-r from-blue-600 to-indigo-600 text-white p-6 rounded-t-2xl">
             <div class="flex items-center gap-3">
@@ -266,7 +266,7 @@
         <!-- RIGHT SIDE -->
 
         <div class="col-span-12 lg:col-span-4">
-          <p-card header="Interview Tips" class="shadow-md">
+          <p-panel header="Interview Tips" class="shadow-md" [toggleable]="true">
             <div class="flex flex-col gap-4">
               @for (tip of interviewTips; track tip) {
                 <div class="flex items-center gap-3">
@@ -278,9 +278,9 @@
                 </div>
               }
             </div>
-          </p-card>
+          </p-panel>
 
-          <p-card header="Progress" class="mt-5 shadow-md">
+          <p-panel header="Progress" class="mt-5 shadow-md" [toggleable]="true">
             <div class="flex flex-col items-center">
               <div class="text-5xl font-bold text-primary">
                 {{ session.currentQuestionIndex + 1 }}
@@ -292,9 +292,9 @@
 
               <span class="text-gray-500 mt-2"> Questions Completed </span>
             </div>
-          </p-card>
+          </p-panel>
           <!-- Previous Answers -->
-          <p-card header="Completed Questions" class="mt-5 shadow-md">
+          <p-panel header="Completed Questions" class="mt-5 shadow-md" [toggleable]="true">
             <div class="flex flex-col gap-3">
               @for (result of results(); track result.question.id) {
                 <div class="flex justify-between items-center bg-gray-50 rounded-lg p-3">
@@ -312,7 +312,7 @@
                 <p class="text-gray-500 text-center">No answers evaluated yet</p>
               }
             </div>
-          </p-card>
+          </p-panel>
         </div>
       </div>
     } @else {

@@ -9,10 +9,11 @@ import { Select } from 'primeng/select';
 import { TableModule } from 'primeng/table';
 import { QuizService } from '../service/quiz-service';
 import { Router } from '@angular/router';
+import { PanelModule } from 'primeng/panel';
 
 @Component({
   selector: 'app-dashboard',
-  imports: [CommonModule, CardModule, ChartModule, TableModule, DividerModule, FloatLabel, Select, FormsModule],
+  imports: [CommonModule, CardModule, ChartModule, TableModule, DividerModule, FloatLabel, Select, FormsModule, PanelModule],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.css',
 })

@@ -1,100 +1,108 @@
 <div class="p-3">
-    <header class="topbar mb-1.5">
-        <div class="topbar-title">
-            <p class="eyebrow">Performance overview</p>
-            <h2>Quiz dashboard</h2>
-        </div>
-        <button class="primary-action" type="button" (click)="onNewQuiz()">
-            <i class="pi pi-plus"></i>
-            <span>New quiz</span>
-        </button>
-    </header>
+  <header class="topbar mb-1.5">
+    <div class="topbar-title">
+      <p class="eyebrow">Performance overview</p>
+      <h2>Quiz dashboard</h2>
+    </div>
+    <button class="primary-action" type="button" (click)="onNewQuiz()">
+      <i class="pi pi-plus"></i>
+      <span>New quiz</span>
+    </button>
+  </header>
 
-    <main class="dashboard-main">
-        <section class="hero-card">
+  <main class="dashboard-main">
+    <section class="hero-card">
+      <div>
+        <p class="eyebrow">Today</p>
+        <h3>Keep learners engaged with polished insights.</h3>
+        <p>
+          Track attempt trends, accuracy, and participation without losing focus on the journey.
+        </p>
+      </div>
+      <div class="hero-badge">
+        <span class="hero-badge-label">Live</span>
+        <strong>+12% growth</strong>
+      </div>
+    </section>
+
+    <div class="stats-grid sm:col-2">
+      @for (card of summaryCards(); track card) {
+        <div class="stat-card">
+          <div class="stat-card-icon" [ngClass]="'accent-' + card.accent">
+            <i class="{{ card.icon }}"></i>
+          </div>
+          <div>
+            <p class="stat-label">{{ card.label }}</p>
+            <h4>{{ card.value }}</h4>
+          </div>
+        </div>
+      }
+    </div>
+
+    <p-panel header="Performance Chart" toggleable>
+      <div class="content-grid" toggleable>
+        <div class="panel">
+          <div class="panel-header">
             <div>
-                <p class="eyebrow">Today</p>
-                <h3>Keep learners engaged with polished insights.</h3>
-                <p>Track attempt trends, accuracy, and participation without losing focus on the journey.</p>
+              <p class="eyebrow">Trend</p>
+              <!-- <h3>Attempt performance</h3> -->
             </div>
-            <div class="hero-badge">
-                <span class="hero-badge-label">Live</span>
-                <strong>+12% growth</strong>
-            </div>
-        </section>
-
-        <div class="stats-grid sm:col-2">
-            @for (card of summaryCards(); track card) {
-            <div class="stat-card">
-                <div class="stat-card-icon" [ngClass]="'accent-' + card.accent">
-                    <i class="{{ card.icon }}"></i>
-                </div>
-                <div>
-                    <p class="stat-label">{{ card.label }}</p>
-                    <h4>{{ card.value }}</h4>
-                </div>
-            </div>
-            }
-        </div>
-
-        <div class="content-grid">
-            <div class="panel">
-                <div class="panel-header">
-                    <div>
-                        <p class="eyebrow">Trend</p>
-                        <h3>Attempt performance</h3>
-                    </div>
-                    <p-floatlabel class="filter-field" variant="on">
-                        <p-select [(ngModel)]="selectChartCategory" inputId="category_select" [options]="categoryList()"
-                            class="w-full"></p-select>
-                        <label for="category_select">Category</label>
-                    </p-floatlabel>
-                </div>
-                <p-chart type="line" [data]="lineData()" [options]="chartOptions"></p-chart>
-            </div>
-
-            <div class="panel">
-                <div class="panel-header">
-                    <div>
-                        <p class="eyebrow">Split</p>
-                        <h3>Category mix</h3>
-                    </div>
-                </div>
-                <p-chart type="pie" [data]="pieData()" [options]="chartOptions"></p-chart>
-            </div>
+            <p-floatlabel class="filter-field" variant="on">
+              <p-select
+                [(ngModel)]="selectChartCategory"
+                inputId="category_select"
+                [options]="categoryList()"
+                class="w-full"
+              ></p-select>
+              <label for="category_select">Category</label>
+            </p-floatlabel>
+          </div>
+          <p-chart type="line" [data]="lineData()" [options]="chartOptions"></p-chart>
         </div>
 
         <div class="panel">
-            <div class="panel-header">
-                <div>
-                    <p class="eyebrow">Activity</p>
-                    <h3>Recent quiz attempts</h3>
-                </div>
+          <div class="panel-header">
+            <div>
+              <p class="eyebrow">Split</p>
+              <h3>Category mix</h3>
             </div>
-
-            <p-table [value]="quizAttempts()" [tableStyle]="{'min-width': '100%'}" showGridlines>
-                <ng-template pTemplate="header">
-                    <tr>
-                        <th>User</th>
-                        <th>Category</th>
-                        <th>Questions</th>
-                        <th>Score</th>
-                        <th>Time</th>
-                        <th>Hints</th>
-                    </tr>
-                </ng-template>
-
-                <ng-template pTemplate="body" let-row>
-                    <tr>
-                        <td>{{ row.user_id }}</td>
-                        <td>{{ row.category }}</td>
-                        <td>{{ row.question_attemped }}</td>
-                        <td>{{ row.score }}</td>
-                        <td>{{ row.time_taken }}</td>
-                        <td>{{ row.hints_count }}</td>
-                    </tr>
-                </ng-template>
-            </p-table>
+          </div>
+          <p-chart type="pie" [data]="pieData()" [options]="chartOptions"></p-chart>
         </div>
-    </main>
+      </div>
+    </p-panel>
+
+    <p-panel header="Recent quiz attempts" toggleable>
+      <!-- <div class="panel-header">
+        <div>
+          <p class="eyebrow">Activity</p>
+          <h3>Recent quiz attempts</h3>
+        </div>
+      </div> -->
+
+      <p-table [value]="quizAttempts()" [tableStyle]="{ 'min-width': '100%' }" showGridlines>
+        <ng-template pTemplate="header">
+          <tr>
+            <th>User</th>
+            <th>Category</th>
+            <th>Questions</th>
+            <th>Score</th>
+            <th>Time</th>
+            <th>Hints</th>
+          </tr>
+        </ng-template>
+
+        <ng-template pTemplate="body" let-row>
+          <tr>
+            <td>{{ row.user_id }}</td>
+            <td>{{ row.category }}</td>
+            <td>{{ row.question_attemped }}</td>
+            <td>{{ row.score }}</td>
+            <td>{{ row.time_taken }}</td>
+            <td>{{ row.hints_count }}</td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </p-panel>
+  </main>
 </div>
