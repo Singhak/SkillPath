@@ -2,9 +2,11 @@ import { HttpErrorResponse, HttpInterceptorFn } from '@angular/common/http';
 import { catchError, throwError } from 'rxjs';
 import { MessageService } from 'primeng/api';
 import { inject } from '@angular/core';
+import { LoggingService } from '../services/logging.service';
 
 export const globalErrorInterceptor: HttpInterceptorFn = (req, next) => {
   const toastr = inject(MessageService);
+  const loggingService = inject(LoggingService);
   return next(req).pipe(
     catchError((error: HttpErrorResponse) => {
       let errorMessage = 'An unknown error occurred!';
@@ -33,7 +35,7 @@ export const globalErrorInterceptor: HttpInterceptorFn = (req, next) => {
       }
 
       // Log the error globally to the console or an external tracking service
-      console.error('Global Error Handler:', errorMessage);
+      loggingService.error('Global Error Handler:', errorMessage);
 
       toastr.add({ severity: 'error', summary: 'Error', detail: errorMessage, life: 3000 });
 
