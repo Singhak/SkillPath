@@ -1,0 +1,71 @@
+<p-card>
+  <section class="home-hero">
+    <div class="hero-copy">
+      <p class="eyebrow">SkillPath for confident interview prep</p>
+      <h1>Turn practice into momentum with a guided interview experience.</h1>
+      <p class="hero-text">
+        Mordenec helps you build confidence through focused quizzes, smart feedback, and a simple
+        path to improve every day.
+      </p>
+
+      <div class="hero-actions">
+        <p-button
+          label="Create account"
+          icon="pi pi-user-plus"
+          styleClass="p-button-rounded p-button-lg"
+          routerLink="/sign-up"
+        ></p-button>
+        <p-button
+          label="Log in"
+          icon="pi pi-sign-in"
+          styleClass="p-button-outlined p-button-rounded p-button-lg"
+          routerLink="/login"
+        ></p-button>
+      </div>
+
+      <div class="hero-highlights">
+        <div>
+          <strong>4+</strong>
+          <span>Practice modes</span>
+        </div>
+        <div>
+          <strong>24/7</strong>
+          <span>Flexible prep</span>
+        </div>
+        <div>
+          <strong>Real-time</strong>
+          <span>Progress insight</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="hero-card">
+      <p-card header="Why this app helps you grow">
+        <ul class="feature-list">
+          <li><i class="pi pi-bolt"></i> Practice interview questions without pressure.</li>
+          <li>
+            <i class="pi pi-sliders-h"></i> Track your strengths and the areas that need attention.
+          </li>
+          <li>
+            <i class="pi pi-compass"></i> Follow a clear path from preparation to confident
+            delivery.
+          </li>
+        </ul>
+      </p-card>
+    </div>
+  </section>
+
+  <p-divider></p-divider>
+
+  <section class="feature-grid">
+    @for (feature of features; track feature.title) {
+      <div class="feature-card">
+        <div class="feature-icon">
+          <i class="{{ feature.icon }}"></i>
+        </div>
+        <h3>{{ feature.title }}</h3>
+        <p>{{ feature.description }}</p>
+      </div>
+    }
+  </section>
+</p-card>
