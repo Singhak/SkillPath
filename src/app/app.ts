@@ -1,22 +1,47 @@
-import { Component, OnInit, signal } from '@angular/core';
-import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
-import { MenuItem, MessageService } from 'primeng/api';
+import { Component, computed, inject, signal } from '@angular/core';
+import { Router, RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
+import { MessageService } from 'primeng/api';
 import { ToastModule } from 'primeng/toast';
+import { AuthService } from './core/services/auth.service';
+import { CommonModule } from '@angular/common';
+import { ButtonModule } from 'primeng/button';
+import { RippleModule } from 'primeng/ripple';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, ToastModule, RouterLink, RouterLinkActive],
+  standalone: true,
+  imports: [
+    CommonModule,
+    RouterOutlet,
+    RouterLink,
+    RouterLinkActive,
+    ToastModule,
+    ButtonModule,
+    RippleModule,
+  ],
   templateUrl: './app.html',
-  styleUrl: './app.css'
+  styleUrl: './app.css',
 })
-export class App implements OnInit {
-
+export class App {
+  private authService = inject(AuthService);
+  private router = inject(Router);
   readonly mobileMenuOpen = signal(false);
   protected readonly title = signal('SkillPath');
   readonly sidebarCollapsed = signal(true);
-  constructor(private messageService: MessageService) { }
-  ngOnInit(): void {
-  }
+  currentUser = this.authService.currentUser;
+  isAuthenticated = this.authService.isAuthenticated;
+  userInitials = computed(() => {
+    const user = this.currentUser();
+    if (!user?.name) {
+      return '';
+    }
+    const names = user.name.split(' ');
+    if (names.length > 1) {
+      return `${names[0][0]}${names[names.length - 1][0]}`.toUpperCase();
+    }
+    return user.name.substring(0, 2).toUpperCase();
+  });
+  constructor(private messageService: MessageService) {}
   toggleSidebar(): void {
     if (typeof window !== 'undefined' && window.innerWidth < 1024) {
       this.mobileMenuOpen.set(!this.mobileMenuOpen());
@@ -28,5 +53,10 @@ export class App implements OnInit {
 
   closeSidebar(): void {
     this.mobileMenuOpen.set(false);
+  }
+
+  logout(): void {
+    this.authService.logout();
+    this.router.navigate(['/login']);
   }
 }

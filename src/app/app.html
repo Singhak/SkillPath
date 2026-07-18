@@ -44,7 +44,7 @@
         routerLinkActive="active"
         [routerLinkActiveOptions]="{ exact: true }"
       >
-        <i class="pi pi-chart-bar"></i>
+        <i class="pi pi-bolt"></i>
         <span>Skills</span>
       </a>
       <a
@@ -63,13 +63,23 @@
     </nav>
 
     <div class="sidebar-footer">
-      <div class="user-pill">
-        <div class="avatar">A</div>
-        <div class="user-meta">
-          <strong>Alice</strong>
-          <span>Admin</span>
+      @if(isAuthenticated()){
+        <div class="user-pill">
+          <div class="avatar">{{ userInitials() }}</div>
+          <div class="user-meta">
+            <strong>{{ currentUser()?.name }}</strong>
+          </div>
         </div>
-      </div>
+        <a class="nav-item logout-link" (click)="logout()" title="Logout">
+          <i class="pi pi-sign-out"></i>
+          <span>Logout</span>
+        </a>
+      } @else {
+        <a class="nav-item" [routerLink]="'/login'" routerLinkActive="active">
+          <i class="pi pi-sign-in"></i>
+          <span>Login</span>
+        </a>
+      }
     </div>
   </aside>
   @if (mobileMenuOpen()) {
