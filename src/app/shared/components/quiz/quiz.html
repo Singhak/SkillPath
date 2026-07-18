@@ -1,52 +1,47 @@
 <!-- Question -->
 <div class="mb-5">
+  <h2 class="text-lg font-semibold mb-3">
+    {{ quiz()?.question }}
+  </h2>
 
-    <h2 class="text-lg font-semibold mb-3">
-        {{quiz()?.question}}
-    </h2>
-
-    <!-- Code Block -->
-    @if(quiz()?.code){
-    <pre class="bg-gray-900 text-green-400 rounded-lg p-4 overflow-auto text-sm" [highlight]="quiz()?.code ?? ''"
-        language="{{quiz()?.language}}"><code>
-</code></pre>}
-
+  <!-- Code Block -->
+  @if (quiz()?.codeSnippet) {
+    <pre
+      class="bg-gray-900 text-green-400 rounded-lg p-4 overflow-auto text-sm"
+      [highlight]="quiz()?.codeSnippet ?? ''"
+      language="{{ quiz()?.language }}"
+    ><code>
+</code></pre>
+  }
 </div>
 
 <!-- Options -->
 <div class="grid gap-3">
-
-    @for(option of [quiz()?.option_1, quiz()?.option_2, quiz()?.option_3, quiz()?.option_4]; track option; let i =
-    $index) {
+  @for (option of options(); track option; let i = $index) {
     <div class="rounded-lg cursor-pointer hover:border-primary transition">
-
-        <p-radiobutton inputId="{{i}}" name="answer" [value]="option" [(ngModel)]="selectedAnswer">
-
-        </p-radiobutton>
-        <label for="{{i}}" class="ml-3 cursor-pointer">
-            {{option}}
-        </label>
-
+      <p-radiobutton inputId="{{ i }}" name="answer" [value]="option" [(ngModel)]="selectedAnswer">
+      </p-radiobutton>
+      <label for="{{ i }}" class="ml-3 cursor-pointer">
+        {{ option }}
+      </label>
     </div>
-    }
-
+  }
 </div>
-@if(hints().length){
-<p-fieldset legend="Hints" [toggleable]="true">
+@if (hints().length) {
+  <p-fieldset legend="Hints" [toggleable]="true">
     <ul>
-        @for(hint of hints(); track hint; let i = $index) {
+      @for (hint of hints(); track hint; let i = $index) {
         <li>
-            {{hint}}
+          {{ hint }}
         </li>
-        }
+      }
     </ul>
-
-</p-fieldset>
+  </p-fieldset>
 }
-@if(showExplanation()){
-<p-fieldset legend="Explanation" [toggleable]="true">
+@if (showExplanation() && quiz()?.explanation?.length) {
+  <p-fieldset legend="Explanation" [toggleable]="true">
     <p>
-        {{quiz()?.explanation}}
+      {{ quiz()?.explanation }}
     </p>
-</p-fieldset>
+  </p-fieldset>
 }
