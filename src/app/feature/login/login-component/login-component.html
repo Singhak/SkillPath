@@ -1,0 +1,82 @@
+<div class="auth-shell">
+  <div class="auth-card">
+    <div class="auth-hero">
+      <div class="hero-badge">Mordenec</div>
+      <h1>Welcome back</h1>
+      <p>Continue your interview preparation with a calm and focused experience.</p>
+      <ul class="hero-points">
+        <li><i class="pi pi-check-circle"></i> Personalized challenge sessions</li>
+        <li><i class="pi pi-check-circle"></i> Smart practice insights</li>
+        <li><i class="pi pi-check-circle"></i> Track your growth over time</li>
+      </ul>
+    </div>
+
+    <form class="auth-form" [formGroup]="form" (ngSubmit)="loginUser()">
+      <div class="form-heading">
+        <span class="form-pill">Secure sign in</span>
+        <h2>Log in to your account</h2>
+        <p>Use your email and password to continue.</p>
+      </div>
+
+      <div class="field-group">
+        <label for="email">Email address</label>
+        <input
+          pInputText
+          id="email"
+          type="email"
+          autocomplete="email"
+          class="auth-input"
+          formControlName="emailId"
+        />
+        @if (form.controls['emailId'].invalid && (form.controls['emailId'].dirty || form.controls['emailId'].touched)) {
+          <div class="p-error text-red-500">
+            @if (form.controls['emailId'].errors?.['required']) {
+              <small>Email is required.</small>
+            }
+            @if (form.controls['emailId'].errors?.['email']) {
+              <small>Please enter a valid email address.</small>
+            }
+          </div>
+        }
+      </div>
+
+      <div class="field-group">
+        <label for="password">Password</label>
+        <p-password
+          inputId="password"
+          [toggleMask]="true"
+          [feedback]="false"
+          class="w-full"
+          formControlName="password"
+        ></p-password>
+      </div>
+
+      <div class="form-meta">
+        <label class="remember-me" for="rememberme">
+          <p-checkbox inputId="rememberme" binary="true"></p-checkbox>
+          <span>Remember me</span>
+        </label>
+        <a routerLink="/forgot-password" class="text-link">Forgot password?</a>
+      </div>
+
+      <p-button
+        type="submit"
+        label="Login"
+        icon="pi pi-sign-in"
+        styleClass="auth-button w-full"
+        [loading]="loading()"
+      ></p-button>
+
+      <p-divider align="center">
+        <span class="divider-label">or</span>
+      </p-divider>
+
+      <p-button label="Continue with Google" icon="pi pi-google" styleClass="auth-ghost-button w-full"></p-button>
+
+      <p class="switch-text">
+        New here?
+        <a routerLink="/sign-up">Create an account</a>
+      </p>
+    </form>
+  </div>
+</div>

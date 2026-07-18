@@ -1,0 +1,69 @@
+<div class="auth-shell">
+  <div class="auth-card">
+    <div class="auth-hero">
+      <div class="hero-badge">Mordenec</div>
+      <h1>Create your account</h1>
+      <p>Join the platform and start preparing for interviews with confidence.</p>
+      <ul class="hero-points">
+        <li><i class="pi pi-check-circle"></i> Build your learning path</li>
+        <li><i class="pi pi-check-circle"></i> Practice with real questions</li>
+        <li><i class="pi pi-check-circle"></i> Track your progress instantly</li>
+      </ul>
+    </div>
+
+    <form class="auth-form" [formGroup]="form" (ngSubmit)="registerUser()">
+      <div class="form-heading">
+        <span class="form-pill">New account</span>
+        <h2>Sign up today</h2>
+        <p>Fill in your details to get started.</p>
+      </div>
+
+      <div class="field-group">
+        <label for="fullName">Full name</label>
+        <input
+          pInputText
+          id="fullName"
+          autocomplete="name"
+          class="auth-input"
+          formControlName="name"
+        />
+      </div>
+
+      <div class="field-group">
+        <label for="email">Email address</label>
+        <input
+          pInputText
+          id="email"
+          type="email"
+          autocomplete="email"
+          class="auth-input"
+          formControlName="emailId"
+        />
+      </div>
+
+      <div class="field-group">
+        <label for="password">Password</label>
+        <p-password
+          inputId="password"
+          [toggleMask]="true"
+          [feedback]="false"
+          class="w-full"
+          formControlName="password"
+        ></p-password>
+      </div>
+
+      <p-button
+        type="submit"
+        label="Create account"
+        icon="pi pi-user-plus"
+        styleClass="auth-button w-full"
+        [loading]="loading()"
+      ></p-button>
+
+      <p class="switch-text">
+        Already have an account?
+        <a routerLink="/login">Sign in</a>
+      </p>
+    </form>
+  </div>
+</div>
