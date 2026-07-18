@@ -1,7 +1,7 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { map, Observable, of } from 'rxjs';
-import { AIQuestion } from './question';
+import { AIQuestion } from './ai-question';
 
 @Injectable({
   providedIn: 'root',
@@ -67,10 +67,10 @@ export class GroqService {
     );
   }
 
-  evaluateAnswer(question: string, answer: string): Observable<any> {
+  evaluateAnswer(question: string, answer: string): Observable<AIEvaluationResult> {
     return of({
       score: 0,
-      feedback: 'Sorry, there was an error evaluating your answer. Please try again.',
+      feedback: 'Sorry, there was an error evaluating your answer. Please                                                                                                                                                   try again.',
       idealAnswer: 'No ideal answer available due to an error.',
     });
     const systemPrompt = `You are an AI interviewer evaluating a candidate's answer to a technical question.
@@ -80,7 +80,7 @@ export class GroqService {
     The "score" should be a number.
     The "feedback" should be a string of constructive criticism and suggestions.
     The "idealAnswer" should be a string containing a well-explained, ideal answer to the question.
-    Do not include any other text or explanations in your response, just the JSON object.`;
+    Do not include any other text or explanations in your response, just the JSON object.`;                           
 
     const headers = new HttpHeaders({
       'Content-Type': 'application/json',
@@ -114,5 +114,19 @@ export class GroqService {
         }
       }),
     );
+  }
+
+  getInterviewQuestions1(topic: string, role: string) {
+    return this.http.post<AIQuestion[]>('/api/interview/getQuestions.php', {
+      topic,
+      userRole: role,
+    });
+  }
+
+  evaluateAnswer1(question: string, answer: string) {
+    return this.http.post<AIEvaluationResult>('/api/interview/evaluateAnswer.php', {
+      question,
+      answer,
+    });
   }
 }
