@@ -7,6 +7,7 @@ import Aura from '@primeng/themes/aura';
 import { routes } from './app.routes';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { globalErrorInterceptor } from './core/interceptors/global-error-interceptor';
+import { authInterceptor } from './core/interceptors/auth.interceptor';
 import { provideHighlightOptions } from 'ngx-highlightjs';
 
 export const appConfig: ApplicationConfig = {
@@ -28,7 +29,8 @@ export const appConfig: ApplicationConfig = {
     }),
     provideHttpClient(
       withInterceptors([
-        globalErrorInterceptor
+        globalErrorInterceptor,
+        authInterceptor
       ])
     ),
     provideHighlightOptions({
