@@ -1,13 +1,20 @@
-import { computed, Injectable, signal } from '@angular/core';
+import { computed, inject, Injectable, signal } from '@angular/core';
 import { Question, QuestionStats } from '../../shared/components/question/question.model';
+import { QuizStats } from '../quiz-view/quiz.model';
+import { QuizService } from './quiz-service';
 
 @Injectable({
   providedIn: 'root',
 })
 export class QuizStatsService {
+  private quizService = inject(QuizService);
   private readonly questionsStats = signal<QuestionStats[]>([]);
+  private quizStats = signal<QuizStats | {}>({});
 
   // Public signals for components to consume
+
+  public quizId = signal<number>(0)
+
   public readonly allquestionsStats = this.questionsStats.asReadonly();
   public readonly correctAnswerCount = computed(
     () => this.questionsStats().filter((a) => a.isCorrect).length,
@@ -46,12 +53,12 @@ export class QuizStatsService {
     }
 
     const newAttempt: QuestionStats = {
+      quizId:this.quizId(),
       userAnswer: '',
       score: 0,
       category: question.category,
       questionId: question.id,
-      quizId: -1,
-      timeTaken: -1,
+      timeTaken: 0,
       skipped: false,
       isCorrect: false,
       hintsUsedCount: 0,
@@ -61,16 +68,20 @@ export class QuizStatsService {
     this.questionsStats.update((questionsStats) => [...questionsStats, newAttempt]);
   }
 
-  endAttempt(
-    question: Question,
-    timeTaken: number,
-    selectedAnswer: string,
-    isCorrect: boolean,
-  ): void {
+  endAttempt(options: EndAttemptOptions): void {
+    const { question, timeTaken, selectedAnswer, isCorrect, score, coinsEarned } = options;
     this.questionsStats.update((questionsStats) =>
       questionsStats.map((attempt) =>
         attempt.questionId === question.id
-          ? { ...attempt, timeTaken, selectedAnswer, isCorrect, skipped: false }
+          ? {
+              ...attempt,
+              timeTaken,
+              selectedAnswer,
+              isCorrect,
+              skipped: false,
+              score: score ?? 0,
+              coinsEarned: coinsEarned ?? 0,
+            }
           : attempt,
       ),
     );
@@ -86,10 +97,10 @@ export class QuizStatsService {
     );
   }
 
-  recordHintUsage(question: Question): void {
+  recordHintUsage(question: Question, coinsSpent: number): void {
     this.questionsStats.update((questionsStats) =>
       questionsStats.map((attempt) =>
-        attempt.questionId === question.id ? { ...attempt, hintUsed: true } : attempt,
+        attempt.questionId === question.id ? { ...attempt, hintUsed: true, coinsSpent } : attempt,
       ),
     );
   }
@@ -97,4 +108,37 @@ export class QuizStatsService {
   reset(): void {
     this.questionsStats.set([]);
   }
+
+  updateQuizStats(): void {
+    this.quizStats.set({
+      category: this.questionsStats()[0].category,
+      totalQuestions: this.questionsStats().length,
+      wrongAnswerCount: this.wrongAnswerCount(),
+      correctAnswerCount: this.correctAnswerCount(),
+      attemptedQuestionCount: this.attemptedQuestionCount(),
+      totalScore: this.totalScore(),
+      hintsUsedCount: this.hintsUsedCount(),
+      totalCoinsEarned: this.totalCoinsEarned(),
+      totalCoinsSpent: this.totalCoinsSpent(),
+      skippedCount: this.skippedCount(),
+      totalTimeTakenInSeconds: this.totalTimeTakenInSeconds(),
+    });
+
+    this.quizService.updateQuizStats(this.quizId()).subscribe()
+  }
+
+  createQuestionStats(): void {
+    this.quizService.createQuestionStats(this.questionsStats()).subscribe();
+  }
+
+}
+
+export interface EndAttemptOptions {
+  question: Question;
+  timeTaken: number;
+  selectedAnswer: string;
+  isCorrect: boolean;
+  score?: number;
+  coinsSpent?: number;
+  coinsEarned?: number;
 }

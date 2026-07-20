@@ -1,4 +1,4 @@
-import { Component, computed, inject, OnDestroy, OnInit, signal } from '@angular/core';
+import { Component, computed, effect, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import { TagModule } from 'primeng/tag';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
@@ -16,10 +16,11 @@ import { Category } from '../../core/models/category.model';
 import { FormsModule } from '@angular/forms';
 import { Question } from '../../shared/components/question/question.model';
 import { QuestionComponent } from '../../shared/components/question/question';
-import { ReportIssue } from '../../core/models/report-issue.model';
 import { DialogModule } from 'primeng/dialog';
 import { TextareaModule } from 'primeng/textarea';
 import { CommonModule } from '@angular/common';
+import { ReportIssueService } from '../../core/services/report-issue.service';
+import { ReportIssueComponent } from '../../shared/components/report-issue/report-issue.component';
 
 @Component({
   selector: 'app-quiz-view',
@@ -36,6 +37,7 @@ import { CommonModule } from '@angular/common';
     SelectModule,
     TextareaModule,
     CommonModule,
+    ReportIssueComponent,
   ],
   templateUrl: './quiz-view.html',
   styleUrl: './quiz-view.css',
@@ -49,7 +51,18 @@ export class QuizView implements OnInit, OnDestroy {
   categoryService = inject(CatrgoryService);
   userService = inject(UserService);
   authService = inject(AuthService);
+  reportIssueService = inject(ReportIssueService);
   timer = inject(Timer);
+
+  constructor() {
+    effect(() => {
+      if (this.reportIssueService.displayDialog()) {
+        this.timer.stop();
+      } else {
+        this.timer.start();
+      }
+    });
+  }
 
   //Variables
   quizes = signal<Question[]>([]);
@@ -73,16 +86,8 @@ export class QuizView implements OnInit, OnDestroy {
   coins = this.authService.userCoins;
 
   // Report Issue
-  displayReportDialog = signal(false);
-  issueTypes = ['Question', 'Options', 'Explanation', 'Answer', 'Other'];
-  reportIssue = signal<Partial<ReportIssue>>({
-    issueType: 'Question',
-    description: '',
-  });
-  isReporting = signal(false);
-
   availableHints = computed(() => {
-    const hints = this.currentQuiz()?.hists ?? [];
+    const hints = this.currentQuiz()?.hints ?? [];
     const usedHints = this.hintIndex() + 1;
     return hints.length - usedHints;
   });
@@ -108,23 +113,22 @@ export class QuizView implements OnInit, OnDestroy {
   fetchQuiz(): void {
     const category = this.selectedCategory();
     const subCategories = this.selectedSubCategories();
-    if (category && subCategories?.length) {
-      this.quizService
-        .getQuestions({ category, subCategory: subCategories })
-        .subscribe((quizes) => {
-          this.quizes.set(quizes?.questions ?? []);
-          this.quizesCount.set(quizes?.questions.length ?? 0);
-          if (quizes?.questions.length > 0) {
-            this.startQuestion(0);
-          }
-        });
+    if (category) {
+      this.quizService.getQuestions({ category, subCategory: subCategories }).subscribe((quize) => {
+        this.quizStatsService.quizId.set(quize.quizId);
+        this.quizes.set(quize?.questions ?? []);
+        this.quizesCount.set(quize?.questions.length ?? 0);
+        if (quize?.questions.length > 0) {
+          this.startQuestion(0);
+        }
+      });
     }
   }
   private startQuestion(index: number) {
-    const quiz = this.quizes()[index];
-    this.currentQuiz.set(quiz);
+    const question = this.quizes()[index];
+    this.currentQuiz.set(question);
     this.currentQuizIndex.set(index);
-    this.quizStatsService.startAttempt(quiz);
+    this.quizStatsService.startAttempt(question);
     this.selectedAnswer.set('');
     this.isSubmited.set(false);
     this.hintIndex.set(-1);
@@ -172,12 +176,24 @@ export class QuizView implements OnInit, OnDestroy {
 
     if (quiz && selected) {
       let isCorrect = false;
-      const correctAnswerValue = quiz[quiz.answer as keyof Question];
+      let score = 0;
+      let coinsEarned = 0;
+
+      const correctAnswerValue = quiz.answer;
       if (correctAnswerValue === selected) {
         this.numberOfCorrectAns++;
         isCorrect = true;
+        score = 5;
+        coinsEarned = 5;
       }
-      this.quizStatsService.endAttempt(quiz, this.timer.elapsedSeconds, selected, isCorrect);
+      this.quizStatsService.endAttempt({
+        question: quiz,
+        timeTaken: this.timer.elapsedSeconds,
+        selectedAnswer: selected,
+        isCorrect,
+        score,
+        coinsEarned,
+      });
     }
 
     this.timer.stop();
@@ -191,6 +207,8 @@ export class QuizView implements OnInit, OnDestroy {
   }
 
   onCloseSummary() {
+    this.quizStatsService.updateQuizStats();
+    this.quizStatsService.createQuestionStats();
     // Reset the entire quiz state to go back to the selection screen.
     this.quizes.set([]);
     this.quizesCount.set(0);
@@ -208,10 +226,10 @@ export class QuizView implements OnInit, OnDestroy {
   onHintClick() {
     const hintCost = 2;
     if (this.coins() >= hintCost) {
-      const currentQuizHists = this.currentQuiz()?.hists;
-      if (currentQuizHists) {
-        if (this.hintIndex() + 1 < currentQuizHists.length) {
-          this.quizStatsService.recordHintUsage(this.currentQuiz()!);
+      const currentQuizHints = this.currentQuiz()?.hints;
+      if (currentQuizHints) {
+        if (this.hintIndex() + 1 < currentQuizHints.length) {
+          this.quizStatsService.recordHintUsage(this.currentQuiz()!, hintCost);
           const newTotal = this.coins() - hintCost;
           this.authService.updateCoins(newTotal);
           this.hintIndex.update((hintIndex) => hintIndex + 1);
@@ -233,41 +251,13 @@ export class QuizView implements OnInit, OnDestroy {
   }
 
   showReportDialog() {
-    this.reportIssue.set({
-      issueType: 'Question',
-      description: '',
+    this.reportIssueService.showDialog({
+      title: 'Report an Issue with this Question',
+      issueTypes: ['Question', 'Options', 'Explanation', 'Answer', 'Other'],
+      reportData: {
+        questionId: this.currentQuiz()!.id,
+        description: '',
+      },
     });
-    this.displayReportDialog.set(true);
-  }
-
-  submitReport() {
-    if (!this.reportIssue().description?.trim()) {
-      this.messanger.add({
-        severity: 'warn',
-        summary: 'Warning',
-        detail: 'Description is required.',
-      });
-      return;
-    }
-    this.isReporting.set(true);
-    const report: ReportIssue = {
-      userId: Number(this.authService.currentUser()?.id),
-      questionId: this.currentQuiz()!.id,
-      issueType: this.reportIssue().issueType!,
-      description: this.reportIssue().description!,
-      status: 'Open',
-    };
-    console.log('Submitting issue report:', report);
-    // Here you would call a service to submit the report to your backend.
-    // For now, we just log it and show a success message.
-    setTimeout(() => {
-      this.isReporting.set(false);
-      this.displayReportDialog.set(false);
-      this.messanger.add({
-        severity: 'success',
-        summary: 'Success',
-        detail: 'Issue reported successfully!',
-      });
-    }, 1000);
   }
 }

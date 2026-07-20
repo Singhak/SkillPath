@@ -19,7 +19,13 @@
 <div class="grid gap-3">
   @for (option of options(); track option; let i = $index) {
     <div class="rounded-lg cursor-pointer hover:border-primary transition">
-      <p-radiobutton inputId="{{ i }}" name="answer" [value]="option" [(ngModel)]="selectedAnswer">
+      <p-radiobutton
+        inputId="{{ i }}"
+        name="answer"
+        [value]="option"
+        [(ngModel)]="selectedAnswer"
+        [disabled]="!!showExplanation()"
+      >
       </p-radiobutton>
       <label for="{{ i }}" class="ml-3 cursor-pointer">
         {{ option }}

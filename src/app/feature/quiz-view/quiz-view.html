@@ -52,24 +52,30 @@
             [label]="timer.time()"
             icon="pi pi-clock"
             severity="info"
-            [outlined]="true"
+            [outlined]="false"
             [disabled]="true"
           />
           <p-button
             [label]="coins().toString()"
             icon="pi pi-bitcoin"
             severity="warn"
-            [outlined]="true"
+            [outlined]="false"
             [disabled]="true"
           />
           <p-button
             [label]="'Hint (' + availableHints() + ')'"
             icon="pi pi-lightbulb"
             severity="help"
-            [outlined]="true"
+            [outlined]="false"
             (click)="onHintClick()"
             [disabled]="isSubmited() || availableHints() === 0"
           />
+          <p-button
+            label="Report"
+            icon="pi pi-flag"
+            severity="warn"
+            (click)="showReportDialog()"
+          ></p-button>
         </div>
       </div>
 
@@ -129,3 +135,4 @@
   (close)="onCloseSummary()"
   (restart)="onRestartQuiz()"
 ></app-quiz-summary>
+<app-report-issue></app-report-issue>

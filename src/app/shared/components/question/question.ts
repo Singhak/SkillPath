@@ -1,4 +1,4 @@
-import { Component, computed, input, model, OnInit, output, signal } from '@angular/core';
+import { Component, computed, input, model } from '@angular/core';
 import { ButtonModule } from 'primeng/button';
 import { RadioButton } from 'primeng/radiobutton';
 import { FormsModule } from '@angular/forms';
@@ -12,7 +12,7 @@ import { Question } from './question.model';
   templateUrl: './question.html',
   styleUrl: './question.css',
 })
-export class QuestionComponent implements OnInit {
+export class QuestionComponent {
   index = input.required<number>();
   hintIndex = input.required<number>();
   quiz = input.required<Question | null>();
@@ -21,8 +21,7 @@ export class QuestionComponent implements OnInit {
   options = computed<string[]>(() => {
     const quiz = this.quiz();
     if (quiz) {
-      const options = [quiz.option1, quiz.option2, quiz.option3, quiz.option4];
-      // Fisher-Yates shuffle to randomize options
+      const options = quiz.options;
       for (let i = options.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
         [options[i], options[j]] = [options[j], options[i]];
@@ -32,27 +31,12 @@ export class QuestionComponent implements OnInit {
     return [];
   });
 
-  // async autoFormater(rawCode?: string) {
-  //   if (rawCode?.length)
-  //     return await prettier.format(rawCode, {
-  //       parser: 'typescript',
-  //       plugins: [parserTypeScript],
-  //       singleQuote: true,
-  //       semi: true
-  //     });
-  //   return ''
-  // }
-
-  async ngOnInit() {
-    // this.formattedCode = await this.autoFormater(this.quiz().code);
-  }
-
   hints = computed<string[]>(() => {
     const currentQuiz = this.quiz();
     const hintIdx = this.hintIndex();
-    if (currentQuiz && currentQuiz.hists && hintIdx >= 0) {
+    if (currentQuiz && currentQuiz.hints && hintIdx >= 0) {
       // Return a slice of the hints array up to and including the current hintIndex
-      return currentQuiz.hists.slice(0, hintIdx + 1);
+      return currentQuiz.hints.slice(0, hintIdx + 1);
     }
     return [];
   });

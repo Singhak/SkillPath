@@ -2,7 +2,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable, map } from 'rxjs';
 import { environment } from '../../environments/environment';
-import { Question } from '../../shared/components/question/question.model';
+import { Question, QuestionStats } from '../../shared/components/question/question.model';
 import { Quiz } from '../quiz-view/quiz.model';
 // import jsonData from './quizs.json' with { type: 'json' };
 
@@ -17,7 +17,7 @@ export class QuizService {
     return this.http.get<Question[]>(`${this.apiUrl}/`);
   }
 
-  getQuestions(filters: { category?: string; subCategory?: string[] }): Observable<Quiz> {
+  getQuestions(filters: { category?: string; subCategory: string[] | null }): Observable<Quiz> {
     let params = new HttpParams();
     if (filters.category) {
       params = params.append('category', filters.category);
@@ -33,6 +33,14 @@ export class QuizService {
     }
 
     return this.http.get<Quiz>(`${this.apiUrl}`, { params });
+  }
+
+  createQuestionStats(questionStats: QuestionStats[] | QuestionStats) {
+    return this.http.post(`${environment.apiUrl}/question-stats`, questionStats);
+  }
+
+  updateQuizStats(quizId: number): Observable<any> {
+    return this.http.put(`${environment.apiUrl}/quizzes/${quizId}/complete`, {});
   }
 
   private getDummyData(): Observable<any[]> {

@@ -15,13 +15,13 @@ export interface QuestionStats {
 export interface Question {
   id: number;
   question: string;
-  option1: string;
-  option2: string;
-  option3: string;
-  option4: string;
+  options: string[];
+  // option2: string;
+  // option3: string;
+  // option4: string;
   answer: string;
   language: string;
-  hists?: string[];
+  hints?: string[];
   concept?: string;
   explanation?: string;
   category: string;
