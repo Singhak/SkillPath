@@ -1,0 +1,43 @@
+<p-dialog
+  [header]="config()?.title || 'Report an Issue'"
+  [(visible)]="displayDialog"
+  [modal]="true"
+  [style]="{ width: '90vw', 'max-width': '600px' }"
+  (onHide)="closeDialog()"
+>
+  <div class="flex flex-col gap-6 p-4">
+    <div class="flex flex-col gap-2">
+      <label for="issueType" class="font-semibold">Issue Type</label>
+      <p-select
+        id="issueType"
+        [options]="config()?.issueTypes || []"
+        [(ngModel)]="report().issueType"
+        class="w-full"
+      ></p-select>
+    </div>
+    <div class="flex flex-col gap-2">
+      <label for="description" class="font-semibold">Description</label>
+      <textarea
+        id="description"
+        pInputTextarea
+        rows="5"
+        [(ngModel)]="report().description"
+        class="w-full"
+      ></textarea>
+    </div>
+  </div>
+  <ng-template pTemplate="footer">
+    <p-button
+      label="Cancel"
+      icon="pi pi-times"
+      (click)="closeDialog()"
+      styleClass="p-button-text"
+    ></p-button>
+    <p-button
+      label="Submit"
+      icon="pi pi-check"
+      (click)="submitReport()"
+      [loading]="isReporting()"
+    ></p-button>
+  </ng-template>
+</p-dialog>

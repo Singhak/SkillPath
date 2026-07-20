@@ -36,12 +36,11 @@ export const globalErrorInterceptor: HttpInterceptorFn = (req, next) => {
 
       // Log the error globally to the console or an external tracking service
       loggingService.error('Global Error Handler:', errorMessage);
-
+      errorMessage = error.error?.message || errorMessage;
       toastr.add({ severity: 'error', summary: 'Error', detail: errorMessage, life: 3000 });
 
       // Pass the error along to the component if it still needs to handle it locally
       return throwError(() => new Error(errorMessage));
-    }
-    )
+    }),
   );
 };
