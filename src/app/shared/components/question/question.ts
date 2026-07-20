@@ -4,14 +4,15 @@ import { RadioButton } from 'primeng/radiobutton';
 import { FormsModule } from '@angular/forms';
 import { Highlight } from 'ngx-highlightjs';
 import { FieldsetModule } from 'primeng/fieldset';
+import { Question } from './question.model';
 
 @Component({
   selector: 'app-quiz',
   imports: [ButtonModule, RadioButton, FormsModule, Highlight, FieldsetModule],
-  templateUrl: './quiz.html',
-  styleUrl: './quiz.css',
+  templateUrl: './question.html',
+  styleUrl: './question.css',
 })
-export class Quiz implements OnInit {
+export class QuestionComponent implements OnInit {
   index = input.required<number>();
   hintIndex = input.required<number>();
   quiz = input.required<Question | null>();
@@ -55,20 +56,4 @@ export class Quiz implements OnInit {
     }
     return [];
   });
-}
-
-export interface Question {
-  question: string;
-  option1: string;
-  option2: string;
-  option3: string;
-  option4: string;
-  answer: string;
-  language: string;
-  hists?: string[];
-  concept?: string;
-  explanation?: string;
-  category: string;
-  subCategory: string;
-  codeSnippet?: string;
 }

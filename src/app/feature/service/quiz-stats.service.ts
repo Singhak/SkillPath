@@ -1,43 +1,75 @@
 import { computed, Injectable, signal } from '@angular/core';
-import { Question } from '../../shared/components/quiz/quiz';
-import { QuizAttempt } from '../quiz-view/quiz-attempt';
+import { Question, QuestionStats } from '../../shared/components/question/question.model';
 
 @Injectable({
   providedIn: 'root',
 })
 export class QuizStatsService {
-  private readonly attempts = signal<QuizAttempt[]>([]);
+  private readonly questionsStats = signal<QuestionStats[]>([]);
 
   // Public signals for components to consume
-  public readonly allAttempts = this.attempts.asReadonly();
-  public readonly totalCorrect = computed(() => this.attempts().filter((a) => a.isCorrect).length);
-  public readonly totalIncorrect = computed(() => this.attempts().filter((a) => a.isCorrect === false).length);
-  public readonly totalSkipped = computed(() => this.attempts().filter((a) => a.skipped).length);
-  public readonly totalHintsUsed = computed(() => this.attempts().filter((a) => a.hintUsed).length);
-  public readonly totalTimeTaken = computed(() => this.attempts().reduce((acc, attempt) => acc + attempt.timeTaken, 0));
+  public readonly allquestionsStats = this.questionsStats.asReadonly();
+  public readonly correctAnswerCount = computed(
+    () => this.questionsStats().filter((a) => a.isCorrect).length,
+  );
+  public readonly wrongAnswerCount = computed(
+    () => this.questionsStats().filter((a) => a.isCorrect === false).length,
+  );
+  public readonly skippedCount = computed(
+    () => this.questionsStats().filter((a) => a.skipped).length,
+  );
+  public readonly hintsUsedCount = computed(() =>
+    this.questionsStats().reduce((acc, attempt) => acc + attempt.hintsUsedCount, 0),
+  );
+  public readonly totalTimeTakenInSeconds = computed(() =>
+    this.questionsStats().reduce((acc, attempt) => acc + attempt.timeTaken, 0),
+  );
+  public readonly totalScore = computed(() =>
+    this.questionsStats().reduce((acc, attempt) => acc + attempt.score, 0),
+  );
+
+  public readonly totalCoinsEarned = computed(() =>
+    this.questionsStats().reduce((acc, attempt) => acc + attempt.coinsEarned, 0),
+  );
+  public readonly totalCoinsSpent = computed(() =>
+    this.questionsStats().reduce((acc, attempt) => acc + attempt.coinsSpent, 0),
+  );
+
+  public readonly attemptedQuestionCount = computed(
+    () => this.correctAnswerCount() + this.wrongAnswerCount() + this.skippedCount(),
+  );
+  public readonly totalIncorrect = computed(() => this.wrongAnswerCount());
 
   startAttempt(question: Question): void {
-    if (this.attempts().find((a) => a.question === question.question)) {
+    if (this.questionsStats().find((a) => a.questionId === question.id)) {
       return; // Attempt already started
     }
 
-    const newAttempt: QuizAttempt = {
-      question: question.question,
-      correctAnswer: question[question.answer as keyof Question] as string,
-      timeTaken: 0,
+    const newAttempt: QuestionStats = {
+      userAnswer: '',
+      score: 0,
+      category: question.category,
+      questionId: question.id,
+      quizId: -1,
+      timeTaken: -1,
       skipped: false,
-      isCorrect: null,
-      hintUsed: false,
-      selectedAnswer: null,
-      timestamp: new Date(),
+      isCorrect: false,
+      hintsUsedCount: 0,
+      coinsSpent: 0,
+      coinsEarned: 0,
     };
-    this.attempts.update((attempts) => [...attempts, newAttempt]);
+    this.questionsStats.update((questionsStats) => [...questionsStats, newAttempt]);
   }
 
-  endAttempt(question: Question, timeTaken: number, selectedAnswer: string, isCorrect: boolean): void {
-    this.attempts.update((attempts) =>
-      attempts.map((attempt) =>
-        attempt.question === question.question
+  endAttempt(
+    question: Question,
+    timeTaken: number,
+    selectedAnswer: string,
+    isCorrect: boolean,
+  ): void {
+    this.questionsStats.update((questionsStats) =>
+      questionsStats.map((attempt) =>
+        attempt.questionId === question.id
           ? { ...attempt, timeTaken, selectedAnswer, isCorrect, skipped: false }
           : attempt,
       ),
@@ -45,22 +77,24 @@ export class QuizStatsService {
   }
 
   skipAttempt(question: Question, timeTaken: number): void {
-    this.attempts.update((attempts) =>
-      attempts.map((attempt) =>
-        attempt.question === question.question ? { ...attempt, timeTaken, skipped: true, isCorrect: null } : attempt,
+    this.questionsStats.update((questionsStats) =>
+      questionsStats.map((attempt) =>
+        attempt.questionId === question.id
+          ? { ...attempt, timeTaken, skipped: true, isCorrect: null }
+          : attempt,
       ),
     );
   }
 
   recordHintUsage(question: Question): void {
-    this.attempts.update((attempts) =>
-      attempts.map((attempt) =>
-        attempt.question === question.question ? { ...attempt, hintUsed: true } : attempt,
+    this.questionsStats.update((questionsStats) =>
+      questionsStats.map((attempt) =>
+        attempt.questionId === question.id ? { ...attempt, hintUsed: true } : attempt,
       ),
     );
   }
 
   reset(): void {
-    this.attempts.set([]);
+    this.questionsStats.set([]);
   }
 }

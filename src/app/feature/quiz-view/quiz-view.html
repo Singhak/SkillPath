@@ -1,35 +1,79 @@
-<div class="lg:mt-15 sm:m-5 xs">
-  <p-card class="max-w-4xl mx-auto">
-    <!-- Header -->
-    <div class="flex justify-between items-center border-b pb-4 mb-5">
-      <div>
-        <div class="text-sm text-gray-500">
-          Question {{ currentQuizIndex() + 1 }} of {{ quizes().length }}
+<div class="p-4 sm:p-6 lg:p-8">
+  <p-card class="max-w-5xl mx-auto">
+    @if (!currentQuiz()) {
+      <div class="p-4">
+        <h2 class="text-2xl font-bold mb-2">Start a New Quiz</h2>
+        <p class="text-slate-500 mb-6">Select a category and sub-categories to begin.</p>
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+          <div class="flex flex-col gap-2">
+            <label for="category">Category</label>
+            <p-select
+              inputId="category"
+              [options]="categories()"
+              [(ngModel)]="selectedCategory"
+              (onChange)="onCategoryChange()"
+              placeholder="Select a Category"
+            ></p-select>
+          </div>
+          <div class="flex flex-col gap-2 md:col-span-2">
+            <label for="subcategories">Sub-Categories</label>
+            <p-multiSelect
+              inputId="subcategories"
+              [options]="subCategories()"
+              [(ngModel)]="selectedSubCategories"
+              placeholder="Select Sub-Categories"
+              [style]="{ width: '100%' }"
+            ></p-multiSelect>
+          </div>
+          <p-button
+            label="Start Quiz"
+            icon="pi pi-play"
+            (onClick)="fetchQuiz()"
+            [disabled]="!selectedCategory()"
+            class="w-full"
+          ></p-button>
         </div>
-        <div class="text-xl font-semibold">
-          {{ currentQuiz()?.category }} - {{ currentQuiz()?.subCategory }}
+      </div>
+    } @else {
+      <!-- Quiz Header -->
+      <div
+        class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b pb-4 mb-6"
+      >
+        <div>
+          <div class="text-sm text-slate-500">
+            Question {{ currentQuizIndex() + 1 }} of {{ quizes().length }}
+          </div>
+          <div class="text-xl font-semibold">
+            {{ currentQuiz()?.category }} - {{ currentQuiz()?.subCategory }}
+          </div>
+        </div>
+        <div class="flex items-center gap-3 flex-wrap">
+          <p-button
+            [label]="timer.time()"
+            icon="pi pi-clock"
+            severity="info"
+            [outlined]="true"
+            [disabled]="true"
+          />
+          <p-button
+            [label]="coins().toString()"
+            icon="pi pi-bitcoin"
+            severity="warn"
+            [outlined]="true"
+            [disabled]="true"
+          />
+          <p-button
+            [label]="'Hint (' + availableHints() + ')'"
+            icon="pi pi-lightbulb"
+            severity="help"
+            [outlined]="true"
+            (click)="onHintClick()"
+            [disabled]="isSubmited() || availableHints() === 0"
+          />
         </div>
       </div>
 
-      <div class="flex items-center gap-3">
-        <p-button label=" {{ timer.time() }}" icon="pi pi-clock" severity="info" outlined disabled>
-        </p-button>
-        <p-button label="{{ coins() }}" icon="pi pi-bitcoin" severity="warn" outlined disabled>
-        </p-button>
-        <p-button
-          label="Hint (2)"
-          icon="pi pi-lightbulb"
-          severity="help"
-          outlined
-          (click)="onHintClick()"
-          [disabled]="isSubmited()"
-        >
-        </p-button>
-      </div>
-    </div>
-
-    <!-- Question -->
-    @if (currentQuiz()) {
+      <!-- Question -->
       <app-quiz
         [quiz]="currentQuiz()"
         [index]="currentQuizIndex()"
@@ -37,36 +81,48 @@
         [(selectedAnswer)]="selectedAnswer"
         [showExplanation]="isSubmited()"
       ></app-quiz>
-    }
-    <!-- Footer -->
-    <div class="flex justify-between items-center mt-6">
-      <div class="text-sm text-blue-500">✔ Correct Answer = +5 Coins</div>
 
-      <div class="flex gap-2">
-        <p-button
-          label="Submit"
-          icon="pi pi-check"
-          iconPos="right"
-          severity="success"
-          (click)="onSubmitClick()"
-          [disabled]="!selectedAnswer().length || isSubmited()"
-        >
-        </p-button>
-
-        <p-button
-          label="Next"
-          icon="pi pi-arrow-right"
-          iconPos="right"
-          severity="info"
-          [disabled]="!isSubmited()"
-          (click)="onNextClick()"
-        >
-        </p-button>
+      <!-- Footer -->
+      <div
+        class="flex flex-col sm:flex-row justify-between items-center mt-6 gap-4 p-4 bg-slate-50 rounded-lg"
+      >
+        <div class="text-sm text-green-600 font-medium">
+          <i class="pi pi-check-circle mr-1"></i>
+          Correct Answer = +5 Coins
+        </div>
+        <div class="flex gap-2">
+          <p-button
+            label="Skip"
+            icon="pi pi-fast-forward"
+            iconPos="right"
+            severity="secondary"
+            (click)="onSkipClick()"
+            [disabled]="isSubmited()"
+          >
+          </p-button>
+          <p-button
+            label="Submit"
+            icon="pi pi-check"
+            iconPos="right"
+            severity="success"
+            (click)="onSubmitClick()"
+            [disabled]="!selectedAnswer().length || isSubmited()"
+          >
+          </p-button>
+          <p-button
+            label="Next"
+            icon="pi pi-arrow-right"
+            iconPos="right"
+            severity="info"
+            [disabled]="!isSubmited()"
+            (click)="onNextClick()"
+          >
+          </p-button>
+        </div>
       </div>
-    </div>
+    }
   </p-card>
 </div>
-
 <app-quiz-summary
   [visible]="isQuizFinished()"
   [totalQuestions]="quizesCount()"

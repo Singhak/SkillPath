@@ -8,12 +8,12 @@ import { QuizStatsService } from './quiz-stats.service';
   selector: 'app-quiz-summary',
   standalone: true,
   imports: [DialogModule, ButtonModule, CommonModule],
-  template: ` 
+  template: `
     <p-dialog
       header="Quiz Finished!"
       [visible]="visible()"
       [modal]="true"
-      [style]="{ width: '50vw' }"
+      [style]="{ width: '65vw' }"
       [draggable]="false"
       [resizable]="false"
       (onHide)="close.emit()"
@@ -79,6 +79,11 @@ import { QuizStatsService } from './quiz-stats.service';
         color: #fff;
       }
 
+      .stat-icon i {
+        display: flex;
+        align-items: center;
+      }
+
       .stat-details {
         display: flex;
         flex-direction: column;
@@ -110,19 +115,46 @@ export class QuizSummaryComponent {
       icon: 'pi pi-question-circle',
       iconClass: 'bg-blue-500',
     },
-    { label: 'Correct', value: this.statsService.totalCorrect(), icon: 'pi pi-check-circle', iconClass: 'bg-green-500' },
+    {
+      label: 'Correct',
+      value: this.statsService.correctAnswerCount(),
+      icon: 'pi pi-check-circle',
+      iconClass: 'bg-green-500',
+    },
     {
       label: 'Incorrect',
       value: this.statsService.totalIncorrect(),
       icon: 'pi pi-times-circle',
       iconClass: 'bg-red-500',
     },
-    { label: 'Skipped', value: this.statsService.totalSkipped(), icon: 'pi pi-forward', iconClass: 'bg-orange-500' },
-    { label: 'Hints Used', value: this.statsService.totalHintsUsed(), icon: 'pi pi-lightbulb', iconClass: 'bg-yellow-500' },
+    {
+      label: 'Skipped',
+      value: this.statsService.skippedCount(),
+      icon: 'pi pi-forward',
+      iconClass: 'bg-orange-500',
+    },
+    {
+      label: 'Hints Used',
+      value: this.statsService.hintsUsedCount(),
+      icon: 'pi pi-lightbulb',
+      iconClass: 'bg-yellow-500',
+    },
+    {
+      label: 'Coins Earned',
+      value: this.statsService.totalCoinsEarned(),
+      icon: 'pi pi-bitcoin',
+      iconClass: 'bg-purple-500',
+    },
+    {
+      label: 'Coins Spent',
+      value: this.statsService.totalCoinsSpent(),
+      icon: 'pi pi-bitcoin',
+      iconClass: 'bg-purple-500',
+    },
   ]);
 
   formattedTime = computed(() => {
-    const totalSeconds = this.statsService.totalTimeTaken();
+    const totalSeconds = this.statsService.totalTimeTakenInSeconds();
     const minutes = Math.floor(totalSeconds / 60);
     const seconds = Math.floor(totalSeconds % 60);
     return `${minutes}m ${seconds}s`;
