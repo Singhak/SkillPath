@@ -18,6 +18,10 @@ export const globalErrorInterceptor: HttpInterceptorFn = (req, next) => {
         // Server-side error
         switch (error.status) {
           case 401:
+            if (error.headers.get('x-otp-required')) {
+              errorMessage = 'OTP required for authentication.';
+              break;
+            }
             errorMessage = 'Unauthorized! Please log in again.';
             break;
           case 403:

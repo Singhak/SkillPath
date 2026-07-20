@@ -30,4 +30,17 @@ export class LoginService {
     // This could also be an API call to invalidate the token on the server
     this.authService.logout();
   }
+
+  sendOtp(emailId: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/otp-login`, { emailId });
+  }
+
+  loginWithOtp(data: { emailId: string; otp: string }): Observable<LoginResponse> {
+    return this.http.post<LoginResponse>(`${this.apiUrl}/otp-verify`, data).pipe(
+      tap((response: LoginResponse) => {
+        // On successful verification, log the user in
+        this.authService.login(response);
+      }),
+    );
+  }
 }

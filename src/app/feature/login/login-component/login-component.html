@@ -15,7 +15,20 @@
       <div class="form-heading">
         <span class="form-pill">Secure sign in</span>
         <h2>Log in to your account</h2>
-        <p>Use your email and password to continue.</p>
+        <p>Select your preferred login method to continue.</p>
+      </div>
+
+      <div class="flex flex-col gap-2 my-4">
+        <label>Login Method</label>
+        <p-selectButton
+          [options]="loginMethods"
+          [(ngModel)]="selectedLoginMethod"
+          (ngModelChange)="onLoginMethodChange()"
+          optionLabel="label"
+          optionValue="value"
+          [ngModelOptions]="{ standalone: true }"
+          class="w-full"
+        ></p-selectButton>
       </div>
 
       <div class="field-group">
@@ -28,28 +41,73 @@
           class="auth-input"
           formControlName="emailId"
         />
-        @if (form.controls['emailId'].invalid && (form.controls['emailId'].dirty || form.controls['emailId'].touched)) {
+        @if (emailId?.invalid && (emailId?.dirty || emailId?.touched)) {
           <div class="p-error text-red-500">
-            @if (form.controls['emailId'].errors?.['required']) {
+            @if (emailId?.errors?.['required']) {
               <small>Email is required.</small>
             }
-            @if (form.controls['emailId'].errors?.['email']) {
+            @if (emailId?.errors?.['email']) {
               <small>Please enter a valid email address.</small>
             }
           </div>
         }
       </div>
 
-      <div class="field-group">
-        <label for="password">Password</label>
-        <p-password
-          inputId="password"
-          [toggleMask]="true"
-          [feedback]="false"
-          class="w-full"
-          formControlName="password"
-        ></p-password>
-      </div>
+      @if (selectedLoginMethod === 'password') {
+        <div class="field-group">
+          <label for="password">Password</label>
+          <p-password
+            inputId="password"
+            [toggleMask]="true"
+            [feedback]="false"
+            class="w-full"
+            formControlName="password"
+          ></p-password>
+        </div>
+      } @else {
+        <div class="field-group">
+          @if (!otpSent()) {
+            <p-button
+              label="Send OTP"
+              styleClass="w-full"
+              (click)="sendOtp()"
+              [loading]="loading()"
+              [disabled]="emailId?.invalid"
+            ></p-button>
+          } @else {
+            <div>
+              <div class="flex justify-between items-center mb-2">
+                <label for="otp">One-Time Password</label>
+                <p-button
+                  [label]="
+                    resendCooldown() > 0
+                      ? 'Resend OTP in (' + resendCooldown() + 's)'
+                      : 'Resend OTP'
+                  "
+                  styleClass="p-button-link"
+                  (click)="sendOtp()"
+                  [disabled]="resendCooldown() > 0"
+                ></p-button>
+              </div>
+              <p-inputOtp
+                inputId="otp"
+                [length]="6"
+                formControlName="otp"
+                class="w-full justify-center"
+                [integerOnly]="true"
+              ></p-inputOtp>
+              @if (
+                form.controls['otp'].invalid &&
+                (form.controls['otp'].dirty || form.controls['otp'].touched)
+              ) {
+                <div class="p-error text-red-500 mt-2">
+                  <small>A valid 6-digit OTP is required.</small>
+                </div>
+              }
+            </div>
+          }
+        </div>
+      }
 
       <div class="form-meta">
         <label class="remember-me" for="rememberme">
@@ -61,17 +119,22 @@
 
       <p-button
         type="submit"
-        label="Login"
+        [label]="selectedLoginMethod === 'otp' ? 'Verify & Login' : 'Login'"
         icon="pi pi-sign-in"
         styleClass="auth-button w-full"
         [loading]="loading()"
+        [disabled]="selectedLoginMethod === 'otp' && !otpSent()"
       ></p-button>
 
       <p-divider align="center">
         <span class="divider-label">or</span>
       </p-divider>
 
-      <p-button label="Continue with Google" icon="pi pi-google" styleClass="auth-ghost-button w-full"></p-button>
+      <p-button
+        label="Continue with Google"
+        icon="pi pi-google"
+        styleClass="auth-ghost-button w-full"
+      ></p-button>
 
       <p class="switch-text">
         New here?
