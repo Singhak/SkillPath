@@ -75,6 +75,7 @@ export class QuizView implements OnInit, OnDestroy {
   numberOfCorrectAns = 0;
   isQuizFinished = signal(false);
   isFinishing = signal(false);
+  userAttempsCount = signal(0);
 
   // Category and Sub-category selection
   allCategories = signal<Category[]>([]);
@@ -155,7 +156,7 @@ export class QuizView implements OnInit, OnDestroy {
       //update coins before close
       const coinsEarned = this.quizStatsService.correctAnswerCount() * 5; // we are not deduting the hint use coins since those already deduted
       const newTotalCoins = this.authService.userCoins() + coinsEarned;
-      this.userService.updateUser({ coins: newTotalCoins }).subscribe(() => {
+      this.userService.updateUser({ coins: newTotalCoins, totalQuizAttempted: this.userAttempsCount() + 1}).subscribe(() => {
         this.authService.updateCoins(newTotalCoins);
         this.isQuizFinished.set(true);
         this.isFinishing.set(false);

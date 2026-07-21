@@ -23,4 +23,8 @@ export class UserService {
   getCoins(): Observable<number> {
     return this.http.get<number>(`${this.apiUrl}/coins`);
   }
+  
+  getTotalAttemps(): Observable<number> {
+    return this.http.get<number>(`${this.apiUrl}/totalattemps`);
+  }
 }
