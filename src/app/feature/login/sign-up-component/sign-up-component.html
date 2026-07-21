@@ -34,6 +34,15 @@
             class="auth-input"
             formControlName="name"
           />
+          @if (
+            form.get('name')?.invalid && (form.get('name')?.dirty || form.get('name')?.touched)
+          ) {
+            @if (form.get('name')?.errors?.['required']) {
+              <small class="text-red-500">Name is required.</small>
+            }
+          } @else {
+            <small>Name is required.</small>
+          }
         </div>
 
         <div class="field-group">
@@ -46,6 +55,18 @@
             class="auth-input"
             formControlName="emailId"
           />
+          @if (
+            form.get('emailId')?.invalid &&
+            (form.get('emailId')?.dirty || form.get('emailId')?.touched)
+          ) {
+            @if (form.get('emailId')?.errors?.['required']) {
+              <small class="text-red-500">Email is required.</small>
+            } @else if (form.get('emailId')?.errors?.['email']) {
+              <small class="text-red-500">Please enter a valid email address.</small>
+            }
+          } @else {
+            <small>Email is required.</small>
+          }
         </div>
 
         <div class="field-group">
@@ -57,7 +78,18 @@
             class="w-full"
             formControlName="password"
           ></p-password>
-          <small>Minimum 6 character required</small>
+          @if (
+            form.get('password')?.invalid &&
+            (form.get('password')?.dirty || form.get('password')?.touched)
+          ) {
+            @if (form.get('password')?.errors?.['required']) {
+              <small class="text-red-500">Password is required.</small>
+            } @else if (form.get('password')?.errors?.['minlength']) {
+              <small class="text-red-500">Password must be at least 6 characters long.</small>
+            }
+          } @else {
+            <small>Minimum 6 characters required.</small>
+          }
         </div>
 
         <p-button

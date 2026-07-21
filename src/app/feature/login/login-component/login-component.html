@@ -42,14 +42,12 @@
           formControlName="emailId"
         />
         @if (emailId?.invalid && (emailId?.dirty || emailId?.touched)) {
-          <div class="p-error text-red-500">
-            @if (emailId?.errors?.['required']) {
-              <small>Email is required.</small>
-            }
-            @if (emailId?.errors?.['email']) {
-              <small>Please enter a valid email address.</small>
-            }
-          </div>
+          @if (emailId?.errors?.['required']) {
+            <small class="text-red-500">Email is required.</small>
+          }
+          @if (emailId?.errors?.['email']) {
+            <small class="text-red-500">Please enter a valid email address.</small>
+          }
         }
       </div>
 
@@ -126,7 +124,7 @@
         [disabled]="selectedLoginMethod === 'otp' && !otpSent()"
       ></p-button>
 
-     <!--  <p-divider align="center">
+      <!--  <p-divider align="center">
         <span class="divider-label">or</span>
       </p-divider>
 
