@@ -103,7 +103,6 @@ export class LoginComponent implements OnDestroy {
     this.loading.set(true);
 
     this.loggingService.log('Sending OTP to:', emailControl?.value);
-    // TODO: Call a service to send the OTP
     this.loginService
       .sendOtp(emailControl?.value)
       .pipe(finalize(() => this.loading.set(false)))

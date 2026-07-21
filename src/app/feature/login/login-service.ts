@@ -26,6 +26,15 @@ export class LoginService {
     return this.http.post(`${this.apiUrl}/register`, userInfo);
   }
 
+  verifyRegistrationOtp(data: { emailId: string; otp: string }): Observable<LoginResponse> {
+    return this.http.post<LoginResponse>(`${this.apiUrl}/verify-registration`, data).pipe(
+      tap((response: LoginResponse) => {
+        // On successful verification, log the user in
+        this.authService.login(response);
+      }),
+    );
+  }
+
   logout(): void {
     // This could also be an API call to invalidate the token on the server
     this.authService.logout();

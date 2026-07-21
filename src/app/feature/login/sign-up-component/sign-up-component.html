@@ -1,5 +1,6 @@
 <div class="auth-shell">
   <div class="auth-card">
+    <!-- @if (!isRegistered()) { -->
     <div class="auth-hero">
       <div class="hero-badge">Mordenec</div>
       <h1>Create your account</h1>
@@ -10,60 +11,96 @@
         <li><i class="pi pi-check-circle"></i> Track your progress instantly</li>
       </ul>
     </div>
+    <!-- } -->
 
-    <form class="auth-form" [formGroup]="form" (ngSubmit)="registerUser()">
-      <div class="form-heading">
-        <span class="form-pill">New account</span>
-        <h2>Sign up today</h2>
-        <p>Fill in your details to get started.</p>
-      </div>
+    <form
+      class="auth-form"
+      [formGroup]="form"
+      (ngSubmit)="isRegistered() ? verifyOtp() : registerUser()"
+    >
+      @if (!isRegistered()) {
+        <div class="form-heading">
+          <span class="form-pill">New account</span>
+          <h2>Sign up today</h2>
+          <p>Fill in your details to get started.</p>
+        </div>
 
-      <div class="field-group">
-        <label for="fullName">Full name</label>
-        <input
-          pInputText
-          id="fullName"
-          autocomplete="name"
-          class="auth-input"
-          formControlName="name"
-        />
-      </div>
+        <div class="field-group">
+          <label for="fullName">Full name</label>
+          <input
+            pInputText
+            id="fullName"
+            autocomplete="name"
+            class="auth-input"
+            formControlName="name"
+          />
+        </div>
 
-      <div class="field-group">
-        <label for="email">Email address</label>
-        <input
-          pInputText
-          id="email"
-          type="email"
-          autocomplete="email"
-          class="auth-input"
-          formControlName="emailId"
-        />
-      </div>
+        <div class="field-group">
+          <label for="email">Email address</label>
+          <input
+            pInputText
+            id="email"
+            type="email"
+            autocomplete="email"
+            class="auth-input"
+            formControlName="emailId"
+          />
+        </div>
 
-      <div class="field-group">
-        <label for="password">Password</label>
-        <p-password
-          inputId="password"
-          [toggleMask]="true"
-          [feedback]="false"
-          class="w-full"
-          formControlName="password"
-        ></p-password>
-      </div>
+        <div class="field-group">
+          <label for="password">Password</label>
+          <p-password
+            inputId="password"
+            [toggleMask]="true"
+            [feedback]="false"
+            class="w-full"
+            formControlName="password"
+          ></p-password>
+          <small>Minimum 6 character required</small>
+        </div>
 
-      <p-button
-        type="submit"
-        label="Create account"
-        icon="pi pi-user-plus"
-        styleClass="auth-button w-full"
-        [loading]="loading()"
-      ></p-button>
+        <p-button
+          type="submit"
+          label="Create account"
+          icon="pi pi-user-plus"
+          styleClass="auth-button w-full"
+          [loading]="loading()"
+        ></p-button>
 
-      <p class="switch-text">
-        Already have an account?
-        <a routerLink="/login">Sign in</a>
-      </p>
+        <p class="switch-text">
+          Already have an account?
+          <a routerLink="/login">Sign in</a>
+        </p>
+      } @else {
+        <div class="form-heading text-center">
+          <span class="form-pill">One more step</span>
+          <h2>Verify your email</h2>
+          <p>
+            An OTP has been sent to <strong>{{ form.get('emailId')?.value }}</strong
+            >. Please enter it below.
+          </p>
+        </div>
+
+        <div class="flex justify-center">
+          <p-inputOtp formControlName="otp" [length]="6" [integerOnly]="true"></p-inputOtp>
+        </div>
+
+        <p-button
+          type="submit"
+          label="Verify & Login"
+          icon="pi pi-check"
+          styleClass="auth-button w-full"
+          [loading]="loading()"
+        ></p-button>
+
+        <p class="switch-text">
+          Didn't get an OTP?
+          <a href="javascript:void(0)" (click)="sendOtp()">{{
+            resendCooldown() > 0 ? 'Resend OTP in (' + resendCooldown() + 's)' : 'Resend OTP'
+          }}</a>
+        </p>
+      }
     </form>
   </div>
 </div>
