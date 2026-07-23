@@ -17,7 +17,7 @@ export const routes: Routes = [
       },
       {
         path: 'mock',
-        loadComponent: () => import('./feature/ai-interview/ai-dashboard/mock-interview.component').then(m => m.MockInterviewComponent)
+        loadComponent: () => import('./feature/ai-interview/mock-interview/mock-interview.component').then(m => m.MockInterviewComponent)
       },
       {
         path: 'job-profile',
