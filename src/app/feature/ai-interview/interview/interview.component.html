@@ -21,8 +21,33 @@
 
         <div class="flex flex-col gap-6 p-2">
           <div class="text-gray-600">
-            Choose a topic and let AI generate interview questions, evaluate your answers, and
-            provide feedback.
+            Choose a topic, experience level, role and let AI generate interview questions, evaluate
+            your answers, and provide feedback.
+          </div>
+
+          <div class="grid grid-cols-2 gap-4">
+            <span>
+              <label for="experience" class="font-semibold text-gray-700"> Experience Level </label>
+              <p-autoComplete
+                [(ngModel)]="experienceLevel"
+                [suggestions]="filteredExperienceLevels"
+                (completeMethod)="search($event, experienceLevels, 'experienceLevel')"
+                [dropdown]="true"
+                placeholder="Experience Level"
+                class="w-full"
+              ></p-autoComplete>
+            </span>
+            <span>
+              <label for="userrole" class="font-semibold text-gray-700"> Role </label>
+              <p-autoComplete
+                [(ngModel)]="userRole"
+                [suggestions]="filteredUserRoles"
+                (completeMethod)="search($event, userRoles, 'userRole')"
+                [dropdown]="true"
+                placeholder="Role"
+                class="w-full"
+              ></p-autoComplete>
+            </span>
           </div>
 
           <div class="flex flex-col gap-2">
@@ -121,13 +146,13 @@
                     icon="pi pi-volume-up"
                     rounded
                     text
-                    (click)="speakQuestion(question.text)"
+                    (click)="speakQuestion(question.question)"
                   >
                   </p-button>
                 </div>
 
                 <p class="text-xl leading-relaxed text-gray-800">
-                  {{ question.text }}
+                  {{ question.question }}
                 </p>
               </div>
 
@@ -150,52 +175,28 @@
               <!-- VOICE -->
 
               @if (voiceState$ | async; as voice) {
-                <div class="flex justify-center mt-6">
-                  @if (voice.idle) {
-                    <p-button
-                      label="Start Speaking"
-                      icon="pi pi-microphone"
-                      size="large"
-                      class="px-6"
-                      (click)="startRecording()"
-                      [disabled]="evaluating() || !isEditingAnswer()"
-                    >
-                    </p-button>
-                  }
+                <div class="flex items-center justify-center gap-3 bg-blue-50 rounded-xl p-4 mt-6">
                   @if (isRecording()) {
                     <p-button
                       label="Stop Recording"
-                      icon="pi pi-check"
+                      icon="pi pi-stop-circle"
                       severity="danger"
-                      size="large"
-                      class="px-6"
                       (click)="stopRecording()"
-                    >
-                    </p-button>
-                  }
-                  @if (!isRecording() && !voice.idle) {
-                    <div class="flex gap-3">
-                      <p-button
-                        label="Start Again"
-                        icon="pi pi-refresh"
-                        severity="secondary"
-                        size="large"
-                        class="px-6"
-                        (click)="startRecording()"
-                      >
-                      </p-button>
-
-                      <p-button
-                        label="Evaluate"
-                        icon="pi pi-check"
-                        severity="warn"
-                        size="large"
-                        class="px-6"
-                        (click)="stopRecordingAndEvaluate()"
-                        [disabled]="evaluating() || !userAnswer().trim()"
-                      >
-                      </p-button>
-                    </div>
+                    ></p-button>
+                  } @else {
+                    <p-button
+                      label="Start Speaking"
+                      icon="pi pi-microphone"
+                      (click)="startRecording()"
+                      [disabled]="evaluating()"
+                    ></p-button>
+                    <p-button
+                      label="Evaluate Answer"
+                      icon="pi pi-check"
+                      severity="warn"
+                      (click)="stopRecordingAndEvaluate()"
+                      [disabled]="evaluating() || !userAnswer().trim()"
+                    ></p-button>
                   }
                 </div>
 
@@ -209,10 +210,12 @@
               <!-- EVALUATION -->
 
               @if (evaluating()) {
-                <div class="flex items-center justify-center gap-3 bg-blue-50 rounded-xl p-4 mt-6">
+                <div
+                  class="flex items-center justify-center gap-3 bg-purple-50 text-purple-800 rounded-xl p-4 mt-6"
+                >
                   <p-progressSpinner class="w-8 h-8"> </p-progressSpinner>
 
-                  <span class="text-gray-700"> AI is evaluating your answer... </span>
+                  <span class="font-semibold"> AI is evaluating your answer... </span>
                 </div>
               }
 

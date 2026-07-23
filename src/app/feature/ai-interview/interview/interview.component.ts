@@ -2,6 +2,7 @@ import { Component, DestroyRef, computed, effect, inject, signal } from '@angula
 
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { ActivatedRoute, Router } from '@angular/router';
 
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
@@ -18,7 +19,11 @@ import { TextareaModule } from 'primeng/textarea';
 
 import { InterviewService } from '../../../core/services/interview.service';
 import { VoiceService } from '../../../shared/services/voice-service';
+import { InterviewQuestion } from '../../../core/models/interview-question.model';
 import { PanelModule } from 'primeng/panel';
+import { AutoCompleteCompleteEvent, AutoCompleteModule } from 'primeng/autocomplete';
+import { finalize } from 'rxjs';
+import { EXPERIENCE_LEVELS, INTERVIEW_TIPS, USER_ROLES } from '../../../shared/constants';
 
 @Component({
   selector: 'app-interview',
@@ -36,7 +41,8 @@ import { PanelModule } from 'primeng/panel';
     ChipModule,
     TagModule,
     KnobModule,
-    PanelModule
+    PanelModule,
+    AutoCompleteModule,
   ],
   templateUrl: './interview.component.html',
   styleUrls: ['./interview.component.css'],
@@ -45,13 +51,10 @@ export class InterviewComponent {
   private readonly interviewService = inject(InterviewService);
   private readonly voiceService = inject(VoiceService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
 
-  readonly interviewTips = [
-    'Explain concepts clearly',
-    'Give practical examples',
-    'Mention trade-offs',
-    'Speak confidently',
-  ];
+  readonly interviewTips = INTERVIEW_TIPS;
 
   // ------------------------------------------------
   // UI State
@@ -102,22 +105,24 @@ export class InterviewComponent {
     });
 
     // Watch for evaluation state changes to control editing
-    effect(
-      () => {
-        if (this.evaluating()) {
-          this.isEditingAnswer.set(false); // Disable editing while evaluating
-        } else if (!this.isRecording()) {
-          this.isEditingAnswer.set(true); // Enable editing if not evaluating and not recording
-        }
-        console.log('Evaluation state changed (via effect):', this.evaluating());
-      },
-      { allowSignalWrites: false },
-    );
+    effect(() => {
+      // The answer is editable if we are NOT recording AND NOT evaluating.
+      const editable = !this.isRecording() && !this.evaluating();
+      this.isEditingAnswer.set(editable);
+    });
 
     effect(() => {
-      console.log(this.currentQuestion())
-      this.speakQuestion(this.currentQuestion()?.text)
-    })
+      this.speakQuestion(this.currentQuestion()?.question);
+    });
+  }
+
+  ngOnInit(): void {
+    const initialQuestions = this.getInitialQuestionsFromNavigation();
+
+    if (initialQuestions.length) {
+      this.topic.set('Job Description Practice');
+      this.startInterviewWithQuestions(initialQuestions, 'Job Description Practice');
+    }
   }
 
   // ------------------------------------------------
@@ -132,7 +137,18 @@ export class InterviewComponent {
     }
 
     this.interviewService
-      .startInterview(topic)
+      .startInterview(topic, this.userRole(), this.experienceLevel())
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe();
+  }
+
+  startInterviewWithQuestions(questions: InterviewQuestion[], topic: string): void {
+    if (!questions.length) {
+      return;
+    }
+
+    this.interviewService
+      .startInterviewWithQuestions(questions, topic)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe();
   }
@@ -208,7 +224,7 @@ export class InterviewComponent {
   // ------------------------------------------------
 
   speakQuestion(text?: string): void {
-    const question = text ?? this.currentQuestion()?.text;
+    const question = text ?? this.currentQuestion()?.question; // Standardize to 'question' property
 
     if (!question) {
       return;
@@ -217,7 +233,69 @@ export class InterviewComponent {
     this.voiceService.speak(question, {
       lang: 'en-US',
       rate: 0.9,
-      voiceName:'female'
+      voiceName: 'female',
     });
+  }
+  ///
+
+  /**
+   * Filters experience levels or user rolesbased on the user's query.
+   * It also includes the query itself as a suggestion to allow custom values.
+   * @param event The autocomplete complete event.
+   * @param list the list on which filter apply
+   * @param category type of filer on experience level or userRole
+   */
+
+  search(event: AutoCompleteCompleteEvent, list: string[], category: string) {
+    const query = event.query;
+    let filtered: string[] = [];
+
+    // Filter predefined types
+    if (list) {
+      filtered = list.filter((type) => type.toLowerCase().includes(query.toLowerCase()));
+    }
+
+    // Add the custom query to the suggestions if it's not already there
+    if (query && !filtered.some((type) => type.toLowerCase() === query.toLowerCase())) {
+      filtered.unshift(query);
+    }
+    if (category == 'experienceLevel') this.filteredExperienceLevels = filtered;
+    else if (category == 'userRole') this.filteredUserRoles = filtered;
+  }
+
+  // Properties to hold filtered suggestions
+  filteredExperienceLevels: string[] = [];
+  filteredUserRoles: string[] = [];
+
+  jobDescription = signal('');
+  userRole = signal('');
+  experienceLevel = signal('');
+
+  readonly userRoles = USER_ROLES;
+  readonly experienceLevels = EXPERIENCE_LEVELS;
+
+  private getInitialQuestionsFromNavigation(): InterviewQuestion[] {
+    const navigationState = this.router.getCurrentNavigation()?.extras.state as
+      | { generatedQuestions?: InterviewQuestion[] }
+      | undefined;
+
+    const stateQuestions = navigationState?.generatedQuestions;
+
+    if (Array.isArray(stateQuestions) && stateQuestions.length) {
+      return stateQuestions;
+    }
+
+    const queryQuestions = this.route.snapshot.queryParamMap.get('generatedQuestions');
+
+    if (!queryQuestions) {
+      return [];
+    }
+
+    try {
+      const parsedQuestions = JSON.parse(queryQuestions);
+      return Array.isArray(parsedQuestions) ? parsedQuestions : [];
+    } catch {
+      return [];
+    }
   }
 }
