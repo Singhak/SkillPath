@@ -1,4 +1,7 @@
 export interface InterviewQuestion {
-  id: number;
-  text: string;
+  id?: number;
+  question: string;
+  type: string;
+  skill: string;
+  level: string;
 }

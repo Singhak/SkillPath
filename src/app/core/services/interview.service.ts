@@ -1,17 +1,19 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
-import { tap } from 'rxjs';
+import { catchError, finalize, of, tap, throwError } from 'rxjs';
 
 import { GroqService } from './groq.service';
 
 import { InterviewResult } from '../models/interview-result.model';
 import { InterviewStore } from '../models/interview-store.model';
 import { InterviewSession } from '../models/interview-session.model';
+import { AiApiService } from './apis/ai-api.service';
+import { InterviewQuestion } from '../models/interview-question.model';
 
 @Injectable({
   providedIn: 'root',
 })
 export class InterviewService {
-  private groqService = inject(GroqService);
+  private aiAPiService = inject(AiApiService);
 
   //--------------------------------------------------
   // Store
@@ -84,14 +86,14 @@ export class InterviewService {
   // Start Interview
   //--------------------------------------------------
 
-  startInterview(topic: string) {
+  startInterview(topic: string, userRole: string, experienceLevel: string) {
     this.resetStore();
 
-    return this.groqService.getInterviewQuestions(topic).pipe(
-      tap((questions) => {
+    return this.aiAPiService.genrateFromTopic(topic, userRole, experienceLevel).pipe(
+      tap((response) => {
         const session: InterviewSession = {
           topic,
-          questions,
+          questions: response.questions,
           currentQuestionIndex: 0,
           startedAt: new Date(),
         };
@@ -101,6 +103,23 @@ export class InterviewService {
         });
       }),
     );
+  }
+
+  startInterviewWithQuestions(questions: InterviewQuestion[], topic: string) {
+    this.resetStore();
+
+    const session: InterviewSession = {
+      topic,
+      questions,
+      currentQuestionIndex: 0,
+      startedAt: new Date(),
+    };
+
+    this.patch({
+      session,
+    });
+
+    return of(session);
   }
 
   //--------------------------------------------------
@@ -118,27 +137,28 @@ export class InterviewService {
       evaluating: true,
     });
 
-    return this.groqService.evaluateAnswer(question.text, answer).pipe(
-      tap((response:any) => {
+    return this.aiAPiService.generateEvaluation(question.question, answer).pipe(
+      finalize(() => {
+        this.patch({
+          evaluating: false,
+        });
+      }),
+      catchError((err) => {
+        return throwError(() => err);
+      }),
+      tap((response) => {
         const result: InterviewResult = {
           question,
-
           answer,
-
           score: response.score,
-
           feedback: response.feedback,
-
           idealAnswer: response.idealAnswer,
-
           evaluatedAt: new Date(),
         };
 
         this.patch({
           currentResult: result,
-
           results: [...this.results(), result],
-
           evaluating: false,
         });
       }),
