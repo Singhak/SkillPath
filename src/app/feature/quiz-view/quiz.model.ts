@@ -12,6 +12,8 @@ export interface QuizStats {
   totalCoinsSpent: number;
   skippedCount: number;
   totalTimeTakenInSeconds: number; // in seconds
+  attempedDate:Date,
+  rating:number,
 }
 
 export interface Quiz {
