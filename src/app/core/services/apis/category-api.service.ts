@@ -1,11 +1,11 @@
 import { inject, Service } from '@angular/core';
-import { environment } from '../../environments/environment.development';
+import { environment } from '../../../environments/environment';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { Category } from '../../core/models/category.model';
+import { Category } from '../../models/category.model';
 
 @Service()
-export class CatrgoryService {
+export class CatrgoryApiService {
   private readonly apiUrl = `${environment.apiUrl}/categories`;
   private http = inject(HttpClient);
 

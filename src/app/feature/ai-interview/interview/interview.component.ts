@@ -16,8 +16,8 @@ import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { TagModule } from 'primeng/tag';
 import { TextareaModule } from 'primeng/textarea';
 
-import { InterviewService } from '../../core/services/interview.service';
-import { VoiceService } from '../../shared/services/voice-service';
+import { InterviewService } from '../../../core/services/interview.service';
+import { VoiceService } from '../../../shared/services/voice-service';
 import { PanelModule } from 'primeng/panel';
 
 @Component({

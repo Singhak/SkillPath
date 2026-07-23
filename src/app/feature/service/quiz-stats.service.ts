@@ -1,19 +1,21 @@
 import { computed, inject, Injectable, signal } from '@angular/core';
 import { Question, QuestionStats } from '../../shared/components/question/question.model';
 import { QuizStats } from '../quiz-view/quiz.model';
-import { QuizService } from './quiz-service';
+import { QuizApiService } from '../../core/services/apis/quiz-api.service';
+import { QuestionApiService } from '../../core/services/apis/question-api.service';
 
 @Injectable({
   providedIn: 'root',
 })
 export class QuizStatsService {
-  private quizService = inject(QuizService);
+  private quizApiService = inject(QuizApiService);
+  private questionApiService = inject(QuestionApiService);
   private readonly questionsStats = signal<QuestionStats[]>([]);
   private quizStats = signal<QuizStats | {}>({});
 
   // Public signals for components to consume
 
-  public quizId = signal<number>(0)
+  public quizId = signal<number>(0);
 
   public readonly allquestionsStats = this.questionsStats.asReadonly();
   public readonly correctAnswerCount = computed(
@@ -53,7 +55,7 @@ export class QuizStatsService {
     }
 
     const newAttempt: QuestionStats = {
-      quizId:this.quizId(),
+      quizId: this.quizId(),
       userAnswer: '',
       score: 0,
       category: question.category,
@@ -76,7 +78,7 @@ export class QuizStatsService {
           ? {
               ...attempt,
               timeTaken,
-              selectedAnswer,
+              userAnswer: selectedAnswer,
               isCorrect,
               skipped: false,
               score: score ?? 0,
@@ -99,9 +101,15 @@ export class QuizStatsService {
 
   recordHintUsage(question: Question, coinsSpent: number): void {
     this.questionsStats.update((questionsStats) =>
-      questionsStats.map((attempt) =>
-        attempt.questionId === question.id ? { ...attempt, hintUsed: true, coinsSpent } : attempt,
-      ),
+      questionsStats.map((attempt) => {
+        if (attempt.questionId === question.id) {
+          attempt.hintsUsedCount++;
+          attempt.coinsSpent += coinsSpent;
+          return attempt;
+        } else {
+          return attempt;
+        }
+      }),
     );
   }
 
@@ -109,28 +117,27 @@ export class QuizStatsService {
     this.questionsStats.set([]);
   }
 
-  updateQuizStats(): void {
-    this.quizStats.set({
-      category: this.questionsStats()[0].category,
-      totalQuestions: this.questionsStats().length,
-      wrongAnswerCount: this.wrongAnswerCount(),
-      correctAnswerCount: this.correctAnswerCount(),
-      attemptedQuestionCount: this.attemptedQuestionCount(),
-      totalScore: this.totalScore(),
-      hintsUsedCount: this.hintsUsedCount(),
-      totalCoinsEarned: this.totalCoinsEarned(),
-      totalCoinsSpent: this.totalCoinsSpent(),
-      skippedCount: this.skippedCount(),
-      totalTimeTakenInSeconds: this.totalTimeTakenInSeconds(),
-    });
+  updateQuizStats() {
+    // this.quizStats.set({
+    //   category: this.questionsStats()[0].category,
+    //   totalQuestions: this.questionsStats().length,
+    //   wrongAnswerCount: this.wrongAnswerCount(),
+    //   correctAnswerCount: this.correctAnswerCount(),
+    //   attemptedQuestionCount: this.attemptedQuestionCount(),
+    //   totalScore: this.totalScore(),
+    //   hintsUsedCount: this.hintsUsedCount(),
+    //   totalCoinsEarned: this.totalCoinsEarned(),
+    //   totalCoinsSpent: this.totalCoinsSpent(),
+    //   skippedCount: this.skippedCount(),
+    //   totalTimeTakenInSeconds: this.totalTimeTakenInSeconds(),
+    // });
 
-    this.quizService.updateQuizStats(this.quizId()).subscribe()
+    return this.quizApiService.updateQuizStats(this.quizId()).subscribe();
   }
 
-  createQuestionStats(): void {
-    this.quizService.createQuestionStats(this.questionsStats()).subscribe();
+  createQuestionStats() {
+    return this.questionApiService.createQuestionStats(this.questionsStats()).subscribe();
   }
-
 }
 
 export interface EndAttemptOptions {
