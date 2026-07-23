@@ -1,108 +1,155 @@
 <div class="skill-page">
-    <section class="hero-card">
-        <div>
-            <p class="eyebrow">Self reflection</p>
-            <h2>Rate your skills and compare them with quiz performance.</h2>
-            <p>Capture how confident you feel in each area and see how that aligns with your recent quiz outcomes.</p>
-        </div>
-        <div class="hero-badge">
-            <span class="hero-badge-label">Updated</span>
-            <strong>{{ averageSelfRating() }}/5 self rating</strong>
-        </div>
-    </section>
+  <section class="hero-card">
+    <div>
+      <p class="eyebrow">Self reflection</p>
+      <h2>Rate your skills and compare them with quiz performance.</h2>
+      <p>
+        Capture how confident you feel in each area and see how that aligns with your recent quiz
+        outcomes.
+      </p>
+    </div>
+    <div class="hero-badge">
+      <span class="hero-badge-label">Updated</span>
+      <strong>{{ averageSelfRating() }}/5 self rating</strong>
+    </div>
+  </section>
 
-    <div class="card add-card">
-        <div class="field-row">
-            <div class="field-group">
-                <p-floatlabel>
-                    <p-select [(ngModel)]="selectedSkill" inputId="skill_select" [options]="availableSkills()" [showClear]="true" class="w-full">
-                    </p-select>
-                    <label for="skill_select">Skill</label>
-                </p-floatlabel>
-            </div>
+  <div class="card add-card">
+    <div class="field-row">
+      <div class="field-group">
+        <p-floatlabel variant="on">
+          <p-select
+            [(ngModel)]="selectedSkill"
+            inputId="skill_select"
+            [options]="availableSkills()"
+            [showClear]="true"
+            class="w-full"
+            [editable]="true"
+          ></p-select>
+          <label for="skill_select">Skill</label>
+        </p-floatlabel>
+      </div>
 
-            <div class="field-group">
-                <p-floatlabel>
-                    <p-select [(ngModel)]="selectedRating" inputId="rating_select" [options]="ratingOptions" [showClear]="true" class="w-full">
-                    </p-select>
-                    <label for="rating_select">Rating</label>
-                </p-floatlabel>
-            </div>
+      <div class="field-group">
+        <p-floatlabel variant="on">
+          <p-select
+            [(ngModel)]="selectedRating"
+            inputId="rating_select"
+            [options]="ratingOptions"
+            [showClear]="true"
+            class="w-full"
+          >
+          </p-select>
+          <label for="rating_select">Rating</label>
+        </p-floatlabel>
+      </div>
 
-            <div class="button-group">
-                <p-button label="Add rating" icon="pi pi-plus-circle" (click)="onClickAdd()"></p-button>
-            </div>
-        </div>
+      <div class="button-group">
+        <p-button label="Add rating" icon="pi pi-plus-circle" (click)="onClickAdd()"></p-button>
+      </div>
+    </div>
+  </div>
+
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-card-icon accent-blue">
+        <i class="pi pi-star-fill"></i>
+      </div>
+      <div>
+        <p class="stat-label">Average self rating</p>
+        <h4>{{ averageSelfRating() }}/5</h4>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-card-icon accent-green">
+        <i class="pi pi-chart-line"></i>
+      </div>
+      <div>
+        <p class="stat-label">Average quiz score</p>
+        <h4>{{ averageQuizScore() }} pts</h4>
+      </div>
+    </div>
+  </div>
+
+  <div class="content-grid">
+    <p-fieldset legend="Skill self-rating" [toggleable]="true" class="panel">
+      @if (skillPerformanceRows().length) {
+        <p-table
+          [value]="skillPerformanceRows()"
+          [tableStyle]="{ 'min-width': '100%' }"
+          [rows]="3"
+          [paginator]="true"
+        >
+          <ng-template pTemplate="header">
+            <tr>
+              <th style="width: 70%">Skill</th>
+              <th style="width: 30%">Self Rating</th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-row>
+            <tr>
+              <td>{{ row.skill }}</td>
+              <td>
+                <p-knob [ngModel]="row.selfRating" [max]="5" [readonly]="true" [size]="50"></p-knob>
+              </td>
+            </tr>
+          </ng-template>
+        </p-table>
+      } @else {
+        <p class="empty-state">Add a few ratings to visualize your confidence by skill.</p>
+      }
+    </p-fieldset>
+
+    <p-fieldset legend="Quiz performance" [toggleable]="true" class="panel">
+      @if (skillPerformanceRows().length) {
+        <p-chart type="bar" [data]="barChartData()" [options]="horizontalChartOptions"></p-chart>
+      } @else {
+        <p class="empty-state">Take a few quizzes to populate this comparison view.</p>
+      }
+    </p-fieldset>
+  </div>
+
+  <div class="panel">
+    <div class="panel-header">
+      <div>
+        <p class="eyebrow">Breakdown</p>
+        <h3>Skill vs quiz snapshot</h3>
+      </div>
     </div>
 
-    <div class="stats-grid">
-        <div class="stat-card">
-            <div class="stat-card-icon accent-blue">
-                <i class="pi pi-star-fill"></i>
-            </div>
-            <div>
-                <p class="stat-label">Average self rating</p>
-                <h4>{{ averageSelfRating() }}/5</h4>
-            </div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-card-icon accent-green">
-                <i class="pi pi-chart-line"></i>
-            </div>
-            <div>
-                <p class="stat-label">Average quiz score</p>
-                <h4>{{ averageQuizScore() }} pts</h4>
-            </div>
-        </div>
-    </div>
-
-    <div class="content-grid">
-        <p-fieldset legend="Skill self-rating" [toggleable]="true" class="panel">
-            @if (meterValues().length) {
-                <p-metergroup [value]="meterValues()"></p-metergroup>
-            } @else {
-                <p class="empty-state">Add a few ratings to visualize your confidence by skill.</p>
-            }
-        </p-fieldset>
-
-        <p-fieldset legend="Quiz performance" [toggleable]="true" class="panel">
-            @if (skillPerformanceRows().length) {
-                <p-chart type="bar" [data]="barChartData()" [options]="chartOptions"></p-chart>
-            } @else {
-                <p class="empty-state">Take a few quizzes to populate this comparison view.</p>
-            }
-        </p-fieldset>
-    </div>
-
-    <div class="panel">
-        <div class="panel-header">
-            <div>
-                <p class="eyebrow">Breakdown</p>
-                <h3>Skill vs quiz snapshot</h3>
-            </div>
-        </div>
-
-        <div class="table-card">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Skill</th>
-                        <th>Self rating</th>
-                        <th>Quiz score</th>
-                        <th>Attempts</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @for (row of skillPerformanceRows(); track row.skill) {
-                        <tr>
-                            <td>{{ row.skill }}</td>
-                            <td>{{ row.selfRating }}/5</td>
-                            <td>{{ row.quizScore }} pts</td>
-                            <td>{{ row.attempts }}</td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
-        </div>
-    </div>
+    <p-table
+      [value]="skillPerformanceRows()"
+      [tableStyle]="{ 'min-width': '100%' }"
+      showGridlines
+      [rows]="5"
+      [paginator]="true"
+      [scrollable]="true"
+      scrollHeight="400px"
+      [virtualScroll]="true"
+      [virtualScrollItemSize]="47"
+    >
+      <ng-template pTemplate="header">
+        <tr>
+          <th>Skill</th>
+          <th>Self rating</th>
+          <th>Quiz rating</th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-row>
+        <tr>
+          <td>{{ row.skill }}</td>
+          @if (row.selfRating) {
+            <td>{{ row.selfRating }}/5</td>
+          } @else {
+            <td>-</td>
+          }
+          @if (row.rating) {
+            <td>{{ row.rating }}/5</td>
+          } @else {
+            <td>-</td>
+          }
+        </tr>
+      </ng-template>
+    </p-table>
+  </div>
 </div>
