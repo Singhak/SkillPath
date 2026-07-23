@@ -1,23 +1,46 @@
 <div class="ai-interview-page">
   <div class="page-header">
     <h1>AI-Powered Interview Practice</h1>
-    <p>Sharpen your skills and build confidence for your next interview.</p>
+    <p>
+      Sharpen your skills and build confidence for your next interview. Choose an AI-generated
+      interview or bring your own questions.
+    </p>
   </div>
 
   <div class="interview-cards-container">
-    <div *ngFor="let card of interviewCards" class="interview-card">
+    <!-- <div class="interview-card">
       <p-card>
         <ng-template pTemplate="header">
           <div class="card-header">
-            <i [class]="card.icon"></i>
+            <i class="pi pi-upload"></i>
           </div>
         </ng-template>
-        <ng-template pTemplate="title">
-          {{ card.title }}
-        </ng-template>
-        <p>{{ card.description }}</p>
-        <p-button label="Start Now" icon="pi pi-arrow-right" iconPos="right" [routerLink]="card.link"></p-button>
+        <ng-template pTemplate="title"> Mock Interview </ng-template>
+        <p>Practice with your own set of questions for a tailored experience.</p>
+        <p-button label="Start Now" icon="pi pi-arrow-right" iconPos="right" routerLink="/mock-interview"></p-button>
       </p-card>
-    </div>
+    </div> -->
+
+    @for (card of interviewCards; track card) {
+      <div class="interview-card">
+        <p-card>
+          <ng-template pTemplate="header">
+            <div class="card-header">
+              <i [class]="card.icon"></i>
+            </div>
+          </ng-template>
+          <ng-template pTemplate="title">
+            {{ card.title }}
+          </ng-template>
+          <p>{{ card.description }}</p>
+          <p-button
+            label="Start Now"
+            icon="pi pi-arrow-right"
+            iconPos="right"
+            [routerLink]="card.link"
+          ></p-button>
+        </p-card>
+      </div>
+    }
   </div>
 </div>

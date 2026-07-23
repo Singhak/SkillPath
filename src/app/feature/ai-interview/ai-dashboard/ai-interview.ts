@@ -4,7 +4,6 @@ import { CardModule } from 'primeng/card';
 import { ButtonModule } from 'primeng/button'; 
 import { RouterLink } from '@angular/router';
 import { DialogModule } from 'primeng/dialog';
-import { MockInterviewComponent } from './mock-interview.component';
 
 
 interface InterviewCard {
@@ -43,12 +42,12 @@ export class AiInterviewComponent {
       icon: 'pi pi-briefcase',
       link: 'job-profile',
     },
-    {
-      title: 'Behavioral Interview Practice',
-      description: 'Master the STAR method and answer behavioral questions effectively with AI-driven scenarios and feedback.',
-      icon: 'pi pi-users',
-      link: 'behavioral',
-    },
+    // {
+    //   title: 'Behavioral Interview Practice',
+    //   description: 'Master the STAR method and answer behavioral questions effectively with AI-driven scenarios and feedback.',
+    //   icon: 'pi pi-users',
+    //   link: 'behavioral',
+    // },
   ];
 
 }
