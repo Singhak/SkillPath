@@ -1,7 +1,7 @@
 import { InterviewQuestion } from './interview-question.model';
 
 export interface InterviewResult {
-  question: InterviewQuestion;
+  question: InterviewQuestion | null;
 
   answer: string;
 
