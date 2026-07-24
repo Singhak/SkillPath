@@ -8,10 +8,9 @@ import { InterviewStore } from '../models/interview-store.model';
 import { InterviewSession } from '../models/interview-session.model';
 import { AiApiService } from './apis/ai-api.service';
 import { InterviewQuestion } from '../models/interview-question.model';
+import { levelToWeight } from '../../shared/constants';
 
-@Injectable({
-  providedIn: 'root',
-})
+@Injectable()
 export class InterviewService {
   private aiAPiService = inject(AiApiService);
 
@@ -93,7 +92,7 @@ export class InterviewService {
       tap((response) => {
         const session: InterviewSession = {
           topic,
-          questions: response.questions,
+          questions: response,
           currentQuestionIndex: 0,
           startedAt: new Date(),
         };
@@ -137,7 +136,13 @@ export class InterviewService {
       evaluating: true,
     });
 
-    return this.aiAPiService.generateEvaluation(question.question, answer).pipe(
+    const dataToSend = {
+      question: question.question,
+      weight: levelToWeight(question.level),
+      answer,
+    };
+
+    return this.aiAPiService.generateEvaluation(dataToSend).pipe(
       finalize(() => {
         this.patch({
           evaluating: false,
@@ -147,18 +152,22 @@ export class InterviewService {
         return throwError(() => err);
       }),
       tap((response) => {
-        const result: InterviewResult = {
+        const processResponse = (res: any) => ({
           question,
           answer,
-          score: response.score,
-          feedback: response.feedback,
-          idealAnswer: response.idealAnswer,
+          score: res.score,
+          feedback: res.feedback,
+          idealAnswer: res.idealAnswer,
           evaluatedAt: new Date(),
-        };
+        });
+
+        const results: InterviewResult[] = Array.isArray(response)
+          ? response.map(processResponse)
+          : [processResponse(response)];
 
         this.patch({
-          currentResult: result,
-          results: [...this.results(), result],
+          currentResult: results[0], // Show the first result as current
+          results: [...this.results(), ...results],
           evaluating: false,
         });
       }),
