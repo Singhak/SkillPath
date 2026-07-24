@@ -24,6 +24,7 @@ import { PanelModule } from 'primeng/panel';
 import { AutoCompleteCompleteEvent, AutoCompleteModule } from 'primeng/autocomplete';
 import { finalize } from 'rxjs';
 import { EXPERIENCE_LEVELS, INTERVIEW_TIPS, USER_ROLES } from '../../../shared/constants';
+import { MessageService } from 'primeng/api';
 
 @Component({
   selector: 'app-interview',
@@ -46,6 +47,7 @@ import { EXPERIENCE_LEVELS, INTERVIEW_TIPS, USER_ROLES } from '../../../shared/c
   ],
   templateUrl: './interview.component.html',
   styleUrls: ['./interview.component.css'],
+  providers: [InterviewService],
 })
 export class InterviewComponent {
   private readonly interviewService = inject(InterviewService);
@@ -53,8 +55,21 @@ export class InterviewComponent {
   private readonly destroyRef = inject(DestroyRef);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
+  private readonly messageService = inject(MessageService);
+  // ------------------------------------------------
+  // Constants
+  // ------------------------------------------------
 
   readonly interviewTips = INTERVIEW_TIPS;
+  readonly userRoles = USER_ROLES;
+  readonly experienceLevels = EXPERIENCE_LEVELS;
+  // Properties to hold filtered suggestions
+  filteredExperienceLevels: string[] = [];
+  filteredUserRoles: string[] = [];
+
+  jobDescription = signal('');
+  userRole = signal('');
+  experienceLevel = signal('');
 
   // ------------------------------------------------
   // UI State
@@ -110,10 +125,6 @@ export class InterviewComponent {
       const editable = !this.isRecording() && !this.evaluating();
       this.isEditingAnswer.set(editable);
     });
-
-    effect(() => {
-      this.speakQuestion(this.currentQuestion()?.question);
-    });
   }
 
   ngOnInit(): void {
@@ -138,7 +149,10 @@ export class InterviewComponent {
 
     this.interviewService
       .startInterview(topic, this.userRole(), this.experienceLevel())
-      .pipe(takeUntilDestroyed(this.destroyRef))
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        finalize(() => this.speakQuestion()),
+      )
       .subscribe();
   }
 
@@ -149,7 +163,10 @@ export class InterviewComponent {
 
     this.interviewService
       .startInterviewWithQuestions(questions, topic)
-      .pipe(takeUntilDestroyed(this.destroyRef))
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        finalize(() => this.speakQuestion()),
+      )
       .subscribe();
   }
 
@@ -173,6 +190,7 @@ export class InterviewComponent {
     this.isRecording.set(false); // Ensure recording is off
 
     this.interviewService.nextQuestion();
+    this.speakQuestion();
   }
 
   onUserAnswerInput(value: string): void {
@@ -213,8 +231,14 @@ export class InterviewComponent {
       .subscribe(() => {
         const result = this.currentResult();
         this.voiceService.setStateIdle();
-        if (result) {
+        if (result && Object.keys(result).length > 0) {
           this.voiceService.speak(result.feedback);
+        } else {
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: 'Somthing went wrong',
+          });
         }
       });
   }
@@ -263,21 +287,9 @@ export class InterviewComponent {
     else if (category == 'userRole') this.filteredUserRoles = filtered;
   }
 
-  // Properties to hold filtered suggestions
-  filteredExperienceLevels: string[] = [];
-  filteredUserRoles: string[] = [];
-
-  jobDescription = signal('');
-  userRole = signal('');
-  experienceLevel = signal('');
-
-  readonly userRoles = USER_ROLES;
-  readonly experienceLevels = EXPERIENCE_LEVELS;
-
   private getInitialQuestionsFromNavigation(): InterviewQuestion[] {
-    const navigationState = this.router.getCurrentNavigation()?.extras.state as
-      | { generatedQuestions?: InterviewQuestion[] }
-      | undefined;
+    const navigationState = this.router.currentNavigation()?.extras.state as
+      { generatedQuestions?: InterviewQuestion[] } | undefined;
 
     const stateQuestions = navigationState?.generatedQuestions;
 

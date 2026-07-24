@@ -299,12 +299,12 @@
           <!-- Previous Answers -->
           <p-panel header="Completed Questions" class="mt-5 shadow-md" [toggleable]="true">
             <div class="flex flex-col gap-3">
-              @for (result of results(); track result.question.id) {
+              @for (result of results(); track result.question?.id) {
                 <div class="flex justify-between items-center bg-gray-50 rounded-lg p-3">
                   <div class="flex items-center gap-2">
                     <i class="pi pi-check-circle text-green-500"></i>
 
-                    <span class="font-medium"> Q{{ result.question.id }} </span>
+                    <span class="font-medium"> Q{{ result.question?.id }} </span>
                   </div>
 
                   <p-chip [label]="result.score + '/10'"> </p-chip>

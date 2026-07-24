@@ -48,3 +48,19 @@ export function createDownloadLink(url: string, filename: string): HTMLAnchorEle
   document.body.appendChild(link);
   return link;
 }
+
+export function levelToWeight(level: string) {
+  level = level?.toLowerCase()?.trim();
+  switch (level) {
+    case 'basic':
+      return 1;
+    case 'intermediate':
+      return 1.5;
+    case 'advanced':
+      return 2;
+    case 'critical concept':
+      return 3;
+    default:
+      return '';
+  }
+}
