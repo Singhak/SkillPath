@@ -1,5 +1,5 @@
 import { ApplicationConfig, provideBrowserGlobalErrorListeners } from '@angular/core';
-import { provideRouter } from '@angular/router';
+import { provideRouter, withHashLocation } from '@angular/router';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { providePrimeNG } from 'primeng/config';
 import { MessageService } from 'primeng/api';
@@ -12,6 +12,7 @@ import { provideHighlightOptions } from 'ngx-highlightjs';
 
 export const appConfig: ApplicationConfig = {
   providers: [
+    provideRouter(routes, withHashLocation()),
     provideBrowserGlobalErrorListeners(),
     provideAnimationsAsync(),
     provideRouter(routes),
