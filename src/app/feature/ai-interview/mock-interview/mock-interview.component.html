@@ -218,7 +218,13 @@
                 (click)="stopRecording()"
               ></p-button>
             }
-            <p-button label="Re-record" icon="pi pi-refresh" text (click)="reRecord()"></p-button>
+            <p-button
+              label="Re-record"
+              icon="pi pi-refresh"
+              text
+              (click)="reRecord()"
+              [disabled]="isRecording()"
+            ></p-button>
           </div>
 
           @if (isRecording()) {
@@ -252,7 +258,7 @@
         </div>
 
         <div class="mt-6 rounded-2xl border border-slate-200 bg-slate-50 p-4">
-          <label class="mb-2 block text-sm font-semibold text-slate-700"
+          <!-- <label class="mb-2 block text-sm font-semibold text-slate-700"
             >Email address for evaluation summary</label
           >
           <input
@@ -262,7 +268,7 @@
             placeholder="name@example.com"
             [ngModel]="email()"
             (ngModelChange)="email.set($event)"
-          />
+          /> -->
           <div class="mt-4 flex flex-wrap gap-3">
             <p-button
               label="Finish & Submit"

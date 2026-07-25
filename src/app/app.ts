@@ -6,6 +6,7 @@ import { AuthService } from './core/services/auth.service';
 import { CommonModule } from '@angular/common';
 import { ButtonModule } from 'primeng/button';
 import { RippleModule } from 'primeng/ripple';
+import { HealthService } from './core/services/health.service';
 
 @Component({
   selector: 'app-root',
@@ -24,7 +25,9 @@ import { RippleModule } from 'primeng/ripple';
 })
 export class App {
   private authService = inject(AuthService);
-  private router = inject(Router);
+  private healthService = inject(HealthService);
+  isWakingUp$ = this.healthService.isWakingUp$;
+
   readonly mobileMenuOpen = signal(false);
   protected readonly title = signal('SkillPath');
   readonly sidebarCollapsed = signal(true);
@@ -41,7 +44,9 @@ export class App {
     }
     return user.name.substring(0, 2).toUpperCase();
   });
-  constructor(private messageService: MessageService) {}
+  constructor() {
+    this.healthService.pingBackend();
+  }
   toggleSidebar(): void {
     if (typeof window !== 'undefined' && window.innerWidth < 1024) {
       this.mobileMenuOpen.set(!this.mobileMenuOpen());
