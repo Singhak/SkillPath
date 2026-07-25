@@ -1,7 +1,7 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Injectable, Service } from '@angular/core';
 import { Observable } from 'rxjs';
-import { environment } from '../../../environments/environment.development';
+import { environment } from '../../../environments/environment';
 import { Quiz } from '../../../feature/quiz-view/quiz.model';
 import { Question, QuestionStats } from '../../../shared/components/question/question.model';
 
