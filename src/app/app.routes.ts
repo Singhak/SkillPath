@@ -5,26 +5,41 @@ import { authGuard } from './auth.guard';
 export const routes: Routes = [
   {
     path: 'aiinterview',
-    loadComponent: () => import('./feature/ai-interview/ai-interview-layout.component').then(m => m.AiInterviewLayoutComponent),
+    loadComponent: () =>
+      import('./feature/ai-interview/ai-interview-layout.component').then(
+        (m) => m.AiInterviewLayoutComponent,
+      ),
     children: [
       {
         path: '',
-        loadComponent: () => import('./feature/ai-interview/ai-dashboard/ai-interview').then(m => m.AiInterviewComponent)
+        loadComponent: () =>
+          import('./feature/ai-interview/ai-dashboard/ai-interview').then(
+            (m) => m.AiInterviewComponent,
+          ),
       },
       {
         path: 'interview',
-        loadComponent: () => import('./feature/ai-interview/interview/interview.component').then(m => m.InterviewComponent)
+        loadComponent: () =>
+          import('./feature/ai-interview/interview/interview.component').then(
+            (m) => m.InterviewComponent,
+          ),
       },
       {
         path: 'mock',
-        loadComponent: () => import('./feature/ai-interview/mock-interview/mock-interview.component').then(m => m.MockInterviewComponent)
+        loadComponent: () =>
+          import('./feature/ai-interview/mock-interview/mock-interview.component').then(
+            (m) => m.MockInterviewComponent,
+          ),
       },
       {
         path: 'job-profile',
-        loadComponent: () => import('./feature/ai-interview/jobposting/create-interview.component').then(m => m.CreateInterviewComponent)
+        loadComponent: () =>
+          import('./feature/ai-interview/jobposting/create-interview.component').then(
+            (m) => m.CreateInterviewComponent,
+          ),
       },
       // You can add more child routes here for practice, job-profile, etc.
-    ]
+    ],
   },
   {
     path: 'quiz',
@@ -33,6 +48,7 @@ export const routes: Routes = [
   {
     path: 'skills',
     loadComponent: () => import('./feature/skill-rate/skill-rate').then((m) => m.SkillRate),
+    canActivate: [authGuard],
   },
   {
     path: 'dashboard',
