@@ -4,7 +4,7 @@ import { Injectable, signal, computed, effect, inject, PLATFORM_ID } from '@angu
 import { Router } from '@angular/router';
 import { BehaviorSubject, Observable, throwError } from 'rxjs';
 import { catchError, filter, switchMap, take, tap } from 'rxjs/operators';
-import { environment } from '../../environments/environment.development';
+import { environment } from '../../environments/environment';
 
 export interface User {
   id: string;
