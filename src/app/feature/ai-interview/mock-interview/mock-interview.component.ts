@@ -39,9 +39,6 @@ import { MockInterviewService } from '../../../core/services/mock-interview.serv
   providers: [MockInterviewService],
 })
 export class MockInterviewComponent {
-  startOver() {
-    throw new Error('Method not implemented.');
-  }
   private readonly aiApiService = inject(AiApiService);
   private readonly voiceService = inject(VoiceService);
   private readonly destroyRef = inject(DestroyRef);
@@ -268,5 +265,9 @@ export class MockInterviewComponent {
     } catch {
       return [];
     }
+  }
+
+   startOver() {
+    this.interviewService.endInterview()
   }
 }
