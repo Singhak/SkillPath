@@ -1,0 +1,1 @@
+import {bT as li,E,ak as oo,bU as Nn}from'./main-EOBJMA6P.js';var o=class r{apiUrl=`${li.apiUrl}/quizzes`;http=E(oo);updateQuizStats(e){return this.http.put(`${li.apiUrl}/quizzes/${e}/complete`,{})}getQuizAttempts(){return this.http.get(`${li.apiUrl}/quizzes`)}static \u0275fac=function(s){return new(s||r)};static \u0275prov=Nn({token:r,factory:r.\u0275fac})};export{o};
