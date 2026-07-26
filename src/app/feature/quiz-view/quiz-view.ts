@@ -172,9 +172,11 @@ export class QuizView implements OnInit, OnDestroy {
       }
       this.isFinishing.set(true);
       this.timer.stop();
-      if (this.authService.isAuthenticated()) { // to show summary of quiz to guest users
+      if (this.authService.isAuthenticated()) {
+        // to show summary of quiz to guest users
         this.updateStats();
       } else {
+        this.isQuizFinished.set(true);
         this.isFinishing.set(false);
       }
     }
