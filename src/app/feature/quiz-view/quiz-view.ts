@@ -20,7 +20,6 @@ import { CommonModule } from '@angular/common';
 import { ReportIssueService } from '../../core/services/report-issue.service';
 import { ReportIssueComponent } from '../../shared/components/report-issue/report-issue.component';
 import { CatrgoryApiService } from '../../core/services/apis/category-api.service';
-import { QuizApiService } from '../../core/services/apis/quiz-api.service';
 import { QuestionApiService } from '../../core/services/apis/question-api.service';
 
 @Component({
@@ -173,7 +172,11 @@ export class QuizView implements OnInit, OnDestroy {
       }
       this.isFinishing.set(true);
       this.timer.stop();
-      this.updateStats();
+      if (this.authService.isAuthenticated()) { // to show summary of quiz to guest users
+        this.updateStats();
+      } else {
+        this.isFinishing.set(false);
+      }
     }
   }
 
