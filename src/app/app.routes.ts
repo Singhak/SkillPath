@@ -53,11 +53,13 @@ export const routes: Routes = [
   {
     path: 'dashboard',
     loadComponent: () => import('./feature/dashboard/dashboard').then((m) => m.Dashboard),
+    canActivate: [authGuard],
   },
   {
     path: '',
-    loadComponent: () =>
-      import('./feature/home/home-page/home-page').then((m) => m.HomePageComponent),
+    // loadComponent: () =>
+    //   import('./feature/home/home-page/home-page').then((m) => m.HomePageComponent),
+    loadComponent: () => import('./feature/dashboard/dashboard').then((m) => m.Dashboard),
     canActivate: [authGuard],
   },
   {
