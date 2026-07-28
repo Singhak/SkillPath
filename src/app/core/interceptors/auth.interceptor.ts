@@ -1,7 +1,8 @@
 import { HttpErrorResponse, HttpHandlerFn, HttpInterceptorFn, HttpRequest } from '@angular/common/http';
-import { inject } from '@angular/core';
+import { inject, Injector } from '@angular/core';
 import { AuthService } from '../services/auth.service';
-import { catchError, switchMap, throwError, filter, take } from 'rxjs';
+import { catchError, switchMap, throwError } from 'rxjs';
+import { TokenService } from '../services/token.service';
 
 function addAuthHeader(req: HttpRequest<unknown>, token: string) {
   return req.clone({
@@ -16,8 +17,9 @@ function addAuthHeader(req: HttpRequest<unknown>, token: string) {
  * It also handles 401 errors by attempting to refresh the token.
  */
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
-  const authService = inject(AuthService);
-  const authToken = localStorage.getItem('authToken');
+  const tokenService = inject(TokenService);
+  const injector = inject(Injector);
+  const authToken = tokenService.getAuthToken();
 
   if (authToken) {
     let authReq = addAuthHeader(req, authToken);
@@ -26,7 +28,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
       catchError((error: HttpErrorResponse) => {
         // Handle 401 Unauthorized errors
         if (error.status === 401 && !req.url.includes('/auth/refresh')) {
-          return handle401Error(req, next, authService);
+          return handle401Error(req, next, tokenService, injector);
         }
         // For other errors, just re-throw
         return throwError(() => error);
@@ -36,11 +38,12 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   return next(req);
 };
 
-function handle401Error(req: HttpRequest<unknown>, next: HttpHandlerFn, authService: AuthService) {
-  return authService.refreshToken().pipe(
-    switchMap(() => {
+function handle401Error(req: HttpRequest<unknown>, next: HttpHandlerFn, tokenService: TokenService, injector: Injector) {
+  const authService = injector.get(AuthService);
+  return tokenService.refreshToken().pipe(
+    switchMap((newAuthToken) => {
       // After refresh, retry the original request with the new token.
-      const newAuthToken = localStorage.getItem('authToken');
+      // const newAuthToken = tokenService.getAuthToken();
       if (newAuthToken) {
         return next(addAuthHeader(req, newAuthToken));
       }
@@ -54,4 +57,4 @@ function handle401Error(req: HttpRequest<unknown>, next: HttpHandlerFn, authServ
       return throwError(() => refreshError);
     })
   );
-}
+}
