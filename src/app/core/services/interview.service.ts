@@ -85,10 +85,10 @@ export class InterviewService {
   // Start Interview
   //--------------------------------------------------
 
-  startInterview(topic: string, userRole: string, experienceLevel: string) {
+  startInterview(topic: string, userRole: string, experienceLevel: string, count: number) {
     this.resetStore();
 
-    return this.aiAPiService.genrateFromTopic(topic, userRole, experienceLevel).pipe(
+    return this.aiAPiService.genrateFromTopic(topic, userRole, experienceLevel, count).pipe(
       tap((response) => {
         const session: InterviewSession = {
           topic,
