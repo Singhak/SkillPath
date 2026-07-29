@@ -1,4 +1,5 @@
 import { Component, computed, input, model } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { ButtonModule } from 'primeng/button';
 import { RadioButton } from 'primeng/radiobutton';
 import { FormsModule } from '@angular/forms';
@@ -8,7 +9,7 @@ import { Question } from './question.model';
 
 @Component({
   selector: 'app-quiz',
-  imports: [ButtonModule, RadioButton, FormsModule, Highlight, FieldsetModule],
+  imports: [CommonModule, ButtonModule, RadioButton, FormsModule, Highlight, FieldsetModule],
   templateUrl: './question.html',
   styleUrl: './question.css',
 })
@@ -18,10 +19,11 @@ export class QuestionComponent {
   quiz = input.required<Question | null>();
   selectedAnswer = model<string>();
   showExplanation = input<boolean>();
+
   options = computed<string[]>(() => {
     const quiz = this.quiz();
-    if (quiz) {
-      const options = quiz.options;
+    if (quiz && quiz.options) {
+      const options = [...quiz.options];
       for (let i = options.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
         [options[i], options[j]] = [options[j], options[i]];
@@ -40,4 +42,32 @@ export class QuestionComponent {
     }
     return [];
   });
+
+  selectOption(option: string): void {
+    if (!this.showExplanation()) {
+      this.selectedAnswer.set(option);
+    }
+  }
+
+  getOptionContainerClass(option: string): string {
+    const isSubmitted = !!this.showExplanation();
+    const isSelected = this.selectedAnswer() === option;
+    const isCorrect = this.quiz()?.answer === option;
+
+    if (isSubmitted) {
+      if (isCorrect) {
+        return 'border-2 border-emerald-500 bg-emerald-50/90 text-emerald-950 font-medium shadow-sm';
+      }
+      if (isSelected && !isCorrect) {
+        return 'border-2 border-red-500 bg-red-50/90 text-red-950 font-medium shadow-sm';
+      }
+      return 'border border-slate-200 bg-slate-50/50 text-slate-400 opacity-60';
+    }
+
+    if (isSelected) {
+      return 'border-2 border-emerald-600 bg-emerald-50/40 text-slate-900 font-medium shadow-sm cursor-pointer';
+    }
+
+    return 'border border-slate-200 bg-white hover:border-emerald-300 hover:bg-slate-50/80 text-slate-700 cursor-pointer';
+  }
 }
