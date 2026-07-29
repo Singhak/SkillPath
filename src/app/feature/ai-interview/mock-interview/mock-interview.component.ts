@@ -17,6 +17,10 @@ import { InterviewResult } from '../../../core/models/interview-result.model';
 import { AiApiService } from '../../../core/services/apis/ai-api.service';
 import { VoiceService } from '../../../shared/services/voice-service';
 import { MockInterviewService } from '../../../core/services/mock-interview.service';
+import { AuthService } from '../../../core/services/auth.service';
+import { MessageService } from 'primeng/api';
+import { AI_CREDIT_COST } from '../../../shared/constants';
+import { finalize, tap } from 'rxjs';
 
 @Component({
   selector: 'app-mock-interview',
@@ -45,11 +49,13 @@ export class MockInterviewComponent {
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private readonly interviewService = inject(MockInterviewService);
+  private readonly authService = inject(AuthService);
+  private readonly messageService = inject(MessageService);
 
   readonly voiceState$ = this.voiceService.state$;
 
   // ------------------------------------------------
-  // Interview Store
+  // Interview State
   // ------------------------------------------------
 
   readonly session = this.interviewService.currentSession;
@@ -59,6 +65,8 @@ export class MockInterviewComponent {
   readonly totalQuestions = this.interviewService.totalQuestions;
   readonly progressPercent = this.interviewService.progress;
   readonly isFinished = this.interviewService.isFinished;
+  readonly freeCredits = this.authService.freeCredits;
+  readonly paidCredits = this.authService.paidCredits;
 
   isEditingAnswer = signal(true);
 
@@ -74,12 +82,16 @@ export class MockInterviewComponent {
   readonly isStarted = signal(false);
   readonly errorMessage = signal('');
   readonly successMessage = signal('');
+  readonly loading = signal(false);
 
   constructor() {
+
     this.voiceState$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((state) => {
+      if (state.transcript) {
+        this.currentAnswer.set(state.transcript);
+      }
       this.isRecording.set(state.listening);
     });
-
     effect(() => {
       if (this.session()) this.session()!.answer = this.currentAnswer();
     });
@@ -127,6 +139,15 @@ export class MockInterviewComponent {
     const role = this.userRole().trim() || 'Software Engineer';
     const experience = this.experienceLevel().trim() || 'Intermediate';
 
+    if (!this.freeCredits() && !this.paidCredits) {
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'Insufficient AI Credits',
+        life: 5000,
+      });
+      return;
+    }
     this.aiApiService
       .genrateFromTopic(topic, role, experience)
       .pipe(takeUntilDestroyed(this.destroyRef))
@@ -143,6 +164,7 @@ export class MockInterviewComponent {
           }
           this.startInterviewWithQuestions(generatedQuestions, topic);
           this.speakQuestion(generatedQuestions[0].question);
+          this.authService.decrementAiCredits(1).subscribe()
         },
         error: () => {
           this.errorMessage.set('Unable to generate questions right now. Please try again.');
@@ -165,19 +187,15 @@ export class MockInterviewComponent {
     this.voiceService.startListening('en-US');
   }
 
-  onAnswerInput(value: string): void {
-    this.currentAnswer.set(value);
-  }
-
   endInterview(): void {
     this.interviewService.endInterview();
 
     this.topic.set('');
-
+    this.isStarted.set(false);
     this.isEditingAnswer.set(true); // Reset editing state
     this.isRecording.set(false); // Reset recording state
     this.voiceService.stopListening();
-
+    this.currentAnswer.set('');
     this.voiceService.stopSpeaking();
   }
 
@@ -224,27 +242,44 @@ export class MockInterviewComponent {
   }
 
   finishAndEval() {
-    this.interviewService.sendForEvaluation();
-    // this.sendSummaryByEmail(this.results());
-  }
-
-  private sendSummaryByEmail(results: InterviewResult[]): void {
-    const summary = results
-      .map((result, index) => {
-        return `Q${index + 1}: ${result.question}\nAnswer: ${result.answer}\nScore: ${result.score}/10\nFeedback: ${result.feedback}`;
-      })
-      .join('\n\n');
-
-    const subject = encodeURIComponent(`Mock interview summary for ${this.topic()}`);
-    const body = encodeURIComponent(
-      `Hi,\n\nHere is your mock interview evaluation summary.\n\n${summary}\n\nBest regards,\nMock Interview App`,
-    );
-
-    window.location.href = `mailto:${this.email()}?subject=${subject}&body=${body}`;
+    // filter out results where answer is empty or whitespace
+    const resultsWithAns = this.results().filter((result) => result.answer.trim().length > 0);
+    if (resultsWithAns.length <= 0) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'No Results',
+        detail: 'You have no results to evaluate.',
+      });
+      return;
+    }
+    const evaluationCost = resultsWithAns.length * AI_CREDIT_COST.QUESTION_EVALUATION;
+    if (this.freeCredits() + this.paidCredits() < evaluationCost) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'No Credits',
+        detail: 'You have no more AI evaluation credits for today. Please try again tomorrow.',
+      });
+      return;
+    }
+    this.loading.set(true);
+    this.interviewService.sendForEvaluation(resultsWithAns).pipe(finalize(() => this.loading.set(false))).subscribe({
+      next: (res) => {
+        this.authService.decrementAiCredits(evaluationCost).subscribe();
+        this.endInterview();
+      },
+      error: (err) => {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'Failed to send for evaluation',
+          life: 5000,
+        });
+      },
+    });
   }
 
   private getInitialQuestionsFromNavigation(): InterviewQuestion[] {
-    const navigationState = this.router.getCurrentNavigation()?.extras.state as
+    const navigationState = this.router.currentNavigation()?.extras.state as
       { generatedQuestions?: InterviewQuestion[] } | undefined;
 
     const stateQuestions = navigationState?.generatedQuestions;
@@ -267,7 +302,7 @@ export class MockInterviewComponent {
     }
   }
 
-   startOver() {
+  startOver() {
     this.interviewService.endInterview()
   }
 }
