@@ -1,0 +1,74 @@
+<p-dialog [visible]="visible()" [modal]="true" [style]="{ width: '90vw', 'max-width': '680px' }" [draggable]="false"
+    [resizable]="false" [showHeader]="false" [closable]="false" (onHide)="close.emit()">
+    <div class="summary-container">
+
+        <!-- Header Banner -->
+        <div class="summary-hero">
+            <div class="hero-close-btn" (click)="close.emit()">
+                <i class="pi pi-times"></i>
+            </div>
+            <div class="hero-icon">
+                <i class="pi pi-trophy"></i>
+            </div>
+            <h2 class="hero-title">Quiz Complete!</h2>
+            <p class="hero-subtitle">Here's how you performed</p>
+
+            <!-- Score Ring -->
+            <div class="score-ring-wrap">
+                <svg class="score-ring" viewBox="0 0 120 120">
+                    <circle class="ring-bg" cx="60" cy="60" r="50" />
+                    <circle class="ring-fill" cx="60" cy="60" r="50" [style.stroke-dasharray]="314"
+                        [style.stroke-dashoffset]="314 - (314 * scorePercent() / 100)" />
+                </svg>
+                <div class="score-ring-label">
+                    <span class="score-pct">{{ scorePercent() }}%</span>
+                    <span class="score-sub">score</span>
+                </div>
+            </div>
+
+            <!-- Performance Label -->
+            <div class="perf-badge" [ngClass]="perfBadgeClass()">
+                <i [class]="perfBadgeIcon()"></i>
+                <span>{{ perfLabel() }}</span>
+            </div>
+        </div>
+
+        <!-- Stats Grid -->
+        <div class="stats-grid">
+            @for (stat of summaryStats(); track stat.label) {
+            <div class="stat-card" [ngClass]="stat.cardClass">
+                <div class="stat-icon-wrap" [ngClass]="stat.iconClass">
+                    <i [class]="stat.icon"></i>
+                </div>
+                <div class="stat-info">
+                    <div class="stat-value">{{ stat.value }}</div>
+                    <div class="stat-label">{{ stat.label }}</div>
+                </div>
+            </div>
+            }
+            <!-- Time Card -->
+            <div class="stat-card stat-card--time">
+                <div class="stat-icon-wrap stat-icon--time">
+                    <i class="pi pi-clock"></i>
+                </div>
+                <div class="stat-info">
+                    <div class="stat-value">{{ formattedTime() }}</div>
+                    <div class="stat-label">Total Time</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer Actions -->
+        <div class="summary-actions">
+            <button class="summary-btn summary-btn--restart" (click)="restart.emit()">
+                <i class="pi pi-refresh"></i>
+                <span>Restart Quiz</span>
+            </button>
+            <button class="summary-btn summary-btn--close" (click)="close.emit()">
+                <i class="pi pi-home"></i>
+                <span>Back to Setup</span>
+            </button>
+        </div>
+
+    </div>
+</p-dialog>
