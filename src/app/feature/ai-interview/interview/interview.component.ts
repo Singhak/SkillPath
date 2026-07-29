@@ -27,7 +27,8 @@ import { AI_CREDIT_COST, EXPERIENCE_LEVELS, INTERVIEW_TIPS, USER_ROLES } from '.
 import { MessageService } from 'primeng/api';
 import { AuthService } from '../../../core/services/auth.service';
 import { TableModule } from "primeng/table";
-import { Select } from "primeng/select";
+import { SelectModule } from "primeng/select";
+import { BadgeModule } from 'primeng/badge';
 
 
 @Component({
@@ -49,7 +50,8 @@ import { Select } from "primeng/select";
     PanelModule,
     AutoCompleteModule,
     TableModule,
-    Select
+    SelectModule,
+    BadgeModule
   ],
   templateUrl: './interview.component.html',
   styleUrls: ['./interview.component.css'],
