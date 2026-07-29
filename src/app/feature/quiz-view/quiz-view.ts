@@ -1,14 +1,13 @@
 import { Component, computed, effect, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import { TagModule } from 'primeng/tag';
 import { ButtonModule } from 'primeng/button';
-import { CardModule } from 'primeng/card';
 import { SelectModule } from 'primeng/select';
 import { MultiSelectModule } from 'primeng/multiselect';
 import { MessageService } from 'primeng/api';
 import { QuizStatsService } from '../service/quiz-stats.service';
 import { AuthService } from '../../core/services/auth.service';
 import { Timer } from '../../shared/services/timer';
-import { QuizSummaryComponent } from '../service/quiz-summary';
+import { QuizSummaryComponent } from '../service/quiz-summary/quiz-summary';
 import { Category } from '../../core/models/category.model';
 import { FormsModule } from '@angular/forms';
 import { Question } from '../../shared/components/question/question.model';
@@ -28,7 +27,6 @@ import { UserApiService } from '../../core/services/apis/user-api.service';
     QuestionComponent,
     TagModule,
     ButtonModule,
-    CardModule,
     QuizSummaryComponent,
     SelectModule,
     MultiSelectModule,
