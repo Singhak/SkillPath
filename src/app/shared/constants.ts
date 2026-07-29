@@ -64,3 +64,9 @@ export function levelToWeight(level: string) {
       return '';
   }
 }
+
+export const AI_CREDIT_COST = {
+  QUESTION_GENERATION: .20,
+  QUESTION_EVALUATION: .25,
+  JOB_PROFILE_ANALYSIS: 2
+};

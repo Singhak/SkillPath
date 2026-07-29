@@ -6,7 +6,6 @@ import { SelectModule } from 'primeng/select';
 import { MultiSelectModule } from 'primeng/multiselect';
 import { MessageService } from 'primeng/api';
 import { QuizStatsService } from '../service/quiz-stats.service';
-import { UserService } from '../../core/services/user.service';
 import { AuthService } from '../../core/services/auth.service';
 import { Timer } from '../../shared/services/timer';
 import { QuizSummaryComponent } from '../service/quiz-summary';
@@ -21,6 +20,7 @@ import { ReportIssueService } from '../../core/services/report-issue.service';
 import { ReportIssueComponent } from '../../shared/components/report-issue/report-issue.component';
 import { CatrgoryApiService } from '../../core/services/apis/category-api.service';
 import { QuestionApiService } from '../../core/services/apis/question-api.service';
+import { UserApiService } from '../../core/services/apis/user-api.service';
 
 @Component({
   selector: 'app-quiz-view',
@@ -49,7 +49,7 @@ export class QuizView implements OnInit, OnDestroy {
   messanger = inject(MessageService);
   quizStatsService = inject(QuizStatsService);
   categoryApiService = inject(CatrgoryApiService);
-  userService = inject(UserService);
+  userService = inject(UserApiService);
   authService = inject(AuthService);
   reportIssueService = inject(ReportIssueService);
   timer = inject(Timer);
