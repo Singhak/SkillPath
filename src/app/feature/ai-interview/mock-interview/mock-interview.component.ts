@@ -13,14 +13,15 @@ import { TagModule } from 'primeng/tag';
 import { TextareaModule } from 'primeng/textarea';
 import { FileUploadModule } from 'primeng/fileupload';
 import { InterviewQuestion } from '../../../core/models/interview-question.model';
-import { InterviewResult } from '../../../core/models/interview-result.model';
 import { AiApiService } from '../../../core/services/apis/ai-api.service';
 import { VoiceService } from '../../../shared/services/voice-service';
 import { MockInterviewService } from '../../../core/services/mock-interview.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { MessageService } from 'primeng/api';
-import { AI_CREDIT_COST } from '../../../shared/constants';
+import { AI_CREDIT_COST, EXPERIENCE_LEVELS, USER_ROLES } from '../../../shared/constants';
 import { finalize, tap } from 'rxjs';
+import { AutoCompleteCompleteEvent, AutoCompleteModule } from 'primeng/autocomplete';
+import { SelectModule } from 'primeng/select';
 
 @Component({
   selector: 'app-mock-interview',
@@ -37,6 +38,8 @@ import { finalize, tap } from 'rxjs';
     ChipModule,
     TagModule,
     FileUploadModule,
+    AutoCompleteModule,
+    SelectModule
   ],
   templateUrl: './mock-interview.component.html',
   styleUrls: ['./mock-interview.component.css'],
@@ -67,6 +70,12 @@ export class MockInterviewComponent {
   readonly isFinished = this.interviewService.isFinished;
   readonly freeCredits = this.authService.freeCredits;
   readonly paidCredits = this.authService.paidCredits;
+  readonly userRoles = USER_ROLES;
+  readonly experienceLevels = EXPERIENCE_LEVELS;
+
+  // Properties to hold filtered suggestions
+  filteredExperienceLevels: string[] = [];
+  filteredUserRoles: string[] = [];
 
   isEditingAnswer = signal(true);
 
@@ -74,6 +83,8 @@ export class MockInterviewComponent {
   readonly topic = signal('');
   readonly userRole = signal('');
   readonly experienceLevel = signal('');
+  readonly questionCountOptions = [1, 5, 10, 15];
+  readonly questionCount = signal<number>(5);
   readonly uploadedQuestions = signal('');
   readonly email = signal('');
 
@@ -148,12 +159,13 @@ export class MockInterviewComponent {
       });
       return;
     }
+    const count = Number(this.questionCount()) || 5;
     this.aiApiService
-      .genrateFromTopic(topic, role, experience)
+      .genrateFromTopic(topic, role, experience, count)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (response) => {
-          const generatedQuestions = (response || []).map((question, index) => ({
+          const generatedQuestions = (response || []).slice(0, count).map((question, index) => ({
             ...question,
             id: question.id ?? index + 1,
           }));
@@ -304,5 +316,22 @@ export class MockInterviewComponent {
 
   startOver() {
     this.interviewService.endInterview()
+  }
+
+  search(event: AutoCompleteCompleteEvent, list: string[], category: string) {
+    const query = event.query;
+    let filtered: string[] = [];
+
+    // Filter predefined types
+    if (list) {
+      filtered = list.filter((type) => type.toLowerCase().includes(query.toLowerCase()));
+    }
+
+    // Add the custom query to the suggestions if it's not already there
+    if (query && !filtered.some((type) => type.toLowerCase() === query.toLowerCase())) {
+      filtered.unshift(query);
+    }
+    if (category == 'experienceLevel') this.filteredExperienceLevels = filtered;
+    else if (category == 'userRole') this.filteredUserRoles = filtered;
   }
 }
