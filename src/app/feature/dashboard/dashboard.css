@@ -166,7 +166,7 @@
 .hero-card h3,
 .panel h3 {
   margin: 0;
-  color: #0f172a;
+  color: white;
 }
 
 .eyebrow {
@@ -208,14 +208,12 @@
 }
 
 .hero-card p {
-  margin: 0.4rem 0 0;
   color: #cbd5e1;
-  max-width: 620px;
 }
 
 .hero-badge {
   min-width: 140px;
-  padding: 0.9rem 1rem;
+  padding: 0.5rem .8rem;
   border-radius: 18px;
   background: rgba(255, 255, 255, 0.12);
   text-align: center;
@@ -255,11 +253,25 @@
   color: white;
 }
 
-.accent-blue { background: linear-gradient(135deg, #3b82f6, #2563eb); }
-.accent-amber { background: linear-gradient(135deg, #f59e0b, #f97316); }
-.accent-green { background: linear-gradient(135deg, #10b981, #059669); }
-.accent-violet { background: linear-gradient(135deg, #8b5cf6, #6366f1); }
-.accent-orange { background: linear-gradient(135deg, #fb923c, #f97316); }
+.accent-blue {
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+}
+
+.accent-amber {
+  background: linear-gradient(135deg, #f59e0b, #f97316);
+}
+
+.accent-green {
+  background: linear-gradient(135deg, #10b981, #059669);
+}
+
+.accent-violet {
+  background: linear-gradient(135deg, #8b5cf6, #6366f1);
+}
+
+.accent-orange {
+  background: linear-gradient(135deg, #fb923c, #f97316);
+}
 
 .stat-label {
   margin: 0;
