@@ -26,6 +26,8 @@ import { finalize } from 'rxjs';
 import { AI_CREDIT_COST, EXPERIENCE_LEVELS, INTERVIEW_TIPS, USER_ROLES } from '../../../shared/constants';
 import { MessageService } from 'primeng/api';
 import { AuthService } from '../../../core/services/auth.service';
+import { TableModule } from "primeng/table";
+import { Select } from "primeng/select";
 
 
 @Component({
@@ -46,6 +48,8 @@ import { AuthService } from '../../../core/services/auth.service';
     KnobModule,
     PanelModule,
     AutoCompleteModule,
+    TableModule,
+    Select
   ],
   templateUrl: './interview.component.html',
   styleUrls: ['./interview.component.css'],
@@ -71,6 +75,9 @@ export class InterviewComponent {
   // Properties to hold filtered suggestions
   filteredExperienceLevels: string[] = [];
   filteredUserRoles: string[] = [];
+
+  readonly questionCount = signal<number>(5);
+  questionCountOptions = [1, 5, 10, 15];
 
   jobDescription = signal('');
   userRole = signal('');
@@ -152,8 +159,9 @@ export class InterviewComponent {
       return;
     }
 
+    const count = Number(this.questionCount()) || 5;
     this.interviewService
-      .startInterview(topic, this.userRole(), this.experienceLevel())
+      .startInterview(topic, this.userRole(), this.experienceLevel(), count)
       .pipe(
         takeUntilDestroyed(this.destroyRef),
         finalize(() => this.speakQuestion()),
