@@ -7,77 +7,128 @@
   >
     <div class="sidebar-header">
       <div class="brand">
-        <div class="brand-icon"><img src="assests/logo.png"/></div>
-        <div class="brand-title">{{title()}}</div>
+        <div class="brand-icon-wrapper">
+          <img src="assests/logo.png" alt="SkillPath Logo" class="brand-logo"/>
+        </div>
+        <div class="brand-text">
+          <span class="brand-title">{{title()}}</span>
+          <span class="brand-tag">AI</span>
+        </div>
       </div>
-      <button class="icon-button" type="button" (click)="toggleSidebar()">
+      <button class="icon-button collapse-btn" type="button" (click)="toggleSidebar()" [title]="sidebarCollapsed() ? 'Expand sidebar' : 'Collapse sidebar'">
         <i
           class="pi"
-          [class.pi-angle-double-left]="!sidebarCollapsed()"
-          [class.pi-angle-double-right]="sidebarCollapsed()"
+          [class.pi-chevron-left]="!sidebarCollapsed()"
+          [class.pi-chevron-right]="sidebarCollapsed()"
         ></i>
       </button>
     </div>
 
     <nav class="sidebar-nav">
-      <a
-        class="nav-item"
-        [routerLink]="'/'"
-        routerLinkActive="active"
-        [routerLinkActiveOptions]="{ exact: true }"
-      >
-        <i class="pi pi-home"></i>
-        <span>Overview</span>
-      </a>
-      <a
-        class="nav-item"
-        [routerLink]="'/quiz'"
-        routerLinkActive="active"
-        [routerLinkActiveOptions]="{ exact: true }"
-      >
-        <i class="pi pi-play"></i>
-        <span>Quizzes</span>
-      </a>
-      <a
-        class="nav-item"
-        [routerLink]="'/skills'"
-        routerLinkActive="active"
-        [routerLinkActiveOptions]="{ exact: true }"
-      >
-        <i class="pi pi-bolt"></i>
-        <span>Skills</span>
-      </a>
-      <a
-        class="nav-item"
-        [routerLink]="'/aiinterview'"
-        routerLinkActive="active"
-        [routerLinkActiveOptions]="{ exact: true }"
-      >
-        <i class="pi pi-microchip-ai"></i>
-        <span>AI Interview</span>
-      </a>
-      <a class="nav-item" href="#">
-        <i class="pi pi-cog"></i>
-        <span>Settings</span>
-      </a>
+      <div class="nav-section">
+        <div class="section-header">
+          <span>MAIN MENU</span>
+        </div>
+        <a
+          class="nav-item"
+          [routerLink]="'/'"
+          routerLinkActive="active"
+          [routerLinkActiveOptions]="{ exact: true }"
+          [title]="sidebarCollapsed() ? 'Overview' : ''"
+        >
+          <div class="nav-icon-box">
+            <i class="pi pi-home"></i>
+          </div>
+          <span class="nav-label">Overview</span>
+          <div class="active-indicator"></div>
+        </a>
+        <a
+          class="nav-item"
+          [routerLink]="'/quiz'"
+          routerLinkActive="active"
+          [routerLinkActiveOptions]="{ exact: true }"
+          [title]="sidebarCollapsed() ? 'Quizzes' : ''"
+        >
+          <div class="nav-icon-box">
+            <i class="pi pi-play"></i>
+          </div>
+          <span class="nav-label">Quizzes</span>
+          <div class="active-indicator"></div>
+        </a>
+        <a
+          class="nav-item"
+          [routerLink]="'/skills'"
+          routerLinkActive="active"
+          [routerLinkActiveOptions]="{ exact: true }"
+          [title]="sidebarCollapsed() ? 'Skills' : ''"
+        >
+          <div class="nav-icon-box">
+            <i class="pi pi-bolt"></i>
+          </div>
+          <span class="nav-label">Skills</span>
+          <div class="active-indicator"></div>
+        </a>
+      </div>
+
+      <div class="nav-section">
+        <div class="section-header">
+          <span>PREPARATION</span>
+        </div>
+        <a
+          class="nav-item"
+          [routerLink]="'/aiinterview'"
+          routerLinkActive="active"
+          [routerLinkActiveOptions]="{ exact: true }"
+          [title]="sidebarCollapsed() ? 'AI Interview' : ''"
+        >
+          <div class="nav-icon-box">
+            <i class="pi pi-microchip-ai"></i>
+          </div>
+          <span class="nav-label">AI Interview</span>
+          <span class="nav-badge">HOT</span>
+          <div class="active-indicator"></div>
+        </a>
+      </div>
+
+      <div class="nav-section">
+        <div class="section-header">
+          <span>SYSTEM</span>
+        </div>
+        <a 
+          class="nav-item" 
+          href="#"
+          [title]="sidebarCollapsed() ? 'Settings' : ''"
+        >
+          <div class="nav-icon-box">
+            <i class="pi pi-cog"></i>
+          </div>
+          <span class="nav-label">Settings</span>
+          <div class="active-indicator"></div>
+        </a>
+      </div>
     </nav>
 
     <div class="sidebar-footer">
       @if(isAuthenticated()){
-        <div class="user-pill">
-          <div class="avatar">{{ userInitials() }}</div>
-          <div class="user-meta">
-            <strong>{{ currentUser()?.name }}</strong>
+        <div class="user-profile-card">
+          <div class="avatar-container">
+            <div class="avatar">{{ userInitials() }}</div>
+            <span class="online-status" title="Online"></span>
           </div>
+          <div class="user-meta">
+            <strong class="user-name">{{ currentUser()?.name }}</strong>
+            <span class="user-role">Member</span>
+          </div>
+          <button class="logout-btn" (click)="logout()" title="Logout">
+            <i class="pi pi-sign-out"></i>
+          </button>
         </div>
-        <a class="nav-item logout-link" (click)="logout()" title="Logout">
-          <i class="pi pi-sign-out"></i>
-          <span>Logout</span>
-        </a>
       } @else {
-        <a class="nav-item" [routerLink]="'/login'" routerLinkActive="active">
-          <i class="pi pi-sign-in"></i>
-          <span>Login</span>
+        <a class="nav-item login-item" [routerLink]="'/login'" routerLinkActive="active" [title]="sidebarCollapsed() ? 'Login' : ''">
+          <div class="nav-icon-box">
+            <i class="pi pi-sign-in"></i>
+          </div>
+          <span class="nav-label">Login</span>
         </a>
       }
     </div>
