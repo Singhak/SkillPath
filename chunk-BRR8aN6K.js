@@ -1,0 +1,1 @@
+import {bT as Xr,I,ak as oo,bU as xn}from'./main-ZVWFVFD2.js';var o=class r{apiUrl=`${Xr.apiUrl}/quizzes`;http=I(oo);updateQuizStats(e){return this.http.put(`${Xr.apiUrl}/quizzes/${e}/complete`,{})}getQuizAttempts(){return this.http.get(`${Xr.apiUrl}/quizzes`)}static \u0275fac=function(s){return new(s||r)};static \u0275prov=xn({token:r,factory:r.\u0275fac})};export{o};
