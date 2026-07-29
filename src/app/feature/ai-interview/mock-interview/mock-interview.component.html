@@ -1,214 +1,251 @@
-<div class="min-h-screen bg-slate-50 p-4 md:p-6">
-  <div class="mx-auto">
+<div class="mock-wrapper">
+  <div class="mock-inner">
+
+    <!-- ══════════════════ SETUP SCREEN ══════════════════ -->
     @if (!isStarted()) {
-    <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm md:p-8">
-      <div class="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
-        <div>
-          <p class="text-sm font-semibold uppercase tracking-[0.2em] text-blue-600">
-            Mock Interview
-          </p>
-          <h1 class="mt-1 text-3xl font-bold text-slate-900">Practice one question at a time</h1>
-          <p class="mt-2 max-w-2xl text-sm text-slate-600">
-            Choose AI-generated questions or paste your own. Speak your answer, edit it if needed,
-            and submit everything for evaluation.
+    <div class="setup-card">
+
+      <!-- Header Banner -->
+      <div class="setup-banner">
+        <div class="setup-banner-left">
+          <div class="setup-badge">Mock Interview</div>
+          <h1 class="setup-title">Practice One Question at a Time</h1>
+          <p class="setup-desc">
+            Choose AI-generated questions or paste your own. Speak your answer,
+            edit it if needed, and submit for a full evaluation.
           </p>
         </div>
-        <div class="rounded-2xl bg-blue-50 px-4 py-3 text-sm font-medium text-blue-700">
-          <i class="pi pi-microphone mr-2"></i>
-          Voice-first interview flow
+        <div class="voice-badge">
+          <i class="pi pi-microphone"></i>
+          Voice-First Flow
         </div>
       </div>
 
-      <div class="mt-8 grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
-        <div class="rounded-2xl border border-slate-200 bg-slate-50 p-5">
-          <label class="mb-2 block text-sm font-semibold text-slate-700">Choose question source</label>
-          <div class="flex flex-wrap gap-3">
-            <button type="button" class="rounded-full border px-4 py-2 text-sm font-medium"
-              [class.border-blue-600]="source() === 'ai'" [class.bg-blue-600]="source() === 'ai'"
-              [class.text-white]="source() === 'ai'" [class.text-slate-700]="source() !== 'ai'"
-              (click)="source.set('ai')">
-              AI generated questions
-            </button>
-            <button type="button" class="rounded-full border px-4 py-2 text-sm font-medium"
-              [class.border-blue-600]="source() === 'upload'" [class.bg-blue-600]="source() === 'upload'"
-              [class.text-white]="source() === 'upload'" [class.text-slate-700]="source() !== 'upload'"
-              (click)="source.set('upload')">
-              Upload your own questions
-            </button>
+      <div class="setup-body">
+        <!-- LEFT: Config -->
+        <div class="setup-config">
+          <!-- Source Toggle -->
+          <div class="source-section">
+            <label class="section-label">Choose Question Source</label>
+            <div class="source-pills">
+              <button type="button" class="source-pill"
+                [class.active]="source() === 'ai'"
+                (click)="source.set('ai')">
+                <i class="pi pi-android"></i>
+                AI Generated
+              </button>
+              <button type="button" class="source-pill"
+                [class.active]="source() === 'upload'"
+                (click)="source.set('upload')">
+                <i class="pi pi-upload"></i>
+                Upload Your Own
+              </button>
+            </div>
           </div>
 
-          <div class="mt-6 space-y-4">
-            <div>
-              <label class="mb-2 block text-sm font-semibold text-slate-700">Interview topic</label>
-              <input pInputText class="w-full rounded-xl border-slate-300"
-                placeholder="Example: Angular, React, Product Design..." [ngModel]="topic()"
-                (ngModelChange)="topic.set($event)" />
+          <!-- Topic -->
+          <div class="field-group">
+            <label class="field-label">Interview Topic</label>
+            <div class="topic-input-wrap">
+              <i class="pi pi-search topic-icon"></i>
+              <input pInputText class="topic-input"
+                placeholder="e.g. Angular, React, Product Design..."
+                [ngModel]="topic()" (ngModelChange)="topic.set($event)" />
             </div>
-
-            @if (source() === 'ai') {
-            <div class="grid grid-cols-3 gap-4">
-              <span>
-                <label for="experience" class="font-semibold text-gray-700"> Experience Level </label>
-                <p-autoComplete [(ngModel)]="experienceLevel" [suggestions]="filteredExperienceLevels"
-                  (completeMethod)="search($event, experienceLevels, 'experienceLevel')" [dropdown]="true"
-                  placeholder="Experience Level" class="w-full"></p-autoComplete>
-              </span>
-              <span>
-                <label for="userrole" class="font-semibold text-gray-700"> Role </label>
-                <p-autoComplete [(ngModel)]="userRole" [suggestions]="filteredUserRoles"
-                  (completeMethod)="search($event, userRoles, 'userRole')" [dropdown]="true" placeholder="Role"
-                  class="w-full"></p-autoComplete>
-              </span>
-              <span>
-                <label class="font-semibold text-gray-700">Number of questions</label>
-                <p-select class="w-full rounded-xl border-slate-300 bg-white" [ngModel]="questionCount()"
-                  (ngModelChange)="questionCount.set(+$event)" [options]="questionCountOptions"></p-select>
-              </span>
-            </div>
-            <!-- <div class="grid gap-4 md:grid-cols-3">
-              <div>
-                <label class="mb-2 block text-sm font-semibold text-slate-700">Your role</label>
-                <input pInputText class="w-full rounded-xl border-slate-300" placeholder="Frontend Developer"
-                  [ngModel]="userRole()" (ngModelChange)="userRole.set($event)" />
-              </div>
-              <div>
-                <label class="mb-2 block text-sm font-semibold text-slate-700">Experience level</label>
-                <input pInputText class="w-full rounded-xl border-slate-300" placeholder="Mid / Senior"
-                  [ngModel]="experienceLevel()" (ngModelChange)="experienceLevel.set($event)" />
-              </div>
-
-            </div> -->
-            } @else {
-            <div>
-              <label class="mb-2 block text-sm font-semibold text-slate-700">Paste or upload your questions</label>
-              <textarea pInputTextarea rows="8" class="w-full rounded-xl border-slate-300"
-                placeholder="One question per line" [ngModel]="uploadedQuestions()"
-                (ngModelChange)="uploadedQuestions.set($event)"></textarea>
-            </div>
-            }
           </div>
-          @if (source() === 'upload') {
-          <div class="mt-4">
-            <p-fileUpload mode="basic" name="questionsFile" accept=".txt" [maxFileSize]="1000000"
-              (onSelect)="onFileSelect($event)" chooseLabel="Or Upload a .txt File"></p-fileUpload>
+
+          <!-- AI Settings -->
+          @if (source() === 'ai') {
+          <div class="ai-settings-grid">
+            <div class="field-group">
+              <label class="field-label">Experience Level</label>
+              <p-autoComplete [(ngModel)]="experienceLevel" [suggestions]="filteredExperienceLevels"
+                (completeMethod)="search($event, experienceLevels, 'experienceLevel')"
+                [dropdown]="true" placeholder="e.g. Senior" class="w-full">
+              </p-autoComplete>
+            </div>
+            <div class="field-group">
+              <label class="field-label">Your Role</label>
+              <p-autoComplete [(ngModel)]="userRole" [suggestions]="filteredUserRoles"
+                (completeMethod)="search($event, userRoles, 'userRole')"
+                [dropdown]="true" placeholder="e.g. Frontend Dev" class="w-full">
+              </p-autoComplete>
+            </div>
+            <div class="field-group">
+              <label class="field-label">No. of Questions</label>
+              <p-select class="w-full" [ngModel]="questionCount()"
+                (ngModelChange)="questionCount.set(+$event)"
+                [options]="questionCountOptions">
+              </p-select>
+            </div>
           </div>
           }
 
-          <div class="mt-6">
-            <p-button label="Start Mock Interview" icon="pi pi-play" size="large" styleClass="w-full"
-              (click)="generateQuestions()"></p-button>
+          <!-- Upload Questions -->
+          @if (source() === 'upload') {
+          <div class="field-group">
+            <label class="field-label">Paste or Upload Your Questions</label>
+            <textarea pInputTextarea rows="8" class="upload-textarea"
+              placeholder="One question per line"
+              [ngModel]="uploadedQuestions()" (ngModelChange)="uploadedQuestions.set($event)">
+            </textarea>
           </div>
+          <p-fileUpload mode="basic" name="questionsFile" accept=".txt" [maxFileSize]="1000000"
+            (onSelect)="onFileSelect($event)" chooseLabel="Or Upload a .txt File" />
+          }
+
+          <button pButton class="start-mock-btn" (click)="generateQuestions()">
+            <i class="pi pi-play"></i>
+            Start Mock Interview
+          </button>
+
+          <!-- Messages -->
+          @if (errorMessage()) {
+          <div class="alert alert-error">
+            <i class="pi pi-times-circle"></i>
+            {{ errorMessage() }}
+          </div>
+          }
+          @if (successMessage()) {
+          <div class="alert alert-success">
+            <i class="pi pi-check-circle"></i>
+            {{ successMessage() }}
+          </div>
+          }
         </div>
 
-        <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-          <h2 class="text-lg font-semibold text-slate-900">How it works</h2>
-          <div class="mt-4 space-y-4 text-sm text-slate-600">
-            <div class="flex gap-3">
-              <i class="pi pi-volume-up mt-0.5 text-blue-600"></i>
-              <span>The speaker reads one question at a time.</span>
+        <!-- RIGHT: How it works -->
+        <div class="how-it-works">
+          <h2 class="how-title">How It Works</h2>
+          <div class="how-steps">
+            <div class="how-step">
+              <div class="step-num">1</div>
+              <div class="step-content">
+                <strong>Question Read Aloud</strong>
+                <span>The AI speaker reads one question at a time.</span>
+              </div>
             </div>
-            <div class="flex gap-3">
-              <i class="pi pi-microphone mt-0.5 text-blue-600"></i>
-              <span>Tap record, answer naturally, and edit the transcript before moving on.</span>
+            <div class="how-step">
+              <div class="step-num">2</div>
+              <div class="step-content">
+                <strong>Speak Your Answer</strong>
+                <span>Tap record, answer naturally, and edit the transcript before moving on.</span>
+              </div>
             </div>
-            <div class="flex gap-3">
-              <i class="pi pi-send mt-0.5 text-blue-600"></i>
-              <span>Submit all answers at the end and receive an email with your evaluation
-                summary.</span>
+            <div class="how-step">
+              <div class="step-num">3</div>
+              <div class="step-content">
+                <strong>Get Full Evaluation</strong>
+                <span>Submit all answers at the end and receive a detailed AI evaluation summary.</span>
+              </div>
             </div>
+          </div>
+
+          <div class="tips-box">
+            <div class="tips-header">
+              <i class="pi pi-lightbulb"></i>
+              Pro Tips
+            </div>
+            <ul class="tips-list">
+              <li>Speak clearly and at a steady pace</li>
+              <li>Use the STAR method for behavioural answers</li>
+              <li>Edit your transcript before submitting</li>
+            </ul>
           </div>
         </div>
       </div>
-
-      @if (errorMessage()) {
-      <div class="mt-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-        {{ errorMessage() }}
-      </div>
-      }
-
-      @if (successMessage()) {
-      <div class="mt-6 rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
-        {{ successMessage() }}
-      </div>
-      }
     </div>
     }
 
+    <!-- ══════════════════ ACTIVE QUESTION ══════════════════ -->
     @if (isStarted() && totalQuestions()) {
-    <div class="mt-6 rounded-3xl border border-slate-200 bg-white p-4 shadow-sm md:p-6">
-      <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <div>
-          <p class="text-sm font-semibold uppercase tracking-[0.2em] text-blue-600">
+    <div class="active-card">
+
+      <!-- Question Header -->
+      <div class="active-header">
+        <div class="active-meta">
+          <div class="active-progress-label">
             Question {{ currentIndex() + 1 }} of {{ totalQuestions() }}
-          </p>
-          <h2 class="mt-1 text-2xl font-bold text-slate-900">
-            {{ currentQuestion()?.question }}
-          </h2>
+          </div>
+          <h2 class="active-question">{{ currentQuestion()?.question }}</h2>
         </div>
-        <div class="flex items-center gap-2">
-          <p-tag severity="info" [value]="progressPercent() + '% completed'"></p-tag>
-        </div>
+        <p-tag severity="info" [value]="progressPercent() + '% done'" />
       </div>
 
-      <div class="mt-6 rounded-2xl bg-slate-50 p-5">
-        <div class="mb-3 flex items-center justify-between">
-          <label class="text-sm font-semibold text-slate-700">Your answer</label>
-          <p-button label="Replay Question" icon="pi pi-volume-up" text
-            (click)="speakQuestion(currentQuestion()?.question)"></p-button>
-        </div>
-        <textarea pInputTextarea rows="7" class="w-full rounded-xl border-slate-300" [(ngModel)]="currentAnswer"
-          placeholder="Tap record and speak your answer. You can edit it after recording."></textarea>
+      <!-- Progress Bar -->
+      <div class="active-progress-bar">
+        <div class="active-progress-fill" [style.width.%]="progressPercent()"></div>
+      </div>
 
-        <div class="mt-4 flex flex-wrap gap-3">
+      <!-- Answer Panel -->
+      <div class="answer-panel">
+        <div class="answer-panel-header">
+          <label class="field-label">Your Answer</label>
+          <p-button label="Replay Question" icon="pi pi-volume-up" text severity="secondary"
+            (click)="speakQuestion(currentQuestion()?.question)" />
+        </div>
+
+        <textarea pInputTextarea rows="7" class="answer-textarea"
+          [(ngModel)]="currentAnswer"
+          placeholder="Tap record and speak your answer. You can edit it after recording.">
+        </textarea>
+
+        <!-- Voice Controls -->
+        <div class="voice-controls">
           @if (!isRecording()) {
-          <p-button label="Start Recording" icon="pi pi-microphone" (click)="startRecording()"></p-button>
+          <p-button label="Start Recording" icon="pi pi-microphone" (click)="startRecording()" />
           } @else {
           <p-button label="Stop Recording" icon="pi pi-stop-circle" severity="danger"
-            (click)="stopRecording()"></p-button>
+            (click)="stopRecording()" />
           }
           <p-button label="Re-record" icon="pi pi-refresh" text (click)="reRecord()"
-            [disabled]="isRecording()"></p-button>
+            [disabled]="isRecording()" />
         </div>
 
         @if (isRecording()) {
-        <div class="mt-4 flex items-center gap-2 text-sm font-medium text-red-600">
-          <i class="pi pi-circle-fill"></i>
-          Listening... speak clearly and naturally.
+        <div class="recording-indicator">
+          <span class="recording-dot"></span>
+          <span>Listening… speak clearly and naturally.</span>
         </div>
         }
       </div>
 
-      <div class="mt-6 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-        <div class="text-sm text-slate-600">
-          Your answer is saved automatically as you move between questions.
-        </div>
-        <div class="flex flex-wrap gap-3">
-          <p-button label="Skip" text icon="pi pi-fast-forward" (click)="nextQuestion()"
-            [disabled]="isFinished()"></p-button>
-          <p-button label="Next Question" icon="pi pi-arrow-right" iconPos="right" (click)="nextQuestion()"
-            [disabled]="isFinished() || currentAnswer().trim().length === 0"></p-button>
+      <!-- Nav Controls -->
+      <div class="nav-controls">
+        <p class="autosave-note">
+          <i class="pi pi-check-circle"></i>
+          Answers are saved automatically
+        </p>
+        <div class="nav-btns">
+          <p-button label="Skip" text icon="pi pi-fast-forward"
+            (click)="nextQuestion()" [disabled]="isFinished()" />
+          <p-button label="Next Question" icon="pi pi-arrow-right" iconPos="right"
+            (click)="nextQuestion()"
+            [disabled]="isFinished() || currentAnswer().trim().length === 0" />
         </div>
       </div>
 
-      <div class="mt-6 rounded-2xl border border-slate-200 bg-slate-50 p-4">
-        <!-- <label class="mb-2 block text-sm font-semibold text-slate-700"
-            >Email address for evaluation summary</label
-          >
-          <input
-            pInputText
-            class="w-full rounded-xl border-slate-300"
-            type="email"
-            placeholder="name@example.com"
-            [ngModel]="email()"
-            (ngModelChange)="email.set($event)"
-          /> -->
-        <div class="mt-4 flex flex-wrap gap-3">
-          <p-button label="Finish & Submit" icon="pi pi-send" severity="success" (click)="finishAndEval()"
-            [disabled]="!isFinished() || loading()" [loading]="loading()"></p-button>
-          <p-button label="Start Over" icon="pi pi-refresh" text (click)="startOver()"></p-button>
+      <!-- Submit Panel -->
+      <div class="submit-panel">
+        <div class="submit-panel-inner">
+          <div class="submit-info">
+            <i class="pi pi-send submit-icon"></i>
+            <div>
+              <strong>Ready to submit?</strong>
+              <p>Answer all questions and submit for a full AI evaluation.</p>
+            </div>
+          </div>
+          <div class="submit-actions">
+            <p-button label="Finish & Submit" icon="pi pi-send" severity="success"
+              (click)="finishAndEval()"
+              [disabled]="!isFinished() || loading()" [loading]="loading()" />
+            <p-button label="Start Over" icon="pi pi-refresh" text (click)="startOver()" />
+          </div>
         </div>
       </div>
+
     </div>
     }
+
   </div>
 </div>
