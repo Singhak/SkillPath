@@ -28,6 +28,8 @@ import {
   USER_ROLES,
 } from '../../../shared/constants';
 import { InterviewQuestion } from '../../../core/models/interview-question.model';
+import { InputTextModule } from 'primeng/inputtext';
+import { SelectModule } from 'primeng/select';
 
 type UploadMode = 'text' | 'upload';
 
@@ -47,6 +49,8 @@ type UploadMode = 'text' | 'upload';
     FormsModule,
     TableModule,
     AutoComplete,
+    InputTextModule,
+    SelectModule
   ],
   templateUrl: './create-interview.component.html',
 })
@@ -57,6 +61,7 @@ export class CreateInterviewComponent implements OnInit {
   readonly experienceLevels = EXPERIENCE_LEVELS;
   readonly stepstoFollow = INTERVIEW_STEPS;
 
+  questionCountOptions = [5, 10, 15, 20];
   aiApiService = inject(AiApiService);
 
   mode = signal<UploadMode>('text');
@@ -80,10 +85,11 @@ export class CreateInterviewComponent implements OnInit {
       jobDescription: ['', Validators.required],
       userRole: ['', Validators.required],
       experienceLevel: ['', Validators.required],
+      questionCount: [5, Validators.required],
     });
   }
 
-  ngOnInit(): void {}
+  ngOnInit(): void { }
 
   changeMode(mode: UploadMode) {
     this.mode.set(mode);
@@ -111,10 +117,10 @@ export class CreateInterviewComponent implements OnInit {
 
     // Backend API
 
-    const { jobDescription, userRole, experienceLevel } = this.form.getRawValue();
+    const { jobDescription, userRole, experienceLevel, questionCount } = this.form.getRawValue();
 
     this.aiApiService
-      .generateFromJobDescription(jobDescription, userRole, experienceLevel)
+      .generateFromJobDescription(jobDescription, userRole, experienceLevel, questionCount)
       .pipe(
         finalize(() => this.loading.set(false)),
         catchError((err) => {
