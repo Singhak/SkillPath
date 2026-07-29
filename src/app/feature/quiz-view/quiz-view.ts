@@ -53,6 +53,9 @@ export class QuizView implements OnInit, OnDestroy {
   authService = inject(AuthService);
   reportIssueService = inject(ReportIssueService);
   timer = inject(Timer);
+
+  readonly questionCountOptions = [5, 10, 15];
+  readonly questionCount = signal<number>(15);
   // endregion
 
   constructor() {
@@ -118,7 +121,7 @@ export class QuizView implements OnInit, OnDestroy {
     const subCategories = this.selectedSubCategories();
     if (category) {
       this.questionApiService
-        .getQuestions({ category, subCategory: subCategories })
+        .getQuestions({ category, subCategory: subCategories, questionCount: this.questionCount() })
         .subscribe((quize) => {
           this.quizStatsService.quizId.set(quize.quizId);
           this.quizes.set(quize?.questions ?? []);

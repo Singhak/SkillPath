@@ -3,14 +3,11 @@
     <!-- Left Column for JD Input -->
     <div class="space-y-5">
       <div class="grid grid-cols gap-4">
-        <div
-          (click)="changeMode('text')"
-          class="cursor-pointer rounded-3xl border-2 p-6 transition-all duration-300"
+        <div (click)="changeMode('text')" class="cursor-pointer rounded-3xl border-2 p-6 transition-all duration-300"
           [ngClass]="{
             'border-indigo-600 bg-indigo-50 shadow-lg': mode() === 'text',
             'border-slate-200 hover:border-indigo-300': mode() !== 'text',
-          }"
-        >
+          }">
           <div class="w-14 h-14 rounded-2xl bg-indigo-100 flex items-center justify-center">
             <i class="pi pi-file-edit text-2xl text-indigo-600"></i>
           </div>
@@ -35,56 +32,34 @@
       </div>
 
       @if (mode() === 'text') {
-        <textarea
-          pInputTextarea
-          class="w-full h-96 rounded-3xl"
-          formControlName="jobDescription"
-          placeholder="Paste your job description here..."
-          rows="16"
-        ></textarea>
+      <textarea pInputTextarea class="w-full h-96 rounded-3xl" formControlName="jobDescription"
+        placeholder="Paste your job description here..." rows="16"></textarea>
       } @else {
-        @if (!selectedFile()) {
-          <div
-            (click)="fileInput.click()"
-            class="rounded-3xl border-2 border-dashed border-slate-300 h-96 hover:border-indigo-500 hover:bg-indigo-50 transition-all flex flex-col justify-center items-center cursor-pointer"
-          >
-            <input
-              #fileInput
-              type="file"
-              hidden
-              (change)="onFileSelected($event)"
-              accept=".pdf,.doc,.docx"
-            />
-            <i class="pi pi-cloud-upload text-7xl text-indigo-600"></i>
-            <h2 class="mt-6 text-2xl font-bold">Drag & Drop</h2>
-            <p class="text-slate-500 mt-2">or click to browse</p>
-            <p-button
-              label="Choose File"
-              styleClass="mt-8"
-              (click)="$event.stopPropagation(); fileInput.click()"
-            ></p-button>
-          </div>
-        } @else {
-          <div
-            class="rounded-3xl border-2 border-indigo-200 bg-indigo-50 h-96 p-6 flex flex-col justify-center items-center text-center"
-          >
-            <i class="pi pi-file-check text-7xl text-indigo-600"></i>
-            <h3 class="mt-5 font-semibold text-lg">File Selected</h3>
-            <p class="text-slate-600 mt-2 text-sm font-medium break-all">
-              {{ selectedFile()?.name }}
-            </p>
-            <p class="text-slate-500 text-xs mt-1">
-              {{ (selectedFile()?.size || 0) / 1024 | number: '1.0-2' }} KB
-            </p>
-            <p-button
-              (click)="removeFile()"
-              label="Remove File"
-              severity="danger"
-              [text]="true"
-              styleClass="mt-6"
-            ></p-button>
-          </div>
-        }
+      @if (!selectedFile()) {
+      <div (click)="fileInput.click()"
+        class="rounded-3xl border-2 border-dashed border-slate-300 h-96 hover:border-indigo-500 hover:bg-indigo-50 transition-all flex flex-col justify-center items-center cursor-pointer">
+        <input #fileInput type="file" hidden (change)="onFileSelected($event)" accept=".pdf,.doc,.docx" />
+        <i class="pi pi-cloud-upload text-7xl text-indigo-600"></i>
+        <h2 class="mt-6 text-2xl font-bold">Drag & Drop</h2>
+        <p class="text-slate-500 mt-2">or click to browse</p>
+        <p-button label="Choose File" styleClass="mt-8"
+          (click)="$event.stopPropagation(); fileInput.click()"></p-button>
+      </div>
+      } @else {
+      <div
+        class="rounded-3xl border-2 border-indigo-200 bg-indigo-50 h-96 p-6 flex flex-col justify-center items-center text-center">
+        <i class="pi pi-file-check text-7xl text-indigo-600"></i>
+        <h3 class="mt-5 font-semibold text-lg">File Selected</h3>
+        <p class="text-slate-600 mt-2 text-sm font-medium break-all">
+          {{ selectedFile()?.name }}
+        </p>
+        <p class="text-slate-500 text-xs mt-1">
+          {{ (selectedFile()?.size || 0) / 1024 | number: '1.0-2' }} KB
+        </p>
+        <p-button (click)="removeFile()" label="Remove File" severity="danger" [text]="true"
+          styleClass="mt-6"></p-button>
+      </div>
+      }
       }
     </div>
 
@@ -92,40 +67,34 @@
     <div class="flex flex-col space-y-8">
       <div class="space-y-5">
         @for (step of stepstoFollow; track step) {
-          <div class="flex items-center gap-3">
-            <i class="pi pi-check-circle text-green-500"></i>
-            <span>{{ step }}</span>
-          </div>
+        <div class="flex items-center gap-3">
+          <i class="pi pi-check-circle text-green-500"></i>
+          <span>{{ step }}</span>
+        </div>
         }
       </div>
-      <div class="grid grid-cols-2 gap-4">
-        <p-autoComplete
-          formControlName="experienceLevel"
-          [suggestions]="filteredExperienceLevels"
-          (completeMethod)="search($event, experienceLevels, 'experienceLevel')"
-          [dropdown]="true"
-          placeholder="Experience Level"
-          class="w-full"
-        ></p-autoComplete>
-        <p-autoComplete
-          formControlName="userRole"
-          [suggestions]="filteredUserRoles"
-          (completeMethod)="search($event, userRoles, 'userRole')"
-          [dropdown]="true"
-          placeholder="Role"
-          class="w-full"
-        ></p-autoComplete>
+      <div class="grid grid-cols-3 gap-4">
+        <span>
+          <label for="experience" class="font-semibold text-gray-700"> Experience Level </label>
+          <p-autoComplete formControlName="experienceLevel" [suggestions]="filteredExperienceLevels"
+            (completeMethod)="search($event, experienceLevels, 'experienceLevel')" [dropdown]="true"
+            placeholder="Experience Level" class="w-full"></p-autoComplete>
+        </span>
+        <span>
+          <label for="userrole" class="font-semibold text-gray-700"> Role </label>
+          <p-autoComplete formControlName="userRole" [suggestions]="filteredUserRoles"
+            (completeMethod)="search($event, userRoles, 'userRole')" [dropdown]="true" placeholder="Role"
+            class="w-full"></p-autoComplete>
+        </span>
+        <span>
+          <label class="font-semibold text-gray-700">Number of questions</label>
+          <p-select class="w-full rounded-xl border-slate-300 bg-white" formControlName="questionCount"
+            [options]="questionCountOptions" />
+        </span>
       </div>
-      <button
-        pButton
-        class="w-full h-14 text-lg font-semibold"
-        label="Generate AI Questions"
-        icon="pi pi-sparkles"
-        iconPos="right"
-        (click)="generateQuestions()"
-        [disabled]="form.invalid || loading()"
-        [loading]="loading()"
-      ></button>
+      <button pButton class="w-full h-14 text-lg font-semibold" label="Generate AI Questions" icon="pi pi-sparkles"
+        iconPos="right" (click)="generateQuestions()" [disabled]="form.invalid || loading()"
+        [loading]="loading()"></button>
       <div class="grid grid-cols-2 gap-4">
         <div class="rounded-2xl bg-slate-50 p-5">
           <div class="text-3xl font-bold text-indigo-600">10+</div>
@@ -153,26 +122,13 @@
 </p-panel>
 <div class="p-4 sm:p-6 lg:p-8 grid md:grid-cols gap-8">
   <div class="flex flex-wrap justify-end gap-3 p-2">
-    <p-button
-      icon="pi pi-download"
-      (click)="exportSingleCategoryAsCsv('All')"
-      label="Export All as CSV"
-      [disabled]="
+    <p-button icon="pi pi-download" (click)="exportSingleCategoryAsCsv('All')" label="Export All as CSV" [disabled]="
         !technicalQuestions.length && !behaviouralQuestions.length && !scenarioQuestions.length
-      "
-    ></p-button>
+      "></p-button>
     @if (technicalQuestions.length || behaviouralQuestions.length || scenarioQuestions.length) {
-      <p-button
-        icon="pi pi-play"
-        label="Practice These Questions"
-        (click)="practiceGeneratedQuestions()"
-      ></p-button>
-      <p-button
-        icon="pi pi-microphone"
-        label="Take Mock Interview"
-        severity="secondary"
-        (click)="takeMockInterview()"
-      ></p-button>
+    <p-button icon="pi pi-play" label="Practice These Questions" (click)="practiceGeneratedQuestions()"></p-button>
+    <p-button icon="pi pi-microphone" label="Take Mock Interview" severity="secondary"
+      (click)="takeMockInterview()"></p-button>
     }
   </div>
   <p-tabs>
@@ -183,23 +139,12 @@
     </p-tablist>
     <p-tabpanels>
       <p-tabpanel value="Technical">
-        <p-table
-          [value]="technicalQuestions"
-          showGridlines
-          stripedRows
-          [paginator]="true"
-          [rows]="5"
-          [tableStyle]="{ 'min-width': '50rem' }"
-          [rowsPerPageOptions]="[5, 10, 20]"
-        >
+        <p-table [value]="technicalQuestions" showGridlines stripedRows [paginator]="true" [rows]="5"
+          [tableStyle]="{ 'min-width': '50rem' }" [rowsPerPageOptions]="[5, 10, 20]">
           <ng-template pTemplate="caption">
             <div class="flex justify-end">
-              <p-button
-                icon="pi pi-download"
-                (click)="exportSingleCategoryAsCsv('Technical')"
-                label="Export CSV"
-                [disabled]="!technicalQuestions.length"
-              />
+              <p-button icon="pi pi-download" (click)="exportSingleCategoryAsCsv('Technical')" label="Export CSV"
+                [disabled]="!technicalQuestions.length" />
             </div>
           </ng-template>
           <ng-template pTemplate="header">
@@ -219,23 +164,12 @@
         </p-table>
       </p-tabpanel>
       <p-tabpanel value="Behavioural">
-        <p-table
-          [value]="behaviouralQuestions"
-          showGridlines
-          stripedRows
-          [paginator]="true"
-          [rows]="5"
-          [tableStyle]="{ 'min-width': '50rem' }"
-          [rowsPerPageOptions]="[5, 10, 20]"
-        >
+        <p-table [value]="behaviouralQuestions" showGridlines stripedRows [paginator]="true" [rows]="5"
+          [tableStyle]="{ 'min-width': '50rem' }" [rowsPerPageOptions]="[5, 10, 20]">
           <ng-template pTemplate="caption">
             <div class="flex justify-end">
-              <p-button
-                icon="pi pi-download"
-                (click)="exportSingleCategoryAsCsv('Behavioural')"
-                label="Export CSV"
-                [disabled]="!behaviouralQuestions.length"
-              />
+              <p-button icon="pi pi-download" (click)="exportSingleCategoryAsCsv('Behavioural')" label="Export CSV"
+                [disabled]="!behaviouralQuestions.length" />
             </div>
           </ng-template>
           <ng-template pTemplate="header">
@@ -255,23 +189,12 @@
         </p-table>
       </p-tabpanel>
       <p-tabpanel value="Scenario">
-        <p-table
-          [value]="scenarioQuestions"
-          showGridlines
-          stripedRows
-          [paginator]="true"
-          [rows]="5"
-          [tableStyle]="{ 'min-width': '50rem' }"
-          [rowsPerPageOptions]="[5, 10, 20]"
-        >
+        <p-table [value]="scenarioQuestions" showGridlines stripedRows [paginator]="true" [rows]="5"
+          [tableStyle]="{ 'min-width': '50rem' }" [rowsPerPageOptions]="[5, 10, 20]">
           <ng-template pTemplate="caption">
             <div class="flex justify-end">
-              <p-button
-                icon="pi pi-download"
-                (click)="exportSingleCategoryAsCsv('Scenario')"
-                label="Export CSV"
-                [disabled]="!scenarioQuestions.length"
-              />
+              <p-button icon="pi pi-download" (click)="exportSingleCategoryAsCsv('Scenario')" label="Export CSV"
+                [disabled]="!scenarioQuestions.length" />
             </div>
           </ng-template>
           <ng-template pTemplate="header">
