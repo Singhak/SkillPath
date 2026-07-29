@@ -1,0 +1,1 @@
+import {bU as li,I,al as oo,bV as xn}from'./main-AFRLRH7Y.js';var o=class r{apiUrl=`${li.apiUrl}/quizzes`;http=I(oo);updateQuizStats(e){return this.http.put(`${li.apiUrl}/quizzes/${e}/complete`,{})}getQuizAttempts(){return this.http.get(`${li.apiUrl}/quizzes`)}static \u0275fac=function(s){return new(s||r)};static \u0275prov=xn({token:r,factory:r.\u0275fac})};export{o};
