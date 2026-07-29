@@ -11,6 +11,7 @@ import { Router } from '@angular/router';
 import { PanelModule } from 'primeng/panel';
 import { QuizStats } from '../quiz-view/quiz.model';
 import { QuizApiService } from '../../core/services/apis/quiz-api.service';
+import { AuthService } from '../../core/services/auth.service';
 
 @Component({
   selector: 'app-dashboard',
@@ -31,6 +32,7 @@ import { QuizApiService } from '../../core/services/apis/quiz-api.service';
 export class Dashboard implements OnInit {
   private readonly quizApiService = inject(QuizApiService);
   private readonly router = inject(Router);
+  private readonly authService = inject(AuthService);
 
   readonly quizAttempts = signal<QuizStats[]>([]);
   readonly selectChartCategory = signal('angular');
@@ -39,6 +41,22 @@ export class Dashboard implements OnInit {
   readonly mobileMenuOpen = signal(false);
   readonly lineData = signal<any>(null);
   readonly pieData = signal<any>(null);
+  readonly totalAiCredits = computed(
+    () => (this.authService.freeCredits() ?? 0) + (this.authService.paidCredits() ?? 0),
+  );
+
+  readonly totalCoins = computed(() => {
+    const attempts = this.quizAttempts();
+    const coinsEarned = attempts.reduce(
+      (sum, item: QuizStats) => sum + Number(item.totalCoinsEarned || 0),
+      0,
+    );
+    const coinsSpent = attempts.reduce(
+      (sum, item: QuizStats) => sum + Number(item.totalCoinsSpent || 0),
+      0,
+    );
+    return coinsEarned - coinsSpent;
+  });
 
   readonly summaryCards = computed(() => {
     const attempts = this.quizAttempts();

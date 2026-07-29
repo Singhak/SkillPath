@@ -51,6 +51,16 @@ export class MockInterviewService {
 
   private resetStore() {
     this.store.set([]);
+    this.questions.set([]);
+    this.index.set(0);
+    this.item.set({
+      question: null,
+      answer: '',
+      score: 0,
+      feedback: '',
+      idealAnswer: '',
+      evaluatedAt: new Date(),
+    });
   }
 
   readonly progress = computed(() => {
@@ -61,17 +71,14 @@ export class MockInterviewService {
     return this.currentQuestionIndex() + 1 >= this.questions().length;
   });
 
-  sendForEvaluation() {
-    console.log(this.allQuesAns());
-    const dataToSend = this.allQuesAns().map((item) => {
+  sendForEvaluation(results: InterviewResult[]) {
+    const dataToSend = results.map((item) => {
       return {
         question: item.question?.question || '',
         weight: levelToWeight(item.question?.level || ''),
         answer: item.answer,
       };
     });
-    this.aiApiService.generateMockEvaluation(dataToSend).subscribe((res) => {
-      console.log(res);
-    });
+    return this.aiApiService.generateMockEvaluation(dataToSend)
   }
 }

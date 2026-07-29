@@ -1,15 +1,4 @@
 <div class="p-3">
-  <header class="topbar mb-1.5">
-    <div class="topbar-title">
-      <p class="eyebrow">Performance overview</p>
-      <h2>Quiz dashboard</h2>
-    </div>
-    <button class="primary-action" type="button" (click)="onNewQuiz()">
-      <i class="pi pi-plus"></i>
-      <span>New quiz</span>
-    </button>
-  </header>
-
   <main class="dashboard-main">
     <section class="hero-card">
       <div>
@@ -19,23 +8,33 @@
           Track attempt trends, accuracy, and participation without losing focus on the journey.
         </p>
       </div>
-      <div class="hero-badge">
-        <span class="hero-badge-label">Live</span>
-        <strong>+12% growth</strong>
+      <div class="flex gap-2">
+        <div class="hero-badge">
+          <span class="hero-badge-label">AI Credits</span>
+          <strong class="pi pi-microchip-ai"><span class="ml-2">{{ totalAiCredits() }}</span></strong>
+        </div>
+        <div class="hero-badge">
+          <span class="hero-badge-label">Total Coins</span>
+          <strong class="pi pi-bitcoin"><span class="ml-2">{{ totalCoins() }}</span></strong>
+        </div>
+        <button class="primary-action" type="button" (click)="onNewQuiz()">
+          <i class="pi pi-plus"></i>
+          <span>New quiz</span>
+        </button>
       </div>
     </section>
 
     <div class="stats-grid sm:col-4 md:col-8 xl:col-9">
       @for (card of summaryCards(); track card) {
-        <div class="stat-card">
-          <div class="stat-card-icon" [ngClass]="'accent-' + card.accent">
-            <i class="{{ card.icon }}"></i>
-          </div>
-          <div>
-            <p class="stat-label">{{ card.label }}</p>
-            <h4>{{ card.value }}</h4>
-          </div>
+      <div class="stat-card">
+        <div class="stat-card-icon" [ngClass]="'accent-' + card.accent">
+          <i class="{{ card.icon }}"></i>
         </div>
+        <div>
+          <p class="stat-label">{{ card.label }}</p>
+          <h4>{{ card.value }}</h4>
+        </div>
+      </div>
       }
     </div>
 
@@ -48,12 +47,8 @@
               <!-- <h3>Attempt performance</h3> -->
             </div>
             <p-floatlabel class="filter-field" variant="on">
-              <p-select
-                [(ngModel)]="selectChartCategory"
-                inputId="category_select"
-                [options]="categoryList()"
-                class="w-full"
-              ></p-select>
+              <p-select [(ngModel)]="selectChartCategory" inputId="category_select" [options]="categoryList()"
+                class="w-full"></p-select>
               <label for="category_select">Category</label>
             </p-floatlabel>
           </div>
@@ -80,16 +75,8 @@
         </div>
       </div> -->
 
-      <p-table
-        [value]="quizAttempts()"
-        [tableStyle]="{ 'min-width': '100%' }"
-        showGridlines
-        [rows]="5"
-        [scrollable]="true"
-        scrollHeight="400px"
-        [virtualScroll]="true"
-        [virtualScrollItemSize]="47"
-      >
+      <p-table [value]="quizAttempts()" [tableStyle]="{ 'min-width': '100%' }" showGridlines [rows]="5"
+        [scrollable]="true" scrollHeight="400px" [virtualScroll]="true" [virtualScrollItemSize]="47">
         <ng-template pTemplate="header">
           <tr>
             <th>Category</th>

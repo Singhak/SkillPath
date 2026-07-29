@@ -23,8 +23,10 @@ import { InterviewQuestion } from '../../../core/models/interview-question.model
 import { PanelModule } from 'primeng/panel';
 import { AutoCompleteCompleteEvent, AutoCompleteModule } from 'primeng/autocomplete';
 import { finalize } from 'rxjs';
-import { EXPERIENCE_LEVELS, INTERVIEW_TIPS, USER_ROLES } from '../../../shared/constants';
+import { AI_CREDIT_COST, EXPERIENCE_LEVELS, INTERVIEW_TIPS, USER_ROLES } from '../../../shared/constants';
 import { MessageService } from 'primeng/api';
+import { AuthService } from '../../../core/services/auth.service';
+
 
 @Component({
   selector: 'app-interview',
@@ -56,6 +58,7 @@ export class InterviewComponent {
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private readonly messageService = inject(MessageService);
+  private readonly authService = inject(AuthService);
   // ------------------------------------------------
   // Constants
   // ------------------------------------------------
@@ -63,6 +66,8 @@ export class InterviewComponent {
   readonly interviewTips = INTERVIEW_TIPS;
   readonly userRoles = USER_ROLES;
   readonly experienceLevels = EXPERIENCE_LEVELS;
+  readonly freeCredits = this.authService.freeCredits;
+  readonly paidCredits = this.authService.paidCredits;
   // Properties to hold filtered suggestions
   filteredExperienceLevels: string[] = [];
   filteredUserRoles: string[] = [];
@@ -225,6 +230,16 @@ export class InterviewComponent {
       return;
     }
 
+    const aiCreditCost = AI_CREDIT_COST.QUESTION_EVALUATION;
+    if (this.freeCredits() + this.paidCredits() < aiCreditCost) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'No Credits',
+        detail: 'Insufficient credits to evaluate your answer.',
+      });
+      return;
+    }
+
     this.interviewService
       .submitAnswer(answer)
       ?.pipe(takeUntilDestroyed(this.destroyRef))
@@ -233,6 +248,7 @@ export class InterviewComponent {
         this.voiceService.setStateIdle();
         if (result && Object.keys(result).length > 0) {
           this.voiceService.speak(result.feedback);
+          this.authService.decrementAiCredits(aiCreditCost).subscribe();
         } else {
           this.messageService.add({
             severity: 'error',
