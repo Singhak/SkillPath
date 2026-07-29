@@ -10,7 +10,7 @@ export class QuestionApiService {
   private readonly apiUrl = `${environment.apiUrl}`;
   private http = inject(HttpClient);
 
-  getQuestions(filters: { category?: string; subCategory: string[] | null }): Observable<Quiz> {
+  getQuestions(filters: { category?: string; subCategory: string[] | null, questionCount: number }): Observable<Quiz> {
     let params = new HttpParams();
     if (filters.category) {
       params = params.append('category', filters.category);
@@ -24,6 +24,7 @@ export class QuestionApiService {
         params = params.append('subCategory', filters.subCategory);
       }
     }
+    params = params.append('questionCount', filters.questionCount || 15);
 
     return this.http.get<Quiz>(`${this.apiUrl}/questions`, { params });
   }

@@ -24,11 +24,13 @@ export class AiApiService {
     topic: string,
     userRole: string,
     experienceLevel: string,
+    questionCount?: number,
   ): Observable<InterviewQuestion[]> {
     return this.http.post<InterviewQuestion[]>(`${this.apiUrl}/ai-question-sets/from-topic`, {
       topic,
       userRole,
       experienceLevel,
+      questionCount,
     });
   }
 
@@ -36,6 +38,7 @@ export class AiApiService {
     jobDescription: string,
     userRole: string,
     experienceLevel: string,
+    questionCount: number
   ): Observable<InterviewQuestion[]> {
     return this.http.post<InterviewQuestion[]>(
       `${this.apiUrl}/ai-question-sets/from-job-description`,
@@ -43,6 +46,7 @@ export class AiApiService {
         jobDescription,
         userRole,
         experienceLevel,
+        questionCount
       },
     );
   }
