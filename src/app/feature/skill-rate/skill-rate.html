@@ -1,155 +1,331 @@
-<div class="skill-page">
-  <section class="hero-card">
-    <div>
-      <p class="eyebrow">Self reflection</p>
-      <h2>Rate your skills and compare them with quiz performance.</h2>
-      <p>
-        Capture how confident you feel in each area and see how that aligns with your recent quiz
-        outcomes.
-      </p>
-    </div>
-    <div class="hero-badge">
-      <span class="hero-badge-label">Updated</span>
-      <strong>{{ averageSelfRating() }}/5 self rating</strong>
-    </div>
-  </section>
-
-  <div class="card add-card">
-    <div class="field-row">
-      <div class="field-group">
-        <p-floatlabel variant="on">
-          <p-select
-            [(ngModel)]="selectedSkill"
-            inputId="skill_select"
-            [options]="availableSkills()"
-            [showClear]="true"
-            class="w-full"
-            [editable]="true"
-          ></p-select>
-          <label for="skill_select">Skill</label>
-        </p-floatlabel>
+<div class="skill-page-wrapper">
+  <main class="skill-container">
+    <!-- Hero Header Banner -->
+    <section class="hero-banner">
+      <div class="hero-content">
+        <div class="hero-header-badge">
+          <i class="pi pi-compass"></i>
+          <span>Self Assessment Hub</span>
+        </div>
+        <h1 class="hero-title">Skill Matrix & <span class="highlight">Self Reflection</span></h1>
+        <p class="hero-subtitle">
+          Track how confident you feel in each technical area and compare your self-ratings against objective quiz outcomes.
+        </p>
       </div>
 
-      <div class="field-group">
-        <p-floatlabel variant="on">
-          <p-select
-            [(ngModel)]="selectedRating"
-            inputId="rating_select"
-            [options]="ratingOptions"
-            [showClear]="true"
-            class="w-full"
-          >
-          </p-select>
-          <label for="rating_select">Rating</label>
-        </p-floatlabel>
+      <div class="hero-widgets">
+        <div class="glass-widget">
+          <div class="widget-icon star-icon">
+            <i class="pi pi-star-fill"></i>
+          </div>
+          <div class="widget-details">
+            <span class="widget-label">Avg Self Rating</span>
+            <strong class="widget-val">{{ averageSelfRating() }}/5</strong>
+          </div>
+        </div>
+
+        <div class="glass-widget">
+          <div class="widget-icon target-icon">
+            <i class="pi pi-bullseye"></i>
+          </div>
+          <div class="widget-details">
+            <span class="widget-label">Avg Quiz Rating</span>
+            <strong class="widget-val">{{ averageQuizRating() }}/5</strong>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Quick Add / Edit Skill Rating Form -->
+    <section class="glass-card add-skill-card">
+      <div class="card-header">
+        <div>
+          <div class="section-tag">
+            <i class="pi pi-plus-circle"></i>
+            <span>Update Competency</span>
+          </div>
+          <h3 class="card-title">Rate a Skill</h3>
+        </div>
       </div>
 
-      <div class="button-group">
-        <p-button label="Add rating" icon="pi pi-plus-circle" (click)="onClickAdd()"></p-button>
-      </div>
-    </div>
-  </div>
+      <div class="add-form-wrapper">
+        <div class="field-row">
+          <div class="field-group">
+            <p-floatlabel variant="on">
+              <p-select
+                [(ngModel)]="selectedSkill"
+                inputId="skill_select"
+                [options]="availableSkills()"
+                [showClear]="true"
+                class="custom-select"
+                [editable]="true"
+                placeholder="Choose or type skill..."
+              ></p-select>
+              <label for="skill_select">Select or Enter Skill</label>
+            </p-floatlabel>
+          </div>
 
-  <div class="stats-grid">
-    <div class="stat-card">
-      <div class="stat-card-icon accent-blue">
-        <i class="pi pi-star-fill"></i>
-      </div>
-      <div>
-        <p class="stat-label">Average self rating</p>
-        <h4>{{ averageSelfRating() }}/5</h4>
-      </div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-card-icon accent-green">
-        <i class="pi pi-chart-line"></i>
-      </div>
-      <div>
-        <p class="stat-label">Average quiz score</p>
-        <h4>{{ averageQuizScore() }} pts</h4>
-      </div>
-    </div>
-  </div>
+          <div class="field-group">
+            <p-floatlabel variant="on">
+              <p-select
+                [(ngModel)]="selectedRating"
+                inputId="rating_select"
+                [options]="ratingOptions"
+                [showClear]="true"
+                class="custom-select"
+              >
+                <ng-template pTemplate="selectedItem" let-item>
+                  @if (item) {
+                    <span>{{ item }} / 5 Stars ⭐</span>
+                  }
+                </ng-template>
+                <ng-template pTemplate="item" let-item>
+                  <div class="rating-option">
+                    <span>{{ item }} Star{{ item > 1 ? 's' : '' }}</span>
+                    <span class="stars-inline">
+                      @for (star of [1,2,3,4,5]; track star) {
+                        <i class="pi" [ngClass]="star <= item ? 'pi-star-fill active' : 'pi-star'"></i>
+                      }
+                    </span>
+                  </div>
+                </ng-template>
+              </p-select>
+              <label for="rating_select">Confidence Rating</label>
+            </p-floatlabel>
+          </div>
 
-  <div class="content-grid">
-    <p-fieldset legend="Skill self-rating" [toggleable]="true" class="panel">
-      @if (skillPerformanceRows().length) {
+          <div class="button-group">
+            <button
+              class="action-btn primary-btn"
+              type="button"
+              [disabled]="!selectedSkill() || selectedRating() === null"
+              (click)="onClickAdd()"
+            >
+              <i class="pi pi-check-circle"></i>
+              <span>Save Rating</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="quick-chips-row">
+          <span class="chips-label"><i class="pi pi-bolt"></i> Quick select:</span>
+          <div class="chips-list">
+            @for (chip of quickSkillChips; track chip) {
+              <button
+                type="button"
+                class="chip-btn"
+                [class.active]="selectedSkill().toLowerCase() === chip.toLowerCase()"
+                (click)="selectQuickSkill(chip)"
+              >
+                {{ chip }}
+              </button>
+            }
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Key Performance Metrics Grid -->
+    <section class="stats-grid">
+      <div class="kpi-card">
+        <div class="kpi-icon-box accent-indigo">
+          <i class="pi pi-star-fill"></i>
+        </div>
+        <div class="kpi-info">
+          <span class="kpi-label">Avg Self Rating</span>
+          <h3 class="kpi-value">{{ averageSelfRating() }} / 5</h3>
+          <span class="kpi-subtitle">Personal perception</span>
+        </div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-icon-box accent-sky">
+          <i class="pi pi-chart-bar"></i>
+        </div>
+        <div class="kpi-info">
+          <span class="kpi-label">Avg Quiz Score</span>
+          <h3 class="kpi-value">{{ averageQuizRating() }} / 5</h3>
+          <span class="kpi-subtitle">Measured performance</span>
+        </div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-icon-box accent-emerald">
+          <i class="pi pi-sliders-h"></i>
+        </div>
+        <div class="kpi-info">
+          <span class="kpi-label">Skills Assessed</span>
+          <h3 class="kpi-value">{{ totalAssessedSkills() }}</h3>
+          <span class="kpi-subtitle">Total track records</span>
+        </div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-icon-box accent-violet">
+          <i class="pi pi-shield-check"></i>
+        </div>
+        <div class="kpi-info">
+          <span class="kpi-label">Rating Alignment</span>
+          <h3 class="kpi-value">{{ alignmentScore() }}%</h3>
+          <span class="kpi-subtitle">Quiz match accuracy</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Analytics Charts Section -->
+    <div class="analytics-grid">
+      <!-- Comparative Bar Chart -->
+      <div class="glass-card chart-card flex-2">
+        <div class="card-header">
+          <div>
+            <div class="section-tag">
+              <i class="pi pi-chart-bar"></i>
+              <span>Comparative Analytics</span>
+            </div>
+            <h3 class="card-title">Self Rating vs. Quiz Performance</h3>
+          </div>
+        </div>
+        <div class="chart-wrapper">
+          @if (skillPerformanceRows().length) {
+            <p-chart type="bar" [data]="barChartData()" [options]="barChartOptions" height="260px"></p-chart>
+          } @else {
+            <div class="chart-empty">Add a few skill ratings to see comparison graph</div>
+          }
+        </div>
+      </div>
+
+      <!-- Skill Level Breakdown Doughnut Chart -->
+      <div class="glass-card chart-card flex-1">
+        <div class="card-header">
+          <div>
+            <div class="section-tag">
+              <i class="pi pi-chart-pie"></i>
+              <span>Distribution</span>
+            </div>
+            <h3 class="card-title">Proficiency Spread</h3>
+          </div>
+        </div>
+        <div class="chart-wrapper doughnut-wrapper">
+          @if (skillPerformanceRows().length) {
+            <p-chart type="doughnut" [data]="doughnutChartData()" [options]="doughnutChartOptions" height="260px"></p-chart>
+          } @else {
+            <div class="chart-empty">No proficiency data</div>
+          }
+        </div>
+      </div>
+    </div>
+
+    <!-- Detailed Skill Performance Matrix Table -->
+    <section class="glass-card table-card">
+      <div class="card-header table-header-flex">
+        <div>
+          <div class="section-tag">
+            <i class="pi pi-table"></i>
+            <span>Skill Matrix</span>
+          </div>
+          <h3 class="card-title">Detailed Competency Overview</h3>
+        </div>
+        <div class="table-search-box">
+          <i class="pi pi-search search-icon"></i>
+          <input
+            type="text"
+            placeholder="Filter skills..."
+            [ngModel]="searchQuery()"
+            (ngModelChange)="searchQuery.set($event)"
+            class="search-input"
+          />
+          @if (searchQuery()) {
+            <button class="clear-search" (click)="searchQuery.set('')">
+              <i class="pi pi-times"></i>
+            </button>
+          }
+        </div>
+      </div>
+
+      <div class="table-responsive">
         <p-table
-          [value]="skillPerformanceRows()"
+          [value]="filteredSkillPerformanceRows()"
           [tableStyle]="{ 'min-width': '100%' }"
-          [rows]="3"
-          [paginator]="true"
+          [rows]="6"
+          [paginator]="filteredSkillPerformanceRows().length > 6"
+          styleClass="p-datatable-sm custom-table"
         >
           <ng-template pTemplate="header">
             <tr>
-              <th style="width: 70%">Skill</th>
-              <th style="width: 30%">Self Rating</th>
+              <th>Skill</th>
+              <th>Self Rating</th>
+              <th>Quiz Rating</th>
+              <th>Attempts</th>
+              <th>Alignment</th>
             </tr>
           </ng-template>
+
           <ng-template pTemplate="body" let-row>
-            <tr>
-              <td>{{ row.skill }}</td>
+            <tr class="table-row">
               <td>
-                <p-knob [ngModel]="row.selfRating" [max]="5" [readonly]="true" [size]="50"></p-knob>
+                <span class="skill-pill">{{ row.skill }}</span>
+              </td>
+              <td>
+                @if (row.selfRating > 0) {
+                  <div class="rating-stars-badge">
+                    <span class="rating-val">{{ row.selfRating }}/5</span>
+                    <span class="stars-mini">
+                      @for (star of getStarArray(row.selfRating); track $index) {
+                        <i class="pi" [ngClass]="star === 1 ? 'pi-star-fill' : star === 0.5 ? 'pi-star-half-fill' : 'pi-star'"></i>
+                      }
+                    </span>
+                  </div>
+                } @else {
+                  <span class="unrated-tag">Not Rated</span>
+                }
+              </td>
+              <td>
+                @if (row.quizRating > 0) {
+                  <div class="rating-stars-badge quiz-badge">
+                    <span class="rating-val">{{ row.quizRating }}/5</span>
+                    <span class="stars-mini">
+                      @for (star of getStarArray(row.quizRating); track $index) {
+                        <i class="pi" [ngClass]="star === 1 ? 'pi-star-fill' : star === 0.5 ? 'pi-star-half-fill' : 'pi-star'"></i>
+                      }
+                    </span>
+                  </div>
+                } @else {
+                  <span class="unrated-tag">No Quizzes</span>
+                }
+              </td>
+              <td>
+                <span class="attempts-pill">
+                  <i class="pi pi-history"></i> {{ row.attempts }} attempt{{ row.attempts === 1 ? '' : 's' }}
+                </span>
+              </td>
+              <td>
+                <span class="alignment-badge" [ngClass]="getAlignmentBadgeClass(row.alignment)">
+                  @if (row.alignment === 'High Match') {
+                    <i class="pi pi-check-circle"></i> High Match
+                  } @else if (row.alignment === 'Underestimating') {
+                    <i class="pi pi-arrow-up-right"></i> Underestimating
+                  } @else if (row.alignment === 'Overestimating') {
+                    <i class="pi pi-arrow-down-right"></i> Overestimating
+                  } @else {
+                    <i class="pi pi-minus-circle"></i> Needs Quiz
+                  }
+                </span>
+              </td>
+            </tr>
+          </ng-template>
+
+          <ng-template pTemplate="emptymessage">
+            <tr>
+              <td colspan="5" class="empty-table-state">
+                <div class="empty-box">
+                  <i class="pi pi-inbox empty-icon"></i>
+                  <p>No skill ratings found matching your query.</p>
+                </div>
               </td>
             </tr>
           </ng-template>
         </p-table>
-      } @else {
-        <p class="empty-state">Add a few ratings to visualize your confidence by skill.</p>
-      }
-    </p-fieldset>
-
-    <p-fieldset legend="Quiz performance" [toggleable]="true" class="panel">
-      @if (skillPerformanceRows().length) {
-        <p-chart type="bar" [data]="barChartData()" [options]="horizontalChartOptions"></p-chart>
-      } @else {
-        <p class="empty-state">Take a few quizzes to populate this comparison view.</p>
-      }
-    </p-fieldset>
-  </div>
-
-  <div class="panel">
-    <div class="panel-header">
-      <div>
-        <p class="eyebrow">Breakdown</p>
-        <h3>Skill vs quiz snapshot</h3>
       </div>
-    </div>
-
-    <p-table
-      [value]="skillPerformanceRows()"
-      [tableStyle]="{ 'min-width': '100%' }"
-      showGridlines
-      [rows]="5"
-      [paginator]="true"
-      [scrollable]="true"
-      scrollHeight="400px"
-      [virtualScroll]="true"
-      [virtualScrollItemSize]="47"
-    >
-      <ng-template pTemplate="header">
-        <tr>
-          <th>Skill</th>
-          <th>Self rating</th>
-          <th>Quiz rating</th>
-        </tr>
-      </ng-template>
-      <ng-template pTemplate="body" let-row>
-        <tr>
-          <td>{{ row.skill }}</td>
-          @if (row.selfRating) {
-            <td>{{ row.selfRating }}/5</td>
-          } @else {
-            <td>-</td>
-          }
-          @if (row.rating) {
-            <td>{{ row.rating }}/5</td>
-          } @else {
-            <td>-</td>
-          }
-        </tr>
-      </ng-template>
-    </p-table>
-  </div>
+    </section>
+  </main>
 </div>

@@ -278,10 +278,17 @@ export class QuizView implements OnInit, OnDestroy {
     const newTotalCoins = this.authService.userCoins() + coinsEarned;
     this.userService
       .updateUser({ coins: newTotalCoins, totalQuizAttempted: this.userAttempsCount() + 1 })
-      .subscribe(() => {
-        this.authService.updateCoins(newTotalCoins);
-        this.isQuizFinished.set(true);
-        this.isFinishing.set(false);
+      .subscribe({
+        next: () => {
+          this.authService.updateCoins(newTotalCoins);
+          this.isQuizFinished.set(true);
+          this.isFinishing.set(false);
+        },
+        error: () => {
+          this.authService.updateCoins(newTotalCoins);
+          this.isQuizFinished.set(true);
+          this.isFinishing.set(false);
+        }
       });
     //update stats
     this.quizStatsService.createQuestionStats();

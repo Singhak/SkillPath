@@ -1,9 +1,10 @@
+import { CommonModule } from '@angular/common';
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
 import { ChartModule } from 'primeng/chart';
-import { Fieldset } from 'primeng/fieldset';
-import { FloatLabel } from 'primeng/floatlabel';
+import { FieldsetModule } from 'primeng/fieldset';
+import { FloatLabelModule } from 'primeng/floatlabel';
 import { SelectModule } from 'primeng/select';
 import { TableModule } from 'primeng/table';
 import { KnobModule } from 'primeng/knob';
@@ -13,23 +14,25 @@ import { MessageService } from 'primeng/api';
 import { lastValueFrom } from 'rxjs';
 import { QuizStats } from '../quiz-view/quiz.model';
 
-interface SkillPerformanceRow {
+export interface SkillPerformanceRow {
   skill: string;
   selfRating: number;
   quizScore: number;
   quizRating: number;
   attempts: number;
+  alignment: 'High Match' | 'Underestimating' | 'Overestimating' | 'Needs Quiz';
 }
 
 @Component({
   selector: 'app-skill-rate',
   standalone: true,
   imports: [
+    CommonModule,
     ButtonModule,
     SelectModule,
     FormsModule,
-    FloatLabel,
-    Fieldset,
+    FloatLabelModule,
+    FieldsetModule,
     ChartModule,
     TableModule,
     KnobModule,
@@ -45,14 +48,23 @@ export class SkillRate implements OnInit {
   readonly selectedSkill = signal('');
   readonly selectedRating = signal<number | null>(null);
   readonly ratingOptions = [1, 2, 3, 4, 5];
-  readonly availableSkills = signal<string[]>(['Angular', 'TypeScript', 'HTML/CSS', 'React']);
+  readonly availableSkills = signal<string[]>([
+    'Angular',
+    'TypeScript',
+    'HTML/CSS',
+    'React',
+    'Node.js',
+    'RxJS',
+    'Git',
+  ]);
+  readonly quickSkillChips = ['Angular', 'TypeScript', 'HTML/CSS', 'React', 'Node.js', 'RxJS'];
   readonly skillRatings = signal<Rating[]>([]);
   readonly quizAttempts = signal<QuizStats[]>([]);
+  readonly searchQuery = signal<string>('');
 
   readonly quizBasedRatings = computed(() => {
     const attemptsByCategory = new Map<string, QuizStats[]>();
 
-    // Group attempts by category
     this.quizAttempts().forEach((attempt) => {
       const categoryKey = this.normalizeKey(attempt.category);
       if (!attemptsByCategory.has(categoryKey)) {
@@ -63,7 +75,6 @@ export class SkillRate implements OnInit {
 
     const ratings: Rating[] = [];
     attemptsByCategory.forEach((attempts, key) => {
-      // // Sort attempts by date to get the most recent ones, and take the last 5
       const recentAttempts = attempts
         .sort((a, b) => new Date(a.attempedDate).getTime() - new Date(b.attempedDate).getTime())
         .slice(-1);
@@ -77,32 +88,31 @@ export class SkillRate implements OnInit {
     return ratings;
   });
 
-  readonly meterValues = computed(() => {
-    const colors = ['#4F46E5', '#0EA5E9', '#10B981', '#F59E0B', '#EC4899'];
-
-    return this.quizBasedRatings().map((entry, index) => ({
-      label: entry.category,
-      value: entry.rating * 20, // Convert 1-5 scale to 0-100 for meter
-      color: colors[index % colors.length],
-    }));
-  });
-
   readonly averageSelfRating = computed(() => {
     const ratings = this.skillRatings().filter((entry) => entry.type?.toLowerCase() === 'self');
     if (!ratings.length) {
       return 0;
     }
-
-    return Math.round(ratings.reduce((sum, entry) => sum + entry.rating, 0) / ratings.length);
+    const avg = ratings.reduce((sum, entry) => sum + entry.rating, 0) / ratings.length;
+    return Math.round(avg * 10) / 10;
   });
 
-  readonly averageQuizScore = computed(() => {
-    const rows = this.skillPerformanceRows();
-    if (!rows.length) {
+  readonly averageQuizRating = computed(() => {
+    const quizRatings = this.quizBasedRatings();
+    if (!quizRatings.length) {
       return 0;
     }
+    const avg = quizRatings.reduce((sum, entry) => sum + entry.rating, 0) / quizRatings.length;
+    return Math.round(avg * 10) / 10;
+  });
 
-    return Math.round(rows.reduce((sum, row) => sum + row.quizScore, 0) / rows.length);
+  readonly totalAssessedSkills = computed(() => this.skillPerformanceRows().length);
+
+  readonly alignmentScore = computed(() => {
+    const rows = this.skillPerformanceRows().filter((r) => r.selfRating > 0 && r.quizRating > 0);
+    if (!rows.length) return 0;
+    const matched = rows.filter((r) => r.alignment === 'High Match').length;
+    return Math.round((matched / rows.length) * 100);
   });
 
   readonly skillPerformanceRows = computed<SkillPerformanceRow[]>(() => {
@@ -133,54 +143,139 @@ export class SkillRate implements OnInit {
         this.titleCase(key);
       const quizMetrics = performanceMap.get(key);
 
+      const selfRating = ratingMap.get(key) || 0;
+      const quizRating = quizRatingMap.get(key) || 0;
+      const quizScore = quizMetrics ? Math.round(quizMetrics.score / quizMetrics.attempts) : 0;
+      const attempts = quizMetrics?.attempts || 0;
+
+      let alignment: 'High Match' | 'Underestimating' | 'Overestimating' | 'Needs Quiz' = 'Needs Quiz';
+      if (quizRating > 0 && selfRating > 0) {
+        const diff = selfRating - quizRating;
+        if (Math.abs(diff) <= 0.5) {
+          alignment = 'High Match';
+        } else if (diff < -0.5) {
+          alignment = 'Underestimating';
+        } else {
+          alignment = 'Overestimating';
+        }
+      }
+
       return {
         skill: skillName,
-        selfRating: ratingMap.get(key) || 0,
-        quizScore: quizMetrics ? Math.round(quizMetrics.score / quizMetrics.attempts) : 0,
-        quizRating: quizRatingMap.get(key) || 0,
-        attempts: quizMetrics?.attempts || 0,
+        selfRating,
+        quizScore,
+        quizRating,
+        attempts,
+        alignment,
       };
     });
+  });
+
+  readonly filteredSkillPerformanceRows = computed(() => {
+    const query = this.searchQuery().toLowerCase().trim();
+    const rows = this.skillPerformanceRows();
+    if (!query) return rows;
+    return rows.filter((row) => row.skill.toLowerCase().includes(query));
   });
 
   readonly barChartData = computed(() => ({
     labels: this.skillPerformanceRows().map((row) => row.skill),
     datasets: [
       {
-        label: 'Self Rating',
+        label: 'Self Rating (out of 5)',
         data: this.skillPerformanceRows().map((row) => row.selfRating),
-        backgroundColor: '#4F46E5',
+        backgroundColor: '#6366f1',
+        borderRadius: 6,
       },
       {
-        label: 'Quiz Rating',
-        data: this.skillPerformanceRows().map((row) => row.quizScore),
-        backgroundColor: '#0EA5E9',
+        label: 'Quiz Rating (out of 5)',
+        data: this.skillPerformanceRows().map((row) => row.quizRating),
+        backgroundColor: '#0ea5e9',
+        borderRadius: 6,
       },
     ],
   }));
 
-  readonly chartOptions = {
+  readonly doughnutChartData = computed(() => {
+    const rows = this.skillPerformanceRows();
+    const expert = rows.filter((r) => r.selfRating >= 4).length;
+    const proficient = rows.filter((r) => r.selfRating === 3).length;
+    const developing = rows.filter((r) => r.selfRating <= 2 && r.selfRating > 0).length;
+    const unrated = rows.filter((r) => r.selfRating === 0).length;
+
+    return {
+      labels: ['Expert (4-5★)', 'Proficient (3★)', 'Developing (1-2★)', 'Quiz-Only'],
+      datasets: [
+        {
+          data: [expert, proficient, developing, unrated],
+          backgroundColor: ['#10b981', '#6366f1', '#f59e0b', '#94a3b8'],
+          borderWidth: 2,
+          borderColor: '#ffffff',
+        },
+      ],
+    };
+  });
+
+  readonly barChartOptions = {
     responsive: true,
+    maintainAspectRatio: false,
     plugins: {
       legend: {
-        position: 'bottom' as const,
+        position: 'top' as const,
+        align: 'end' as const,
+        labels: {
+          usePointStyle: true,
+          boxWidth: 8,
+          boxHeight: 8,
+          font: { family: 'Plus Jakarta Sans', size: 12 },
+        },
+      },
+      tooltip: {
+        backgroundColor: 'rgba(15, 23, 42, 0.9)',
+        titleFont: { family: 'Plus Jakarta Sans', size: 13, weight: 'bold' },
+        bodyFont: { family: 'Plus Jakarta Sans', size: 12 },
+        padding: 12,
+        cornerRadius: 10,
+      },
+    },
+    scales: {
+      x: {
+        grid: { display: false },
+        ticks: { font: { family: 'Plus Jakarta Sans', size: 11 }, color: '#64748b' },
+      },
+      y: {
+        border: { dash: [4, 4] },
+        grid: { color: 'rgba(226, 232, 240, 0.6)' },
+        ticks: { font: { family: 'Plus Jakarta Sans', size: 11 }, color: '#64748b' },
+        max: 5,
+        min: 0,
       },
     },
   };
 
-  readonly horizontalChartOptions = {
-    indexAxis: 'y',
+  readonly doughnutChartOptions = {
     responsive: true,
+    maintainAspectRatio: false,
+    cutout: '68%',
     plugins: {
       legend: {
         position: 'bottom' as const,
+        labels: {
+          usePointStyle: true,
+          boxWidth: 8,
+          padding: 16,
+          font: { family: 'Plus Jakarta Sans', size: 12 },
+        },
       },
     },
-    scales: { y: { ticks: { autoSkip: false } } },
   };
 
   ngOnInit(): void {
     void this.loadData();
+  }
+
+  selectQuickSkill(skill: string): void {
+    this.selectedSkill.set(skill);
   }
 
   onClickAdd(): void {
@@ -199,6 +294,11 @@ export class SkillRate implements OnInit {
 
     this.ratingApiService.createorUpdateSelfRating(nextEntry).subscribe({
       next: () => {
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Rating Saved',
+          detail: `Rating for ${skill} updated to ${rating}/5`,
+        });
         this.skillRatings.update((entries) => {
           const updatedEntries = entries.filter(
             (entry) => entry.category !== skill || entry.type?.toLowerCase() !== 'self',
@@ -214,6 +314,33 @@ export class SkillRate implements OnInit {
     this.availableSkills.update((skills) => (skills.includes(skill) ? skills : [...skills, skill]));
     this.selectedSkill.set('');
     this.selectedRating.set(null);
+  }
+
+  getAlignmentBadgeClass(alignment: string): string {
+    switch (alignment) {
+      case 'High Match':
+        return 'badge-match';
+      case 'Underestimating':
+        return 'badge-under';
+      case 'Overestimating':
+        return 'badge-over';
+      default:
+        return 'badge-neutral';
+    }
+  }
+
+  getStarArray(rating: number): number[] {
+    const stars: number[] = [];
+    for (let i = 1; i <= 5; i++) {
+      if (rating >= i) {
+        stars.push(1); // full star
+      } else if (rating >= i - 0.5) {
+        stars.push(0.5); // half star
+      } else {
+        stars.push(0); // empty star
+      }
+    }
+    return stars;
   }
 
   private async loadData(): Promise<void> {
