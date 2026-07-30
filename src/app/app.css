@@ -22,8 +22,9 @@
   display: block;
   min-height: 100dvh;
   height: 100dvh;
-  background: linear-gradient(135deg, #f4f7ff 0%, #eef4ff 100%);
-  color: #14213d;
+  background: var(--body-bg, #f8fafc);
+  color: var(--body-text-color, #14213d);
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 .app-shell {
@@ -112,9 +113,9 @@
   border-radius: 12px;
   display: grid;
   place-items: center;
-  background: linear-gradient(135deg, rgba(99, 102, 241, 0.25), rgba(168, 85, 247, 0.25));
-  border: 1px solid rgba(129, 140, 248, 0.3);
-  box-shadow: 0 0 16px rgba(99, 102, 241, 0.25);
+  background: var(--primary-accent-light, rgba(99, 102, 241, 0.25));
+  border: 1px solid var(--primary-accent-ring, rgba(129, 140, 248, 0.3));
+  box-shadow: 0 0 16px var(--primary-accent-light);
   flex-shrink: 0;
 }
 
@@ -153,7 +154,7 @@
   font-weight: 700;
   padding: 0.15rem 0.4rem;
   border-radius: 6px;
-  background: linear-gradient(135deg, #6366f1, #a855f7);
+  background: var(--primary-accent-gradient, linear-gradient(135deg, #6366f1, #a855f7));
   color: white;
   letter-spacing: 0.05em;
 }
@@ -272,8 +273,8 @@
   bottom: 15%;
   width: 3px;
   border-radius: 0 4px 4px 0;
-  background: #818cf8;
-  box-shadow: 0 0 10px #818cf8;
+  background: var(--primary-accent, #818cf8);
+  box-shadow: 0 0 10px var(--primary-accent, #818cf8);
 }
 
 .nav-item:hover {
@@ -283,14 +284,14 @@
 }
 
 .nav-item:hover .nav-icon-box {
-  color: #818cf8;
+  color: var(--primary-accent, #818cf8);
 }
 
 .nav-item.active {
-  background: linear-gradient(135deg, rgba(99, 102, 241, 0.9) 0%, rgba(79, 70, 229, 0.95) 100%);
+  background: var(--primary-accent-gradient, linear-gradient(135deg, #6366f1 0%, #a855f7 100%));
   color: #ffffff;
   font-weight: 600;
-  box-shadow: 0 6px 18px rgba(79, 70, 229, 0.35);
+  box-shadow: 0 6px 18px var(--primary-accent-ring, rgba(79, 70, 229, 0.35));
   transform: translateX(0);
 }
 
@@ -335,11 +336,11 @@
   border-radius: 10px;
   display: grid;
   place-items: center;
-  background: linear-gradient(135deg, #6366f1, #a855f7);
+  background: var(--primary-accent-gradient, linear-gradient(135deg, #6366f1, #a855f7));
   color: white;
   font-weight: 700;
   font-size: 0.95rem;
-  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+  box-shadow: 0 4px 12px var(--primary-accent-ring, rgba(99, 102, 241, 0.3));
 }
 
 .online-status {

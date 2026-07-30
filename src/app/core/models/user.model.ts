@@ -7,6 +7,14 @@ export interface User {
   freeCredits?: string;
   lastCreditReset?: string | Date;
   paidCredits?: string;
+  bio?: string;
+  targetRole?: string;
+  phone?: string;
+  location?: string;
+  skills?: string[];
+  aiDifficulty?: 'beginner' | 'intermediate' | 'advanced';
+  emailNotifications?: boolean;
+  memberSince?: string;
 }
 
 export interface LoginResponse {

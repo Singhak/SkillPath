@@ -92,4 +92,15 @@ export class AuthService {
       }),
     );
   }
+
+  updateUserProfile(updatedData: Partial<User>): void {
+    const current = this._currentUser();
+    if (current) {
+      const merged = { ...current, ...updatedData };
+      this._currentUser.set(merged);
+      if (isPlatformBrowser(this.platformId)) {
+        localStorage.setItem(this.currentUserKey, JSON.stringify(merged));
+      }
+    }
+  }
 }
