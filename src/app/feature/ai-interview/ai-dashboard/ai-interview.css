@@ -11,7 +11,7 @@
 /* ─── HERO ────────────────────────────────────── */
 .hero-section {
   text-align: center;
-  padding: 3rem 1rem 2.5rem;
+  padding: 2rem 1rem 1rem;
   position: relative;
 }
 
@@ -37,8 +37,15 @@
 }
 
 @keyframes sparkle {
-  from { opacity: 0.6; transform: scale(0.9); }
-  to   { opacity: 1;   transform: scale(1.1); }
+  from {
+    opacity: 0.6;
+    transform: scale(0.9);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1.1);
+  }
 }
 
 .hero-title {
@@ -73,7 +80,7 @@
   border: 1px solid #e2e8f0;
   border-radius: 16px;
   padding: 1rem 2rem;
-  box-shadow: 0 4px 24px rgba(0,0,0,0.06);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
 }
 
 .stat-item {
@@ -171,19 +178,54 @@
 }
 
 /* Variant colors */
-.card-variant-0 .card-glow { background: radial-gradient(ellipse at top left, rgba(99,102,241,0.08) 0%, transparent 60%); }
-.card-variant-0 .card-icon-bg { background: linear-gradient(135deg, #6366f1, #8b5cf6); }
-.card-variant-0 .card-badge { background: rgba(99,102,241,0.1); color: #6366f1; }
+.card-variant-0 .card-glow {
+  background: radial-gradient(ellipse at top left, rgba(99, 102, 241, 0.08) 0%, transparent 60%);
+}
 
-.card-variant-1 .card-glow { background: radial-gradient(ellipse at top left, rgba(16,185,129,0.08) 0%, transparent 60%); }
-.card-variant-1 .card-icon-bg { background: linear-gradient(135deg, #10b981, #059669); }
-.card-variant-1 .card-badge { background: rgba(16,185,129,0.1); color: #10b981; }
-.card-variant-1:hover { box-shadow: 0 20px 48px rgba(16, 185, 129, 0.14); border-color: rgba(16, 185, 129, 0.35); }
+.card-variant-0 .card-icon-bg {
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+}
 
-.card-variant-2 .card-glow { background: radial-gradient(ellipse at top left, rgba(245,158,11,0.08) 0%, transparent 60%); }
-.card-variant-2 .card-icon-bg { background: linear-gradient(135deg, #f59e0b, #d97706); }
-.card-variant-2 .card-badge { background: rgba(245,158,11,0.1); color: #d97706; }
-.card-variant-2:hover { box-shadow: 0 20px 48px rgba(245, 158, 11, 0.14); border-color: rgba(245, 158, 11, 0.35); }
+.card-variant-0 .card-badge {
+  background: rgba(99, 102, 241, 0.1);
+  color: #6366f1;
+}
+
+.card-variant-1 .card-glow {
+  background: radial-gradient(ellipse at top left, rgba(16, 185, 129, 0.08) 0%, transparent 60%);
+}
+
+.card-variant-1 .card-icon-bg {
+  background: linear-gradient(135deg, #10b981, #059669);
+}
+
+.card-variant-1 .card-badge {
+  background: rgba(16, 185, 129, 0.1);
+  color: #10b981;
+}
+
+.card-variant-1:hover {
+  box-shadow: 0 20px 48px rgba(16, 185, 129, 0.14);
+  border-color: rgba(16, 185, 129, 0.35);
+}
+
+.card-variant-2 .card-glow {
+  background: radial-gradient(ellipse at top left, rgba(245, 158, 11, 0.08) 0%, transparent 60%);
+}
+
+.card-variant-2 .card-icon-bg {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+}
+
+.card-variant-2 .card-badge {
+  background: rgba(245, 158, 11, 0.1);
+  color: #d97706;
+}
+
+.card-variant-2:hover {
+  box-shadow: 0 20px 48px rgba(245, 158, 11, 0.14);
+  border-color: rgba(245, 158, 11, 0.35);
+}
 
 /* Card internals */
 .card-icon-wrapper {
@@ -197,7 +239,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 .card-icon {
@@ -239,8 +281,13 @@
   color: #6366f1;
 }
 
-.card-variant-1 .card-cta { color: #10b981; }
-.card-variant-2 .card-cta { color: #d97706; }
+.card-variant-1 .card-cta {
+  color: #10b981;
+}
+
+.card-variant-2 .card-cta {
+  color: #d97706;
+}
 
 .cta-arrow {
   font-size: 0.75rem;
@@ -283,7 +330,7 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  box-shadow: 0 2px 8px rgba(99,102,241,0.12);
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.12);
   color: #6366f1;
   font-size: 1rem;
 }
@@ -310,14 +357,17 @@
   .hero-title {
     font-size: 1.8rem;
   }
+
   .stats-bar {
     flex-wrap: wrap;
     justify-content: center;
     padding: 0.75rem 1rem;
   }
+
   .stat-divider {
     display: none;
   }
+
   .interview-cards-container {
     grid-template-columns: 1fr;
   }

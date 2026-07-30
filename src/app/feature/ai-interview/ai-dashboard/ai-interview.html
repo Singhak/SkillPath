@@ -4,7 +4,7 @@
   <div class="hero-section">
     <div class="hero-badge">
       <i class="pi pi-sparkles"></i>
-      <span>Powered by Gemini AI</span>
+      <span>Powered by AI</span>
     </div>
     <h1 class="hero-title">
       Master Your Next Interview
@@ -42,25 +42,25 @@
 
   <div class="interview-cards-container">
     @for (card of interviewCards; track card; let i = $index) {
-      <div class="interview-card" [class]="'card-variant-' + i" [routerLink]="card.link">
-        <div class="card-glow"></div>
-        <div class="card-icon-wrapper">
-          <div class="card-icon-bg">
-            <i [class]="card.icon + ' card-icon'"></i>
-          </div>
-        </div>
-        <div class="card-content">
-          <h3 class="card-title">{{ card.title }}</h3>
-          <p class="card-description">{{ card.description }}</p>
-        </div>
-        <div class="card-footer">
-          <span class="card-cta">
-            Start Now
-            <i class="pi pi-arrow-right cta-arrow"></i>
-          </span>
-          <div class="card-badge">{{ card.badge }}</div>
+    <div class="interview-card" [class]="'card-variant-' + i" [routerLink]="card.link">
+      <div class="card-glow"></div>
+      <div class="card-icon-wrapper">
+        <div class="card-icon-bg">
+          <i [class]="card.icon + ' card-icon'"></i>
         </div>
       </div>
+      <div class="card-content">
+        <h3 class="card-title">{{ card.title }}</h3>
+        <p class="card-description">{{ card.description }}</p>
+      </div>
+      <div class="card-footer">
+        <span class="card-cta">
+          Start Now
+          <i class="pi pi-arrow-right cta-arrow"></i>
+        </span>
+        <div class="card-badge">{{ card.badge }}</div>
+      </div>
+    </div>
     }
   </div>
 
