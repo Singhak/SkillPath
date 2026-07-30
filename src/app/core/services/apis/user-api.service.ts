@@ -9,14 +9,9 @@ export class UserApiService {
   private readonly http = inject(HttpClient);
   private readonly apiUrl = `${environment.apiUrl}/users`;
 
-  updateUser(arg1: string | Partial<User>, arg2?: Partial<User>): Observable<User> {
-    if (typeof arg1 === 'string') {
-      return this.http.put<User>(`${this.apiUrl}/${arg1}`, arg2!);
-    } else {
-      const userId = arg1.id;
-      const url = userId ? `${this.apiUrl}/${userId}` : this.apiUrl;
-      return this.http.put<User>(url, arg1);
-    }
+  updateUser(userId: number | string, user: Partial<User>) {
+    const url = `${this.apiUrl}/${userId}`;
+    return this.http.put<User>(url, user);
   }
 
   getCoins(): Observable<number> {
