@@ -1,0 +1,629 @@
+<div class="settings-container">
+  <!-- Toast Notification Container -->
+  <p-toast></p-toast>
+
+  <!-- Top Hero Header -->
+  <header class="settings-header">
+    <div class="header-left">
+      <div class="avatar-wrapper">
+        <div class="user-avatar">{{ userInitials() }}</div>
+        <span class="status-indicator" title="Active Account"></span>
+      </div>
+      <div class="user-details">
+        <div class="name-row">
+          <h1 class="user-display-name">{{ name() || currentUser()?.name || 'User Settings' }}</h1>
+          <span class="role-badge">{{ targetRole() || 'Member' }}</span>
+        </div>
+        <p class="user-email-text">{{ email() || currentUser()?.email || 'Manage your preferences and profile details' }}</p>
+      </div>
+    </div>
+
+    <!-- Quick Stats Pills -->
+    <div class="header-right">
+      <div class="stat-pill">
+        <i class="pi pi-bolt text-amber"></i>
+        <div class="stat-meta">
+          <span class="stat-value">{{ authService.freeCredits() }}</span>
+          <span class="stat-label">AI Free Credits</span>
+        </div>
+      </div>
+      <div class="stat-pill">
+        <i class="pi pi-star-fill text-indigo"></i>
+        <div class="stat-meta">
+          <span class="stat-value">{{ authService.userCoins() }}</span>
+          <span class="stat-label">Total Coins</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Navigation Tabs -->
+  <nav class="settings-tabs">
+    <button
+      type="button"
+      class="tab-btn"
+      [class.active]="activeTab() === 'appearance'"
+      (click)="setActiveTab('appearance')"
+    >
+      <i class="pi pi-palette"></i>
+      <span>Appearance & Theme</span>
+    </button>
+    <button
+      type="button"
+      class="tab-btn"
+      [class.active]="activeTab() === 'profile'"
+      (click)="setActiveTab('profile')"
+    >
+      <i class="pi pi-user"></i>
+      <span>Profile & Info</span>
+    </button>
+    <button
+      type="button"
+      class="tab-btn"
+      [class.active]="activeTab() === 'preferences'"
+      (click)="setActiveTab('preferences')"
+    >
+      <i class="pi pi-sliders-h"></i>
+      <span>AI & Preferences</span>
+    </button>
+    <button
+      type="button"
+      class="tab-btn"
+      [class.active]="activeTab() === 'account'"
+      (click)="setActiveTab('account')"
+    >
+      <i class="pi pi-shield"></i>
+      <span>Account & Security</span>
+    </button>
+  </nav>
+
+  <!-- TAB 1: APPEARANCE & THEME -->
+  @if (activeTab() === 'appearance') {
+    <section class="tab-content fade-in">
+      <div class="section-card">
+        <div class="section-title-box">
+          <i class="pi pi-desktop title-icon"></i>
+          <div>
+            <h2>Theme Mode</h2>
+            <p>Select your preferred color mode for the application layout.</p>
+          </div>
+        </div>
+
+        <div class="mode-grid">
+          @for (mode of themeModes; track mode.key) {
+            <div
+              class="mode-card"
+              [class.selected]="themeService.mode() === mode.key"
+              (click)="selectThemeMode(mode.key)"
+            >
+              <div class="mode-header">
+                <div class="mode-icon-box">
+                  <i [class]="mode.icon"></i>
+                </div>
+                <div class="mode-radio">
+                  @if (themeService.mode() === mode.key) {
+                    <i class="pi pi-check-circle check-icon"></i>
+                  }
+                </div>
+              </div>
+              <h3 class="mode-title">{{ mode.label }}</h3>
+              <p class="mode-desc">{{ mode.desc }}</p>
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- Accent Color Selection -->
+      <div class="section-card">
+        <div class="section-title-box">
+          <i class="pi pi-palette title-icon"></i>
+          <div>
+            <h2>Accent Color Palette</h2>
+            <p>Customize primary highlights, buttons, and active indicators.</p>
+          </div>
+        </div>
+
+        <div class="accent-grid">
+          @for (color of accentColors; track color.key) {
+            <div
+              class="accent-card"
+              [class.selected]="themeService.accent() === color.key"
+              (click)="selectAccent(color.key)"
+            >
+              <div class="accent-swatch" [style.background]="color.gradient">
+                @if (themeService.accent() === color.key) {
+                  <i class="pi pi-check"></i>
+                }
+              </div>
+              <span class="accent-label">{{ color.label }}</span>
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- UI Density Option -->
+      <div class="section-card">
+        <div class="section-title-box">
+          <i class="pi pi-table title-icon"></i>
+          <div>
+            <h2>Interface Density</h2>
+            <p>Adjust padding, font sizes, and layout spacing for your workspace.</p>
+          </div>
+        </div>
+
+        <div class="density-options">
+          <button
+            type="button"
+            class="density-btn"
+            [class.selected]="themeService.density() === 'comfortable'"
+            (click)="selectDensity('comfortable')"
+          >
+            <i class="pi pi-th-large"></i>
+            <div class="density-meta">
+              <strong>Comfortable</strong>
+              <span>Generous spacing for optimal readability</span>
+            </div>
+          </button>
+
+          <button
+            type="button"
+            class="density-btn"
+            [class.selected]="themeService.density() === 'compact'"
+            (click)="selectDensity('compact')"
+          >
+            <i class="pi pi-list"></i>
+            <div class="density-meta">
+              <strong>Compact</strong>
+              <span>Dense padding for high information density</span>
+            </div>
+          </button>
+        </div>
+      </div>
+
+      <!-- Live Theme Preview -->
+      <div class="section-card preview-card">
+        <div class="section-title-box">
+          <i class="pi pi-eye title-icon"></i>
+          <div>
+            <h2>Live Theme Preview</h2>
+            <p>See how your chosen theme mode and accent color look in real time.</p>
+          </div>
+        </div>
+
+        <div class="preview-box">
+          <div class="preview-widget">
+            <div class="preview-header">
+              <span class="preview-title">Sample Skill Quiz Card</span>
+              <span class="preview-badge">Active Theme</span>
+            </div>
+            <p class="preview-body">
+              Master Angular signals, RxJS reactive patterns, and modern state architecture.
+            </p>
+            <div class="preview-tags">
+              <span class="tag">Angular 19</span>
+              <span class="tag">TypeScript</span>
+              <span class="tag">State Management</span>
+            </div>
+            <div class="preview-actions">
+              <button class="preview-primary-btn" type="button">Start Practice</button>
+              <button class="preview-secondary-btn" type="button">View Stats</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  }
+
+  <!-- TAB 2: PROFILE & PERSONAL INFO -->
+  @if (activeTab() === 'profile') {
+    <section class="tab-content fade-in">
+      <!-- Profile Strength Progress Bar -->
+      <div class="section-card profile-banner">
+        <div class="banner-info">
+          <h3>Profile Strength: {{ profileCompletion() }}%</h3>
+          <p>Complete your target role, bio, and skills to personalize AI interviews.</p>
+        </div>
+        <div class="progress-bar-bg">
+          <div class="progress-bar-fill" [style.width.%]="profileCompletion()"></div>
+        </div>
+      </div>
+
+      <div class="section-card">
+        <div class="section-title-box">
+          <i class="pi pi-id-card title-icon"></i>
+          <div>
+            <h2>Personal Information</h2>
+            <p>Update your public account profile details and bio.</p>
+          </div>
+        </div>
+
+        <form (submit)="saveProfile()" class="form-grid">
+          <div class="form-group">
+            <label for="fullName">Full Name</label>
+            <div class="input-wrapper">
+              <i class="pi pi-user input-icon"></i>
+              <input
+                id="fullName"
+                type="text"
+                class="form-input"
+                [ngModel]="name()"
+                (ngModelChange)="name.set($event)"
+                name="fullName"
+                placeholder="Enter your name"
+                required
+              />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="emailAddr">Email Address</label>
+            <div class="input-wrapper">
+              <i class="pi pi-envelope input-icon"></i>
+              <input
+                id="emailAddr"
+                type="email"
+                class="form-input"
+                [ngModel]="email()"
+                (ngModelChange)="email.set($event)"
+                name="emailAddr"
+                placeholder="name@example.com"
+                required
+              />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="targetRole">Target Job Role / Title</label>
+            <div class="input-wrapper">
+              <i class="pi pi-briefcase input-icon"></i>
+              <input
+                id="targetRole"
+                type="text"
+                class="form-input"
+                [ngModel]="targetRole()"
+                (ngModelChange)="targetRole.set($event)"
+                name="targetRole"
+                placeholder="e.g. Senior Frontend Engineer"
+              />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="phone">Phone Number</label>
+            <div class="input-wrapper">
+              <i class="pi pi-phone input-icon"></i>
+              <input
+                id="phone"
+                type="text"
+                class="form-input"
+                [ngModel]="phone()"
+                (ngModelChange)="phone.set($event)"
+                name="phone"
+                placeholder="+1 (555) 000-0000"
+              />
+            </div>
+          </div>
+
+          <div class="form-group full-width">
+            <label for="location">Location / Timezone</label>
+            <div class="input-wrapper">
+              <i class="pi pi-map-marker input-icon"></i>
+              <input
+                id="location"
+                type="text"
+                class="form-input"
+                [ngModel]="location()"
+                (ngModelChange)="location.set($event)"
+                name="location"
+                placeholder="City, Country"
+              />
+            </div>
+          </div>
+
+          <div class="form-group full-width">
+            <label for="bio">Professional Summary / Bio</label>
+            <textarea
+              id="bio"
+              rows="3"
+              class="form-textarea"
+              [ngModel]="bio()"
+              (ngModelChange)="bio.set($event)"
+              name="bio"
+              placeholder="Tell us about your background, expertise, and learning goals..."
+            ></textarea>
+          </div>
+
+          <!-- Skills Tag List -->
+          <div class="form-group full-width">
+            <label>Tech Stack & Skills</label>
+            <div class="skills-manager">
+              <div class="skills-list">
+                @for (skill of skills(); track skill; let i = $index) {
+                  <span class="skill-tag">
+                    {{ skill }}
+                    <button type="button" class="remove-skill-btn" (click)="removeSkill(i)">
+                      <i class="pi pi-times"></i>
+                    </button>
+                  </span>
+                }
+              </div>
+              <div class="add-skill-row">
+                <div class="input-wrapper">
+                  <i class="pi pi-tag input-icon"></i>
+                  <input
+                    type="text"
+                    class="form-input"
+                    [ngModel]="skillInput()"
+                    (ngModelChange)="skillInput.set($event)"
+                    name="skillInput"
+                    placeholder="Add a new skill (e.g. Next.js, Docker, Python)"
+                    (keyup.enter)="addSkill()"
+                  />
+                </div>
+                <button type="button" class="add-skill-btn" (click)="addSkill()">
+                  <i class="pi pi-plus"></i> Add
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-actions full-width">
+            <button type="submit" class="save-btn">
+              <i class="pi pi-save"></i> Save Profile Details
+            </button>
+          </div>
+        </form>
+      </div>
+    </section>
+  }
+
+  <!-- TAB 3: AI & PREFERENCES -->
+  @if (activeTab() === 'preferences') {
+    <section class="tab-content fade-in">
+      <div class="section-card">
+        <div class="section-title-box">
+          <i class="pi pi-microchip-ai title-icon"></i>
+          <div>
+            <h2>AI Mock Interview Settings</h2>
+            <p>Customize the AI coach difficulty and evaluation depth.</p>
+          </div>
+        </div>
+
+        <div class="preference-group">
+          <label class="pref-label">Default Interview Difficulty</label>
+          <div class="pill-selector">
+            <button
+              type="button"
+              class="pill-btn"
+              [class.active]="aiDifficulty() === 'beginner'"
+              (click)="aiDifficulty.set('beginner')"
+            >
+              Junior / Beginner
+            </button>
+            <button
+              type="button"
+              class="pill-btn"
+              [class.active]="aiDifficulty() === 'intermediate'"
+              (click)="aiDifficulty.set('intermediate')"
+            >
+              Mid-Level / Standard
+            </button>
+            <button
+              type="button"
+              class="pill-btn"
+              [class.active]="aiDifficulty() === 'advanced'"
+              (click)="aiDifficulty.set('advanced')"
+            >
+              Senior / Lead Engineer
+            </button>
+          </div>
+        </div>
+
+        <div class="preference-group">
+          <label class="pref-label">AI Feedback Detail Level</label>
+          <div class="pill-selector">
+            <button
+              type="button"
+              class="pill-btn"
+              [class.active]="feedbackDetail() === 'concise'"
+              (click)="feedbackDetail.set('concise')"
+            >
+              Concise Bullet Points
+            </button>
+            <button
+              type="button"
+              class="pill-btn"
+              [class.active]="feedbackDetail() === 'comprehensive'"
+              (click)="feedbackDetail.set('comprehensive')"
+            >
+              Comprehensive Deep-Dive
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Notification Preferences -->
+      <div class="section-card">
+        <div class="section-title-box">
+          <i class="pi pi-bell title-icon"></i>
+          <div>
+            <h2>Notifications & Updates</h2>
+            <p>Choose what alerts and digest emails you receive.</p>
+          </div>
+        </div>
+
+        <div class="toggle-list">
+          <div class="toggle-row">
+            <div class="toggle-info">
+              <strong>Practice Reminders</strong>
+              <span>Receive weekly reminders to attempt new quizzes and interview sessions</span>
+            </div>
+            <label class="switch">
+              <input
+                type="checkbox"
+                [checked]="emailNotifications()"
+                (change)="emailNotifications.set(!emailNotifications())"
+              />
+              <span class="slider round"></span>
+            </label>
+          </div>
+
+          <div class="toggle-row">
+            <div class="toggle-info">
+              <strong>Weekly Performance Digest</strong>
+              <span>Get an automated email summary of your quiz scores and accuracy trends</span>
+            </div>
+            <label class="switch">
+              <input
+                type="checkbox"
+                [checked]="weeklyDigest()"
+                (change)="weeklyDigest.set(!weeklyDigest())"
+              />
+              <span class="slider round"></span>
+            </label>
+          </div>
+        </div>
+
+        <div class="form-actions" style="margin-top: 1.5rem;">
+          <button type="button" class="save-btn" (click)="savePreferences()">
+            <i class="pi pi-check"></i> Save Preferences
+          </button>
+        </div>
+      </div>
+    </section>
+  }
+
+  <!-- TAB 4: ACCOUNT & SECURITY -->
+  @if (activeTab() === 'account') {
+    <section class="tab-content fade-in">
+      <!-- Account Overview Card -->
+      <div class="section-card">
+        <div class="section-title-box">
+          <i class="pi pi-wallet title-icon"></i>
+          <div>
+            <h2>Account & Resources Breakdown</h2>
+            <p>View your credits, coins balance, and membership details.</p>
+          </div>
+        </div>
+
+        <div class="account-stats-grid">
+          <div class="stat-card">
+            <div class="stat-icon-wrapper bg-indigo">
+              <i class="pi pi-bolt"></i>
+            </div>
+            <div class="stat-card-meta">
+              <span class="stat-card-val">{{ authService.freeCredits() }}</span>
+              <span class="stat-card-lbl">Free AI Credits</span>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-icon-wrapper bg-emerald">
+              <i class="pi pi-sparkles"></i>
+            </div>
+            <div class="stat-card-meta">
+              <span class="stat-card-val">{{ authService.paidCredits() }}</span>
+              <span class="stat-card-lbl">Paid AI Credits</span>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-icon-wrapper bg-amber">
+              <i class="pi pi-star-fill"></i>
+            </div>
+            <div class="stat-card-meta">
+              <span class="stat-card-val">{{ authService.userCoins() }}</span>
+              <span class="stat-card-lbl">Coins Balance</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="account-info-list">
+          <div class="info-item">
+            <span class="info-label">User ID</span>
+            <span class="info-value font-mono">{{ currentUser()?.id || 'usr_892347' }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Member Tier</span>
+            <span class="info-value badge-tier">PRO Learner</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Account Status</span>
+            <span class="info-value text-emerald font-semibold">Active</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Password Security Card -->
+      <div class="section-card">
+        <div class="section-title-box">
+          <i class="pi pi-lock title-icon"></i>
+          <div>
+            <h2>Security & Password</h2>
+            <p>Update your password to ensure account safety.</p>
+          </div>
+        </div>
+
+        <form (submit)="updatePassword()" class="form-grid">
+          <div class="form-group full-width">
+            <label for="currentPass">Current Password</label>
+            <div class="input-wrapper">
+              <i class="pi pi-lock input-icon"></i>
+              <input
+                id="currentPass"
+                type="password"
+                class="form-input"
+                [ngModel]="currentPassword()"
+                (ngModelChange)="currentPassword.set($event)"
+                name="currentPass"
+                placeholder="Enter current password"
+              />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="newPass">New Password</label>
+            <div class="input-wrapper">
+              <i class="pi pi-key input-icon"></i>
+              <input
+                id="newPass"
+                type="password"
+                class="form-input"
+                [ngModel]="newPassword()"
+                (ngModelChange)="newPassword.set($event)"
+                name="newPass"
+                placeholder="At least 6 characters"
+              />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="confirmPass">Confirm New Password</label>
+            <div class="input-wrapper">
+              <i class="pi pi-check-square input-icon"></i>
+              <input
+                id="confirmPass"
+                type="password"
+                class="form-input"
+                [ngModel]="confirmPassword()"
+                (ngModelChange)="confirmPassword.set($event)"
+                name="confirmPass"
+                placeholder="Re-enter new password"
+              />
+            </div>
+          </div>
+
+          <div class="form-actions full-width">
+            <button type="submit" class="save-btn" [disabled]="isUpdatingPassword()">
+              @if (isUpdatingPassword()) {
+                <i class="pi pi-spin pi-spinner"></i> Updating Password...
+              } @else {
+                <i class="pi pi-shield"></i> Update Password
+              }
+            </button>
+          </div>
+        </form>
+      </div>
+    </section>
+  }
+</div>
