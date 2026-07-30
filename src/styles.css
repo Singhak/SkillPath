@@ -2,24 +2,100 @@
 @import "tailwindcss-primeui";
 @import "primeicons/primeicons.css";
 
+/* ==========================================================================
+   Global Theme CSS Variables
+   ========================================================================== */
 :root {
-    --body-bg: var(--p-surface-50);
-    --body-text-color: var(--p-surface-900);
-    --card-border: 1px solid var(--border-color);
-    --card-bg: var(--p-surface-0);
-    --border-color: var(--p-surface-200);
-    --text-color: var(--p-surface-700);
+    --body-bg: #f8fafc;
+    --body-text-color: #0f172a;
+    --card-bg: #ffffff;
+    --card-border-color: #e2e8f0;
+    --card-border: 1px solid var(--card-border-color);
+    --border-color: #e2e8f0;
+    --text-color: #334155;
+    --text-muted: #64748b;
+    --subtle-bg: #f8fafc;
+    --hover-bg: #f1f5f9;
+    --input-bg: #ffffff;
+    --input-border: #cbd5e1;
+    --input-text: #0f172a;
     --overlay-background: #ffffff;
+    --primary-accent: #6366f1;
 }
 
-:root[class='p-dark'] {
-    --body-bg: var(--p-surface-950);
-    --body-text-color: var(--p-surface-50);
-    --card-border: 1px solid transparent;
-    --card-bg: var(--p-surface-900);
+:root.p-dark,
+:root[data-theme='dark'],
+html.dark {
+    --body-bg: #090d16;
+    --body-text-color: #f8fafc;
+    --card-bg: #111827;
+    --card-border-color: rgba(255, 255, 255, 0.1);
+    --card-border: 1px solid rgba(255, 255, 255, 0.1);
     --border-color: rgba(255, 255, 255, 0.1);
-    --text-color: var(--p-surface-0);
-    --overlay-background: var(--p-surface-900);
+    --text-color: #cbd5e1;
+    --text-muted: #94a3b8;
+    --subtle-bg: #1f2937;
+    --hover-bg: #1e293b;
+    --input-bg: #1f2937;
+    --input-border: rgba(255, 255, 255, 0.15);
+    --input-text: #f8fafc;
+    --overlay-background: #111827;
+}
+
+:root,
+:root[data-accent='indigo'] {
+    --primary-accent: #6366f1;
+    --primary-accent-hover: #4f46e5;
+    --primary-accent-gradient: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+    --primary-accent-light: rgba(99, 102, 241, 0.15);
+    --primary-accent-ring: rgba(99, 102, 241, 0.35);
+    --p-primary-color: #6366f1 !important;
+    --p-primary-hover-color: #4f46e5 !important;
+    --p-primary-active-color: #4338ca !important;
+}
+
+:root[data-accent='emerald'] {
+    --primary-accent: #10b981;
+    --primary-accent-hover: #059669;
+    --primary-accent-gradient: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    --primary-accent-light: rgba(16, 185, 129, 0.15);
+    --primary-accent-ring: rgba(16, 185, 129, 0.35);
+    --p-primary-color: #10b981 !important;
+    --p-primary-hover-color: #059669 !important;
+    --p-primary-active-color: #047857 !important;
+}
+
+:root[data-accent='cyan'] {
+    --primary-accent: #06b6d4;
+    --primary-accent-hover: #0284c7;
+    --primary-accent-gradient: linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%);
+    --primary-accent-light: rgba(6, 182, 212, 0.15);
+    --primary-accent-ring: rgba(6, 182, 212, 0.35);
+    --p-primary-color: #06b6d4 !important;
+    --p-primary-hover-color: #0284c7 !important;
+    --p-primary-active-color: #0369a1 !important;
+}
+
+:root[data-accent='amber'] {
+    --primary-accent: #f59e0b;
+    --primary-accent-hover: #d97706;
+    --primary-accent-gradient: linear-gradient(135deg, #f59e0b 0%, #ef4444 100%);
+    --primary-accent-light: rgba(245, 158, 11, 0.15);
+    --primary-accent-ring: rgba(245, 158, 11, 0.35);
+    --p-primary-color: #f59e0b !important;
+    --p-primary-hover-color: #d97706 !important;
+    --p-primary-active-color: #b45309 !important;
+}
+
+:root[data-accent='rose'] {
+    --primary-accent: #ec4899;
+    --primary-accent-hover: #db2777;
+    --primary-accent-gradient: linear-gradient(135deg, #ec4899 0%, #8b5cf6 100%);
+    --primary-accent-light: rgba(236, 72, 153, 0.15);
+    --primary-accent-ring: rgba(236, 72, 153, 0.35);
+    --p-primary-color: #ec4899 !important;
+    --p-primary-hover-color: #db2777 !important;
+    --p-primary-active-color: #be185d !important;
 }
 
 html {
@@ -34,11 +110,472 @@ body {
     min-height: 100vh;
     height: 100%;
     overflow: hidden;
-    background: #f8fafc;
+    background: var(--body-bg);
     font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     font-weight: normal;
     color: var(--body-text-color);
     padding: 0;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Global Primary Button & Accent Overrides */
+.p-button:not(.p-button-secondary):not(.p-button-text):not(.p-button-outlined):not(.p-button-danger):not(.p-button-success),
+.btn-primary,
+.button-primary {
+  background: var(--primary-accent-gradient) !important;
+  border-color: var(--primary-accent) !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 14px var(--primary-accent-ring) !important;
+}
+
+.p-button:not(.p-button-secondary):not(.p-button-text):not(.p-button-outlined):not(.p-button-danger):not(.p-button-success):hover,
+.btn-primary:hover,
+.button-primary:hover {
+  opacity: 0.92 !important;
+  box-shadow: 0 6px 20px var(--primary-accent-ring) !important;
+}
+
+/* ==========================================================================
+   LIGHT MODE PrimeNG Overlays (Default when no .p-dark)
+   ========================================================================== */
+.p-select-overlay,
+.p-dropdown-panel,
+.p-multiselect-overlay,
+.p-multiselect-panel,
+.p-autocomplete-panel,
+.p-autocomplete-overlay,
+.p-cascadeselect-overlay,
+.p-treeselect-panel,
+.p-popover,
+.p-overlaypanel,
+.p-dialog,
+.p-select-list-container,
+.p-select-list,
+.p-multiselect-list-container,
+.p-multiselect-list,
+.p-autocomplete-items,
+.p-autocomplete-list {
+  background-color: #ffffff !important;
+  background: #ffffff !important;
+  color: #0f172a !important;
+  border: 1px solid #cbd5e1 !important;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.15) !important;
+}
+
+.p-multiselect-header,
+.p-multiselect-filter-container,
+.p-select-header,
+.p-dropdown-header {
+  background-color: #f8fafc !important;
+  background: #f8fafc !important;
+  color: #0f172a !important;
+  border-bottom: 1px solid #e2e8f0 !important;
+}
+
+.p-multiselect-filter,
+.p-select-filter,
+.p-dropdown-filter,
+.p-multiselect-filter-container input {
+  background-color: #ffffff !important;
+  background: #ffffff !important;
+  color: #0f172a !important;
+  border: 1px solid #cbd5e1 !important;
+}
+
+.p-select-option,
+.p-dropdown-item,
+.p-multiselect-option,
+.p-multiselect-item,
+.p-autocomplete-option,
+.p-autocomplete-item,
+.p-cascadeselect-option,
+.p-cascadeselect-item,
+.p-select-option *,
+.p-dropdown-item *,
+.p-multiselect-option *,
+.p-multiselect-item *,
+.p-autocomplete-option *,
+.p-autocomplete-item *,
+.p-select-option-label,
+.p-dropdown-item-label,
+.p-multiselect-option-label,
+.p-autocomplete-option-label {
+  color: #0f172a !important;
+  opacity: 1 !important;
+  background-color: transparent !important;
+}
+
+.p-select-option:hover,
+.p-dropdown-item:hover,
+.p-multiselect-option:hover,
+.p-multiselect-item:hover,
+.p-autocomplete-option:hover,
+.p-autocomplete-item:hover,
+.p-select-option.p-focus,
+.p-dropdown-item.p-focus,
+.p-multiselect-option.p-focus,
+.p-autocomplete-option.p-focus,
+.p-autocomplete-item.p-focus,
+.p-select-option.p-select-option-selected,
+.p-multiselect-option.p-multiselect-option-selected,
+.p-autocomplete-option.p-autocomplete-option-selected,
+.p-autocomplete-item.p-autocomplete-item-selected,
+.p-select-option:hover *,
+.p-dropdown-item:hover *,
+.p-multiselect-option:hover *,
+.p-autocomplete-option:hover *,
+.p-autocomplete-item:hover *,
+.p-select-option.p-select-option-selected * {
+  background-color: #f1f5f9 !important;
+  color: #4f46e5 !important;
+}
+
+/* ==========================================================================
+   DARK MODE Overrides
+   ========================================================================== */
+:root.p-dark,
+:root[data-theme='dark'],
+html.dark {
+
+  /* Specific Heading & Text Elements */
+  h1, h2, h3, h4, h5, h6,
+  .card-title,
+  .hero-title,
+  .setup-title,
+  .user-display-name,
+  .kpi-value,
+  .skill-name,
+  .section-title,
+  .mode-title,
+  .toggle-info strong,
+  .density-meta strong,
+  .feature-text strong,
+  .preview-title {
+    color: #f8fafc !important;
+  }
+
+  p.hero-subtitle,
+  p.setup-subtitle,
+  p.card-description,
+  p.section-title-box p,
+  p.mode-desc,
+  p.preview-body,
+  p.user-email-text,
+  .kpi-label,
+  .kpi-subtitle,
+  .toggle-info span,
+  .density-meta span,
+  .feature-text span,
+  .field-label,
+  .section-label {
+    color: #cbd5e1 !important;
+  }
+
+  .text-muted,
+  .counter-label,
+  .widget-label {
+    color: #94a3b8 !important;
+  }
+
+  /* Cards & Surface Containers */
+  .glass-card,
+  .kpi-card,
+  .section-card,
+  .quiz-setup-card,
+  .setup-card,
+  .setup-body,
+  .start-card,
+  .start-card-body,
+  .active-card,
+  .main-panel,
+  .sidebar-widget,
+  .interview-card,
+  .stats-bar,
+  .features-section,
+  .skill-item,
+  .user-profile-card,
+  .preview-widget,
+  .settings-header,
+  .settings-tabs,
+  .p-card,
+  .p-panel {
+    background: #111827 !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+    color: #f8fafc !important;
+  }
+
+  .subtle-bg,
+  .answer-panel,
+  .table-responsive,
+  .skills-manager,
+  .skills-list,
+  .add-skill-row {
+    background: #1f2937 !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+  }
+
+  /* Inputs, Textareas, Selects & PrimeNG Controls */
+  input,
+  textarea,
+  select,
+  .form-input,
+  .form-textarea,
+  .topic-input,
+  .upload-textarea,
+  .answer-textarea,
+  .search-input,
+  .p-inputtext,
+  .p-select,
+  .p-multiselect,
+  .p-dropdown,
+  .p-autocomplete-input {
+    background-color: #1f2937 !important;
+    color: #f8fafc !important;
+    border-color: rgba(255, 255, 255, 0.15) !important;
+  }
+
+  input::placeholder,
+  textarea::placeholder,
+  .topic-input::placeholder,
+  .upload-textarea::placeholder,
+  .search-input::placeholder,
+  .p-inputtext::placeholder {
+    color: #94a3b8 !important;
+  }
+
+  .p-select-label,
+  .p-multiselect-label,
+  .p-dropdown-label,
+  .p-autocomplete {
+    color: #f8fafc !important;
+  }
+}
+
+/* ==========================================================================
+   GLOBAL DARK MODE OVERRIDES FOR ALL PRIMENG OVERLAY PANELS APPENDED TO BODY
+   ========================================================================== */
+html.p-dark .p-select-overlay,
+html.p-dark .p-dropdown-panel,
+html.p-dark .p-multiselect-overlay,
+html.p-dark .p-multiselect-panel,
+html.p-dark .p-autocomplete-panel,
+html.p-dark .p-autocomplete-overlay,
+html.p-dark .p-cascadeselect-overlay,
+html.p-dark .p-treeselect-panel,
+html.p-dark .p-popover,
+html.p-dark .p-overlaypanel,
+html.p-dark .p-dialog,
+html.p-dark .p-select-list-container,
+html.p-dark .p-multiselect-list-container,
+html.p-dark .p-select-list,
+html.p-dark .p-multiselect-list,
+html.p-dark .p-autocomplete-list,
+html[data-theme='dark'] .p-select-overlay,
+html[data-theme='dark'] .p-dropdown-panel,
+html[data-theme='dark'] .p-multiselect-overlay,
+html[data-theme='dark'] .p-multiselect-panel,
+html[data-theme='dark'] .p-autocomplete-panel,
+html[data-theme='dark'] .p-autocomplete-overlay,
+html[data-theme='dark'] .p-cascadeselect-overlay,
+html[data-theme='dark'] .p-treeselect-panel,
+html[data-theme='dark'] .p-popover,
+html[data-theme='dark'] .p-overlaypanel,
+html[data-theme='dark'] .p-dialog,
+html[data-theme='dark'] .p-select-list-container,
+html[data-theme='dark'] .p-multiselect-list-container,
+html[data-theme='dark'] .p-select-list,
+html[data-theme='dark'] .p-multiselect-list,
+html[data-theme='dark'] .p-autocomplete-list,
+.p-dark .p-select-overlay,
+.p-dark .p-dropdown-panel,
+.p-dark .p-multiselect-overlay,
+.p-dark .p-multiselect-panel,
+.p-dark .p-autocomplete-panel {
+  background-color: #111827 !important;
+  background: #111827 !important;
+  border-color: rgba(255, 255, 255, 0.15) !important;
+  color: #ffffff !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6) !important;
+}
+
+/* Dark Mode MultiSelect Header & Filter Search Container */
+html.p-dark .p-multiselect-header,
+html.p-dark .p-multiselect-filter-container,
+html.p-dark .p-select-header,
+html.p-dark .p-dropdown-header,
+html[data-theme='dark'] .p-multiselect-header,
+html[data-theme='dark'] .p-multiselect-filter-container,
+.p-dark .p-multiselect-header,
+.p-dark .p-multiselect-filter-container {
+  background-color: #1f2937 !important;
+  background: #1f2937 !important;
+  color: #ffffff !important;
+  border-bottom-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+html.p-dark .p-multiselect-filter,
+html.p-dark .p-select-filter,
+html.p-dark .p-dropdown-filter,
+html.p-dark .p-multiselect-filter-container input,
+html[data-theme='dark'] .p-multiselect-filter,
+html[data-theme='dark'] .p-multiselect-filter-container input,
+.p-dark .p-multiselect-filter {
+  background-color: #111827 !important;
+  background: #111827 !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+}
+
+/* Dark Mode Option Items & Text Nodes - Pure Bright White Text */
+html.p-dark .p-select-option,
+html.p-dark .p-dropdown-item,
+html.p-dark .p-multiselect-option,
+html.p-dark .p-multiselect-item,
+html.p-dark .p-autocomplete-option,
+html.p-dark .p-autocomplete-item,
+html.p-dark .p-cascadeselect-option,
+html.p-dark .p-cascadeselect-item,
+html.p-dark .p-select-option *,
+html.p-dark .p-dropdown-item *,
+html.p-dark .p-multiselect-option *,
+html.p-dark .p-multiselect-item *,
+html.p-dark .p-autocomplete-option *,
+html.p-dark .p-autocomplete-item *,
+html.p-dark .p-select-option-label,
+html.p-dark .p-dropdown-item-label,
+html.p-dark .p-multiselect-option-label,
+html.p-dark .p-autocomplete-option-label,
+html[data-theme='dark'] .p-select-option,
+html[data-theme='dark'] .p-dropdown-item,
+html[data-theme='dark'] .p-multiselect-option,
+html[data-theme='dark'] .p-multiselect-item,
+html[data-theme='dark'] .p-autocomplete-option,
+html[data-theme='dark'] .p-autocomplete-item,
+html[data-theme='dark'] .p-cascadeselect-option,
+html[data-theme='dark'] .p-cascadeselect-item,
+html[data-theme='dark'] .p-select-option *,
+html[data-theme='dark'] .p-dropdown-item *,
+html[data-theme='dark'] .p-multiselect-option *,
+html[data-theme='dark'] .p-multiselect-item *,
+html[data-theme='dark'] .p-autocomplete-option *,
+html[data-theme='dark'] .p-autocomplete-item *,
+html[data-theme='dark'] .p-select-option-label,
+html[data-theme='dark'] .p-dropdown-item-label,
+html[data-theme='dark'] .p-multiselect-option-label,
+html[data-theme='dark'] .p-autocomplete-option-label,
+.p-dark .p-select-option,
+.p-dark .p-dropdown-item,
+.p-dark .p-multiselect-option,
+.p-dark .p-autocomplete-option,
+.p-dark .p-autocomplete-item,
+.p-dark .p-select-option *,
+.p-dark .p-multiselect-option *,
+.p-dark .p-autocomplete-option *,
+.p-dark .p-autocomplete-item * {
+  color: #ffffff !important;
+  opacity: 1 !important;
+  font-weight: 500 !important;
+  background-color: transparent !important;
+}
+
+/* Dark Mode Hover / Selected Options */
+html.p-dark .p-select-option:hover,
+html.p-dark .p-dropdown-item:hover,
+html.p-dark .p-multiselect-option:hover,
+html.p-dark .p-multiselect-item:hover,
+html.p-dark .p-autocomplete-option:hover,
+html.p-dark .p-autocomplete-item:hover,
+html.p-dark .p-select-option.p-focus,
+html.p-dark .p-dropdown-item.p-focus,
+html.p-dark .p-multiselect-option.p-focus,
+html.p-dark .p-autocomplete-option.p-focus,
+html.p-dark .p-autocomplete-item.p-focus,
+html.p-dark .p-select-option.p-select-option-selected,
+html.p-dark .p-multiselect-option.p-multiselect-option-selected,
+html.p-dark .p-autocomplete-option.p-autocomplete-option-selected,
+html.p-dark .p-select-option:hover *,
+html.p-dark .p-dropdown-item:hover *,
+html.p-dark .p-multiselect-option:hover *,
+html.p-dark .p-autocomplete-option:hover *,
+html.p-dark .p-autocomplete-item:hover *,
+html[data-theme='dark'] .p-select-option:hover,
+html[data-theme='dark'] .p-dropdown-item:hover,
+html[data-theme='dark'] .p-multiselect-option:hover,
+html[data-theme='dark'] .p-autocomplete-option:hover,
+html[data-theme='dark'] .p-autocomplete-item:hover,
+html[data-theme='dark'] .p-select-option.p-focus,
+html[data-theme='dark'] .p-dropdown-item.p-focus,
+html[data-theme='dark'] .p-multiselect-option.p-focus,
+html[data-theme='dark'] .p-autocomplete-option.p-focus,
+html[data-theme='dark'] .p-autocomplete-item.p-focus,
+html[data-theme='dark'] .p-select-option.p-select-option-selected,
+html[data-theme='dark'] .p-multiselect-option.p-multiselect-option-selected,
+html[data-theme='dark'] .p-autocomplete-option.p-autocomplete-option-selected,
+html[data-theme='dark'] .p-select-option:hover *,
+html[data-theme='dark'] .p-dropdown-item:hover *,
+html[data-theme='dark'] .p-multiselect-option:hover *,
+html[data-theme='dark'] .p-autocomplete-option:hover *,
+html[data-theme='dark'] .p-autocomplete-item:hover *,
+.p-dark .p-select-option:hover,
+.p-dark .p-multiselect-option:hover,
+.p-dark .p-autocomplete-option:hover,
+.p-dark .p-autocomplete-item:hover,
+.p-dark .p-multiselect-option-selected,
+.p-dark .p-autocomplete-option-selected {
+  background-color: #1f2937 !important;
+  color: var(--primary-accent, #818cf8) !important;
+}
+
+/* Dark Mode MultiSelect Checkboxes & Icons */
+html.p-dark .p-checkbox .p-checkbox-box,
+html[data-theme='dark'] .p-checkbox .p-checkbox-box,
+.p-dark .p-checkbox .p-checkbox-box {
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+  background-color: #1f2937 !important;
+}
+
+html.p-dark .p-checkbox.p-checkbox-checked .p-checkbox-box,
+html[data-theme='dark'] .p-checkbox.p-checkbox-checked .p-checkbox-box,
+.p-dark .p-checkbox.p-checkbox-checked .p-checkbox-box {
+  background-color: var(--primary-accent, #6366f1) !important;
+  border-color: var(--primary-accent, #6366f1) !important;
+  color: #ffffff !important;
+}
+
+/* Dropdown trigger icon styling */
+html.p-dark .p-select-dropdown-icon,
+html.p-dark .p-dropdown-trigger-icon,
+html.p-dark .p-multiselect-dropdown-icon,
+html.p-dark .p-autocomplete-dropdown,
+html[data-theme='dark'] .p-select-dropdown-icon,
+html[data-theme='dark'] .p-dropdown-trigger-icon,
+html[data-theme='dark'] .p-multiselect-dropdown-icon,
+html[data-theme='dark'] .p-autocomplete-dropdown {
+  color: #94a3b8 !important;
+}
+
+/* MultiSelect Chip Tokens in Dark Mode */
+html.p-dark .p-multiselect-chip,
+html.p-dark .p-multiselect-token,
+html[data-theme='dark'] .p-multiselect-chip,
+html[data-theme='dark'] .p-multiselect-token {
+  background-color: #374151 !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+}
+
+/* SelectButton in Dark Mode */
+html.p-dark .p-selectbutton .p-button,
+html[data-theme='dark'] .p-selectbutton .p-button {
+  background-color: #1f2937 !important;
+  color: #cbd5e1 !important;
+  border-color: rgba(255, 255, 255, 0.15) !important;
+}
+
+html.p-dark .p-selectbutton .p-button.p-highlight,
+html[data-theme='dark'] .p-selectbutton .p-button.p-highlight {
+  background: var(--primary-accent-gradient, linear-gradient(135deg, #6366f1, #a855f7)) !important;
+  color: #ffffff !important;
 }
 
 /* Custom Scrollbars */
@@ -72,5 +609,3 @@ body {
   height: 100dvh;
   scrollbar-gutter: stable;
 }
-
-/* stylelint-enable at-rule-no-unknown */
