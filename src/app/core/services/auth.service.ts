@@ -22,6 +22,13 @@ export class AuthService {
 
   private _currentUser = signal<User | null>(null);
 
+
+  readonly currentUser = this._currentUser.asReadonly();
+  readonly userCoins = this.userResourceService.userCoins;
+  readonly freeCredits = this.userResourceService.freeCredits;
+  readonly paidCredits = this.userResourceService.paidCredits;
+  readonly isAuthenticated = computed(() => !!this._currentUser());
+
   constructor() {
     if (isPlatformBrowser(this.platformId)) {
       // Load user from localStorage on initialization
@@ -46,12 +53,6 @@ export class AuthService {
     }
   }
 
-  readonly currentUser = this._currentUser.asReadonly();
-  readonly userCoins = this.userResourceService.userCoins;
-  readonly freeCredits = this.userResourceService.freeCredits;
-  readonly paidCredits = this.userResourceService.paidCredits;
-  readonly isAuthenticated = computed(() => !!this._currentUser());
-
   login(response: LoginResponse): void {
     localStorage.setItem(this.authTokenKey, response.token);
     localStorage.setItem(this.refreshTokenKey, response.refreshToken);
@@ -68,7 +69,7 @@ export class AuthService {
   }
 
   updateCoins(newCoinTotal: number): Observable<User | null> {
-    return this.userResourceService.updateCoins(newCoinTotal).pipe(
+    return this.userResourceService.updateCoins(this.currentUser().id, newCoinTotal).pipe(
       tap((updatedUser) => {
         const user = updatedUser as User;
         this._currentUser.set(user);

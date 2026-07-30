@@ -29,8 +29,8 @@ export class UserResourceService {
     }
   }
 
-  updateCoins(newCoinTotal: number): Observable<User> {
-    return this.userService.updateUser({ coins: newCoinTotal });
+  updateCoins(id: number | string, newCoinTotal: number): Observable<User> {
+    return this.userService.updateUser(id, { coins: newCoinTotal });
   }
 
   private checkAndResetFreeCredits(user: User): void {
