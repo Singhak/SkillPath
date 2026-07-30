@@ -1,0 +1,1 @@
+import {bT as En,I,ak as qi,bU as xn}from'./main-GVC7JMKD.js';var o=class r{apiUrl=`${En.apiUrl}/quizzes`;http=I(qi);updateQuizStats(e){return this.http.put(`${En.apiUrl}/quizzes/${e}/complete`,{})}getQuizAttempts(){return this.http.get(`${En.apiUrl}/quizzes`)}static \u0275fac=function(s){return new(s||r)};static \u0275prov=xn({token:r,factory:r.\u0275fac})};export{o};
