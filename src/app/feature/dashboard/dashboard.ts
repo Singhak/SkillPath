@@ -48,16 +48,17 @@ export class Dashboard implements OnInit {
   );
 
   readonly totalCoins = computed(() => {
-    const attempts = this.quizAttempts();
-    const coinsEarned = attempts.reduce(
-      (sum, item: QuizStats) => sum + Number(item.totalCoinsEarned || 0),
-      0,
-    );
-    const coinsSpent = attempts.reduce(
-      (sum, item: QuizStats) => sum + Number(item.totalCoinsSpent || 0),
-      0,
-    );
-    return coinsEarned - coinsSpent;
+    return this.authService.userCoins()
+    // const attempts = this.quizAttempts();
+    // const coinsEarned = attempts.reduce(
+    //   (sum, item: QuizStats) => sum + Number(item.totalCoinsEarned || 0),
+    //   0,
+    // );
+    // const coinsSpent = attempts.reduce(
+    //   (sum, item: QuizStats) => sum + Number(item.totalCoinsSpent || 0),
+    //   0,
+    // );
+    // return coinsEarned - coinsSpent;
   });
 
   readonly filteredQuizAttempts = computed(() => {
