@@ -1,0 +1,52 @@
+:host {
+  display: block;
+}
+
+.option-card {
+  background: var(--card-bg, #ffffff);
+  color: var(--body-text-color, #0f172a);
+  border: 1.5px solid var(--border-color, #cbd5e1);
+  transition: all 0.2s ease;
+}
+
+.option-card:hover {
+  border-color: var(--primary-accent, #6366f1);
+  background: var(--hover-bg, #f1f5f9);
+}
+
+.option-card--selected {
+  border: 2px solid var(--primary-accent, #6366f1) !important;
+  background: var(--primary-accent-light, rgba(99, 102, 241, 0.15)) !important;
+  color: var(--body-text-color, #0f172a) !important;
+}
+
+:root.p-dark .option-card,
+:root[data-theme='dark'] .option-card,
+html.dark .option-card {
+  background: #111827 !important;
+  border-color: rgba(255, 255, 255, 0.15) !important;
+  color: #f8fafc !important;
+}
+
+:root.p-dark .option-card:hover,
+:root[data-theme='dark'] .option-card:hover,
+html.dark .option-card:hover {
+  border-color: var(--primary-accent, #818cf8) !important;
+  background: #1f2937 !important;
+}
+
+:root.p-dark .option-card--selected,
+:root[data-theme='dark'] .option-card--selected,
+html.dark .option-card--selected {
+  border: 2px solid var(--primary-accent, #818cf8) !important;
+  background: rgba(99, 102, 241, 0.25) !important;
+  color: #ffffff !important;
+}
+
+:root.p-dark p-fieldset,
+:root[data-theme='dark'] p-fieldset,
+html.dark p-fieldset {
+  background-color: #111827 !important;
+  color: #f8fafc !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
