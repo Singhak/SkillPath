@@ -4,8 +4,8 @@ import { FormsModule } from '@angular/forms';
 import { CardModule } from 'primeng/card';
 import { ChartModule } from 'primeng/chart';
 import { DividerModule } from 'primeng/divider';
-import { FloatLabel } from 'primeng/floatlabel';
-import { Select } from 'primeng/select';
+import { FloatLabelModule } from 'primeng/floatlabel';
+import { SelectModule } from 'primeng/select';
 import { TableModule } from 'primeng/table';
 import { Router } from '@angular/router';
 import { PanelModule } from 'primeng/panel';
@@ -21,8 +21,8 @@ import { AuthService } from '../../core/services/auth.service';
     ChartModule,
     TableModule,
     DividerModule,
-    FloatLabel,
-    Select,
+    FloatLabelModule,
+    SelectModule,
     FormsModule,
     PanelModule,
   ],
@@ -37,10 +37,12 @@ export class Dashboard implements OnInit {
   readonly quizAttempts = signal<QuizStats[]>([]);
   readonly selectChartCategory = signal('angular');
   readonly categoryList = signal<string[]>([]);
-  readonly sidebarCollapsed = signal(false);
-  readonly mobileMenuOpen = signal(false);
   readonly lineData = signal<any>(null);
   readonly pieData = signal<any>(null);
+  readonly tableSearchQuery = signal<string>('');
+
+  readonly userName = computed(() => this.authService.currentUser()?.name || 'Learner');
+
   readonly totalAiCredits = computed(
     () => (this.authService.freeCredits() ?? 0) + (this.authService.paidCredits() ?? 0),
   );
@@ -58,6 +60,47 @@ export class Dashboard implements OnInit {
     return coinsEarned - coinsSpent;
   });
 
+  readonly filteredQuizAttempts = computed(() => {
+    const query = this.tableSearchQuery().toLowerCase().trim();
+    const attempts = this.quizAttempts();
+    if (!query) return attempts;
+    return attempts.filter(
+      (item) =>
+        (item.category && item.category.toLowerCase().includes(query)) ||
+        (item.attempedDate && new Date(item.attempedDate).toLocaleDateString().includes(query)),
+    );
+  });
+
+  readonly skillBreakdown = computed(() => {
+    const attempts = this.quizAttempts();
+    const map = new Map<string, { totalQuestions: number; correctAnswers: number; count: number }>();
+
+    for (const attempt of attempts) {
+      const cat = attempt.category || 'General';
+      const current = map.get(cat) || { totalQuestions: 0, correctAnswers: 0, count: 0 };
+      current.totalQuestions += Number(attempt.totalQuestions || 0);
+      current.correctAnswers += Number(attempt.correctAnswerCount || 0);
+      current.count += 1;
+      map.set(cat, current);
+    }
+
+    const result: { category: string; accuracy: number; count: number; totalQuestions: number }[] = [];
+    map.forEach((value, category) => {
+      const accuracy =
+        value.totalQuestions > 0
+          ? Math.round((value.correctAnswers / value.totalQuestions) * 100)
+          : 0;
+      result.push({
+        category,
+        accuracy,
+        count: value.count,
+        totalQuestions: value.totalQuestions,
+      });
+    });
+
+    return result.sort((a, b) => b.accuracy - a.accuracy);
+  });
+
   readonly summaryCards = computed(() => {
     const attempts = this.quizAttempts();
     const totalAttempts = attempts.length;
@@ -69,73 +112,117 @@ export class Dashboard implements OnInit {
       (sum, item: QuizStats) => sum + Number(item.hintsUsedCount || 0),
       0,
     );
-
     const totalCorrectAnswers = attempts.reduce(
       (sum, item: QuizStats) => sum + Number(item.correctAnswerCount || 0),
       0,
     );
-
     const accuracy =
       totalQuestions > 0 ? Math.round((totalCorrectAnswers / totalQuestions) * 100) : 0;
-
     const totalScore = attempts.reduce(
       (sum, item: QuizStats) => sum + Number(item.totalScore || 0),
       0,
     );
 
-    const averageScore = totalAttempts > 0 ? Math.round(totalScore / totalAttempts) : 0;
-    const coinsEarned = attempts.reduce(
-      (sum, item: QuizStats) => sum + Number(item.totalCoinsEarned || 0),
+    const totalTimeSec = attempts.reduce(
+      (sum, item: QuizStats) => sum + Number(item.totalTimeTakenInSeconds || 0),
       0,
     );
-
-    const coinsSpent = attempts.reduce(
-      (sum, item: QuizStats) => sum + Number(item.totalCoinsSpent || 0),
-      0,
-    );
+    const avgTimeSec = totalAttempts > 0 ? Math.round(totalTimeSec / totalAttempts) : 0;
 
     return [
       {
         label: 'Attempts',
         value: totalAttempts.toString(),
+        subtitle: 'Quiz sessions',
         icon: 'pi pi-chart-line',
-        accent: 'blue',
+        accent: 'indigo',
+      },
+      {
+        label: 'Accuracy Rate',
+        value: `${accuracy}%`,
+        subtitle: `${totalCorrectAnswers}/${totalQuestions} correct`,
+        icon: 'pi pi-bullseye',
+        accent: 'emerald',
       },
       {
         label: 'Total Score',
         value: `${totalScore}`,
+        subtitle: 'Earned XP',
         icon: 'pi pi-star-fill',
         accent: 'amber',
       },
-      { label: 'Questions', value: totalQuestions.toString(), icon: 'pi pi-book', accent: 'green' },
-      { label: 'Accuracy', value: `${accuracy}%`, icon: 'pi pi-shield', accent: 'violet' },
+      {
+        label: 'Questions',
+        value: totalQuestions.toString(),
+        subtitle: 'Completed items',
+        icon: 'pi pi-book',
+        accent: 'sky',
+      },
       {
         label: 'Hints Used',
         value: totalHints.toString(),
+        subtitle: 'Clues revealed',
         icon: 'pi pi-lightbulb',
         accent: 'orange',
       },
       {
-        label: 'Coins Spent',
-        value: coinsSpent.toString(),
-        icon: 'pi pi-bitcoin',
-        accent: 'blue',
-      },
-      {
-        label: 'Coins Earned',
-        value: coinsEarned.toString(),
-        icon: 'pi pi-bitcoin',
-        accent: 'green',
+        label: 'Avg Duration',
+        value: this.formattedTime(avgTimeSec),
+        subtitle: 'Time per quiz',
+        icon: 'pi pi-clock',
+        accent: 'violet',
       },
     ];
   });
 
-  readonly chartOptions = {
+  readonly lineChartOptions = {
     responsive: true,
-    maintainAspectRatio: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        position: 'top' as const,
+        align: 'end' as const,
+        labels: {
+          usePointStyle: true,
+          boxWidth: 8,
+          boxHeight: 8,
+          font: { family: 'Plus Jakarta Sans', size: 12 },
+        },
+      },
+      tooltip: {
+        backgroundColor: 'rgba(15, 23, 42, 0.9)',
+        titleFont: { family: 'Plus Jakarta Sans', size: 13, weight: 'bold' },
+        bodyFont: { family: 'Plus Jakarta Sans', size: 12 },
+        padding: 12,
+        cornerRadius: 10,
+      },
+    },
+    scales: {
+      x: {
+        grid: { display: false },
+        ticks: { font: { family: 'Plus Jakarta Sans', size: 11 }, color: '#64748b' },
+      },
+      y: {
+        border: { dash: [4, 4] },
+        grid: { color: 'rgba(226, 232, 240, 0.6)' },
+        ticks: { font: { family: 'Plus Jakarta Sans', size: 11 }, color: '#64748b' },
+      },
+    },
+  };
+
+  readonly pieChartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    cutout: '68%',
     plugins: {
       legend: {
         position: 'bottom' as const,
+        labels: {
+          usePointStyle: true,
+          boxWidth: 8,
+          padding: 16,
+          font: { family: 'Plus Jakarta Sans', size: 12 },
+        },
       },
     },
   };
@@ -158,45 +245,44 @@ export class Dashboard implements OnInit {
     });
   }
 
-  toggleSidebar(): void {
-    if (typeof window !== 'undefined' && window.innerWidth < 1024) {
-      this.mobileMenuOpen.set(!this.mobileMenuOpen());
-      return;
-    }
-
-    this.sidebarCollapsed.set(!this.sidebarCollapsed());
-  }
-
-  closeSidebar(): void {
-    this.mobileMenuOpen.set(false);
-  }
-
   private categoryLineChart(category: string): void {
     const localDataset = this.quizAttempts().filter((item: any) => item.category === category);
 
     this.lineData.set({
-      labels: localDataset.map((item: any) => new Date(item.attempted_date).toLocaleDateString()),
+      labels: localDataset.map((item: any) => {
+        const dateVal = item.attempedDate || item.attempted_date;
+        return dateVal ? new Date(dateVal).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : 'Attempt';
+      }),
       datasets: [
         {
           label: 'Score',
           data: localDataset.map((item: QuizStats) => item.totalScore),
-          borderColor: '#3B82F6',
-          backgroundColor: 'rgba(59, 130, 246, 0.18)',
-          tension: 0.35,
+          borderColor: '#6366f1',
+          backgroundColor: 'rgba(99, 102, 241, 0.12)',
+          fill: true,
+          tension: 0.4,
+          pointRadius: 4,
+          pointHoverRadius: 6,
         },
         {
           label: 'Questions',
           data: localDataset.map((item: QuizStats) => item.totalQuestions),
-          borderColor: '#22C55E',
-          backgroundColor: 'rgba(34, 197, 94, 0.16)',
-          tension: 0.35,
+          borderColor: '#10b981',
+          backgroundColor: 'rgba(16, 185, 129, 0.08)',
+          fill: true,
+          tension: 0.4,
+          pointRadius: 4,
+          pointHoverRadius: 6,
         },
         {
-          label: 'Hints',
+          label: 'Hints Used',
           data: localDataset.map((item: QuizStats) => item.hintsUsedCount),
-          borderColor: '#F59E0B',
-          backgroundColor: 'rgba(245, 158, 11, 0.16)',
-          tension: 0.35,
+          borderColor: '#f59e0b',
+          backgroundColor: 'rgba(245, 158, 11, 0.08)',
+          fill: true,
+          tension: 0.4,
+          pointRadius: 4,
+          pointHoverRadius: 6,
         },
       ],
     });
@@ -215,7 +301,17 @@ export class Dashboard implements OnInit {
       datasets: [
         {
           data: labels.map((label) => categoryCount[label]),
-          backgroundColor: ['#4F46E5', '#0EA5E9', '#10B981', '#F59E0B', '#EC4899', '#8B5CF6'],
+          backgroundColor: [
+            '#6366F1',
+            '#0EA5E9',
+            '#10B981',
+            '#F59E0B',
+            '#EC4899',
+            '#8B5CF6',
+            '#14B8A6',
+          ],
+          borderWidth: 2,
+          borderColor: '#ffffff',
         },
       ],
     });
@@ -225,9 +321,20 @@ export class Dashboard implements OnInit {
     this.router.navigate(['/quiz']);
   }
 
+  onStartAiInterview() {
+    this.router.navigate(['/aiinterview']);
+  }
+
   formattedTime(timeInSec: number) {
+    if (!timeInSec || isNaN(timeInSec)) return '0m 0s';
     const minutes = Math.floor(timeInSec / 60);
     const seconds = Math.floor(timeInSec % 60);
     return `${minutes}m ${seconds}s`;
+  }
+
+  getAccuracyBadgeClass(accuracy: number): string {
+    if (accuracy >= 80) return 'badge-high';
+    if (accuracy >= 50) return 'badge-mid';
+    return 'badge-low';
   }
 }
