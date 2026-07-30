@@ -1,23 +1,3 @@
-/* Custom styles for the PrimeNG Menubar */
-:host ::ng-deep .p-menubar {
-  background-color: #2563eb; /* bg-blue-600 */
-  border-radius: 0;
-  border: none;
-}
-
-:host ::ng-deep .p-menubar .p-menubar-item > .p-menubar-item-content {
-  transition: background-color 0.2s;
-}
-
-:host ::ng-deep .p-menubar .p-menubar-item > .p-menubar-item-content:hover {
-  background-color: #1d4ed8; /* bg-blue-700 */
-}
-
-:host ::ng-deep .p-menubar .p-menubar-item-link .p-menubar-item-label,
-:host ::ng-deep .p-menubar .p-menubar-item-link .p-menubar-item-icon {
-  color: #ffffff; /* text-white */
-}
-
 :host {
   display: block;
   min-height: 100dvh;
@@ -31,7 +11,6 @@
   display: flex;
   min-height: 100dvh;
   height: 100dvh;
-  /* overflow: hidden; */
 }
 
 .content-shell {
@@ -71,9 +50,7 @@
   flex-direction: column;
   justify-content: space-between;
   gap: 1.25rem;
-  transition:
-    width 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-    transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   position: sticky;
   top: 0;
   height: 100dvh;
@@ -91,7 +68,6 @@
   width: 84px;
 }
 
-/* Header & Brand */
 .sidebar-header {
   display: flex;
   align-items: center;
@@ -156,7 +132,6 @@
   border-radius: 6px;
   background: var(--primary-accent-gradient, linear-gradient(135deg, #6366f1, #a855f7));
   color: white;
-  letter-spacing: 0.05em;
 }
 
 .collapse-btn {
@@ -176,10 +151,8 @@
 .collapse-btn:hover {
   background: rgba(255, 255, 255, 0.15);
   color: #ffffff;
-  border-color: rgba(255, 255, 255, 0.2);
 }
 
-/* Nav Section Styling */
 .sidebar-nav {
   display: flex;
   flex-direction: column;
@@ -200,7 +173,6 @@
   letter-spacing: 0.12em;
   color: #64748b;
   white-space: nowrap;
-  transition: opacity 0.25s ease;
 }
 
 .sidebar.collapsed .section-header {
@@ -232,14 +204,11 @@
   display: grid;
   place-items: center;
   font-size: 1.1rem;
-  transition: all 0.2s ease;
   flex-shrink: 0;
 }
 
 .nav-label {
   white-space: nowrap;
-  opacity: 1;
-  transition: opacity 0.2s ease, width 0.2s ease;
   flex: 1;
 }
 
@@ -262,19 +231,15 @@
   border-radius: 9999px;
   background: linear-gradient(135deg, #ef4444, #f97316);
   color: white;
-  box-shadow: 0 2px 6px rgba(239, 68, 68, 0.4);
 }
 
 .active-indicator {
   display: none;
   position: absolute;
-  left: 0;
-  top: 15%;
-  bottom: 15%;
+  left: 0; top: 15%; bottom: 15%;
   width: 3px;
   border-radius: 0 4px 4px 0;
   background: var(--primary-accent, #818cf8);
-  box-shadow: 0 0 10px var(--primary-accent, #818cf8);
 }
 
 .nav-item:hover {
@@ -283,27 +248,17 @@
   transform: translateX(3px);
 }
 
-.nav-item:hover .nav-icon-box {
-  color: var(--primary-accent, #818cf8);
-}
-
 .nav-item.active {
   background: var(--primary-accent-gradient, linear-gradient(135deg, #6366f1 0%, #a855f7 100%));
   color: #ffffff;
   font-weight: 600;
   box-shadow: 0 6px 18px var(--primary-accent-ring, rgba(79, 70, 229, 0.35));
-  transform: translateX(0);
-}
-
-.nav-item.active .nav-icon-box {
-  color: #ffffff;
 }
 
 .nav-item.active .active-indicator {
   display: block;
 }
 
-/* User Footer Card */
 .sidebar-footer {
   border-top: 1px solid rgba(255, 255, 255, 0.08);
   padding-top: 0.85rem;
@@ -317,12 +272,6 @@
   border-radius: 14px;
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.06);
-  transition: all 0.2s ease;
-}
-
-.user-profile-card:hover {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.12);
 }
 
 .avatar-container {
@@ -340,15 +289,12 @@
   color: white;
   font-weight: 700;
   font-size: 0.95rem;
-  box-shadow: 0 4px 12px var(--primary-accent-ring, rgba(99, 102, 241, 0.3));
 }
 
 .online-status {
   position: absolute;
-  bottom: -2px;
-  right: -2px;
-  width: 10px;
-  height: 10px;
+  bottom: -2px; right: -2px;
+  width: 10px; height: 10px;
   border-radius: 50%;
   background: #10b981;
   border: 2px solid #0f172a;
@@ -360,7 +306,6 @@
   overflow: hidden;
   white-space: nowrap;
   flex: 1;
-  transition: opacity 0.2s ease, width 0.2s ease;
 }
 
 .sidebar.collapsed .user-meta,
@@ -381,7 +326,6 @@
   font-size: 0.9rem;
   color: #f8fafc;
   font-weight: 600;
-  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
@@ -393,15 +337,12 @@
 
 .logout-btn {
   border: 0;
-  width: 32px;
-  height: 32px;
+  width: 32px; height: 32px;
   border-radius: 8px;
-  display: grid;
-  place-items: center;
+  display: grid; place-items: center;
   cursor: pointer;
   background: rgba(255, 255, 255, 0.06);
   color: #94a3b8;
-  transition: all 0.2s ease;
 }
 
 .logout-btn:hover {
@@ -409,70 +350,20 @@
   color: #ef4444;
 }
 
-.mobile-backdrop {
-  display: none;
-}
-
-.mobile-toolbar {
-  display: none;
-}
-
-.mobile-toggle {
+.mobile-backdrop, .mobile-toolbar, .mobile-toggle {
   display: none;
 }
 
 @media (max-width: 1023px) {
-  .app-shell {
-    position: relative;
-  }
-
-  .sidebar {
-    position: fixed;
-    left: 0;
-    top: 0;
-    transform: translateX(-100%);
-    box-shadow: 0 20px 45px rgba(15, 23, 42, 0.25);
-  }
-
-  .sidebar.mobile-open {
-    transform: translateX(0);
-  }
-
-  .mobile-toolbar {
-    display: flex;
-    align-items: center;
-    padding: 1rem 1rem 0;
-  }
-
-  .mobile-toggle {
-    display: grid;
-    border: 0;
-    width: 40px;
-    height: 40px;
-    border-radius: 10px;
-    place-items: center;
-    cursor: pointer;
-    background: rgba(15, 23, 42, 0.8);
-    color: white;
-  }
-
-  .mobile-backdrop {
-    display: block;
-    position: fixed;
-    inset: 0;
-    background: rgba(15, 23, 42, 0.45);
-    z-index: 15;
-  }
+  .app-shell { position: relative; }
+  .sidebar { position: fixed; left: 0; top: 0; transform: translateX(-100%); }
+  .sidebar.mobile-open { transform: translateX(0); }
+  .mobile-toolbar { display: flex; align-items: center; padding: 1rem 1rem 0; }
+  .mobile-toggle { display: grid; border: 0; width: 40px; height: 40px; border-radius: 10px; place-items: center; cursor: pointer; background: rgba(15, 23, 42, 0.8); color: white; }
+  .mobile-backdrop { display: block; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.45); z-index: 15; }
 }
 
 @media (min-width: 1024px) {
-  .sidebar {
-    position: sticky;
-    transform: none;
-  }
-
-  .mobile-toggle {
-    display: none;
-  }
+  .sidebar { position: sticky; transform: none; }
+  .mobile-toggle { display: none; }
 }
-

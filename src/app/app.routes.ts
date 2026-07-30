@@ -1,8 +1,17 @@
 import { Routes } from '@angular/router';
-import { LoginComponent } from './feature/login/login-component/login-component';
 import { authGuard } from './auth.guard';
 
 export const routes: Routes = [
+  {
+    path: '',
+    loadComponent: () => import('./feature/dashboard/dashboard').then((m) => m.Dashboard),
+    canActivate: [authGuard],
+  },
+  {
+    path: 'dashboard',
+    loadComponent: () => import('./feature/dashboard/dashboard').then((m) => m.Dashboard),
+    canActivate: [authGuard],
+  },
   {
     path: 'aiinterview',
     loadComponent: () =>
@@ -38,7 +47,6 @@ export const routes: Routes = [
             (m) => m.CreateInterviewComponent,
           ),
       },
-      // You can add more child routes here for practice, job-profile, etc.
     ],
   },
   {
@@ -56,20 +64,9 @@ export const routes: Routes = [
     canActivate: [authGuard],
   },
   {
-    path: 'dashboard',
-    loadComponent: () => import('./feature/dashboard/dashboard').then((m) => m.Dashboard),
-    canActivate: [authGuard],
-  },
-  {
-    path: '',
-    // loadComponent: () =>
-    //   import('./feature/home/home-page/home-page').then((m) => m.HomePageComponent),
-    loadComponent: () => import('./feature/dashboard/dashboard').then((m) => m.Dashboard),
-    canActivate: [authGuard],
-  },
-  {
     path: 'login',
-    component: LoginComponent,
+    loadComponent: () =>
+      import('./feature/login/login-component/login-component').then((m) => m.LoginComponent),
   },
   {
     path: 'sign-up',
