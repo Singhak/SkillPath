@@ -1,7 +1,7 @@
 import { isPlatformBrowser } from '@angular/common';
 import { Injectable, signal, computed, effect, inject, PLATFORM_ID } from '@angular/core';
 import { Router } from '@angular/router';
-import { Observable, tap } from 'rxjs';
+import { Observable, of, tap } from 'rxjs';
 import { UserResourceService } from './user-resource.service';
 import { User, LoginResponse, RefreshTokenResponse } from '../models/user.model';
 
@@ -38,8 +38,7 @@ export class AuthService {
         this._currentUser.set(user);
         this.userResourceService.initialize(user);
       } else {
-        // Ensure resources are cleared if no user
-        this.userResourceService.initialize(null);
+        localStorage.removeItem(this.currentUserKey);
       }
 
       effect(() => {
@@ -68,16 +67,8 @@ export class AuthService {
     this.router.navigate(['/login']);
   }
 
-  updateCoins(newCoinTotal: number): Observable<User | null> {
-    return this.userResourceService.updateCoins(this.currentUser().id, newCoinTotal).pipe(
-      tap((updatedUser) => {
-        const user = updatedUser as User;
-        this._currentUser.set(user);
-        if (user) {
-          this.userResourceService.updateFromUser(user);
-        }
-      }),
-    );
+  updateCoins(newCoinTotal: number): void {
+    this.userResourceService.updateUserCredits({ coins: newCoinTotal });
   }
 
   decrementAiCredits(amount: number): Observable<{ message: string, freeCredits: string, paidCredits: string }> {
@@ -85,10 +76,8 @@ export class AuthService {
       tap((updatedUser) => {
         const user = this._currentUser();
         if (user) {
-          user.freeCredits = updatedUser.freeCredits;
-          user.paidCredits = updatedUser.paidCredits;
           this._currentUser.set(user);
-          this.userResourceService.updateFromUser(user);
+          this.userResourceService.updateUserCredits({ freeCredits: updatedUser.freeCredits, paidCredits: updatedUser.paidCredits });
         }
       }),
     );

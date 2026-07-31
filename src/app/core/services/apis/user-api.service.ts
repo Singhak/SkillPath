@@ -14,8 +14,8 @@ export class UserApiService {
     return this.http.put<User>(url, user);
   }
 
-  getCoins(): Observable<number> {
-    return this.http.get<number>(`${this.apiUrl}/coins`);
+  getCoins(): Observable<{ coins: number }> {
+    return this.http.get<{ coins: number }>(`${this.apiUrl}/coins`);
   }
 
   getTotalAttempts(): Observable<number> {
