@@ -45,6 +45,15 @@
       </div>
     </section>
 
+    <!-- Stage 3 Gamification, Streaks & PDF Evaluation Report Panel -->
+    <app-gamification-panel></app-gamification-panel>
+
+    <!-- Stage 2 Skill Gap & Spaced Repetition Review Deck Panel -->
+    <app-skill-gap-panel></app-skill-gap-panel>
+
+    <!-- Stage 1 AI Tools & Interview Enhancements Panel -->
+    <app-ai-tools-widget></app-ai-tools-widget>
+
     <!-- Key Performance Metrics Grid -->
     <section class="stats-grid">
       @for (card of summaryCards(); track card.label) {
@@ -74,20 +83,15 @@
             <h3 class="card-title">Category Performance</h3>
           </div>
           <div class="category-selector-wrapper">
-            <p-select
-              [(ngModel)]="selectChartCategory"
-              inputId="category_select"
-              [options]="categoryList()"
-              placeholder="Select Category"
-              class="custom-select"
-            ></p-select>
+            <p-select [(ngModel)]="selectChartCategory" inputId="category_select" [options]="categoryList()"
+              placeholder="Select Category" class="custom-select"></p-select>
           </div>
         </div>
         <div class="chart-wrapper">
           @if (lineData()) {
-            <p-chart type="line" [data]="lineData()" [options]="lineChartOptions" height="260px"></p-chart>
+          <p-chart type="line" [data]="lineData()" [options]="lineChartOptions" height="260px"></p-chart>
           } @else {
-            <div class="chart-empty">No performance data available yet</div>
+          <div class="chart-empty">No performance data available yet</div>
           }
         </div>
       </div>
@@ -105,9 +109,9 @@
         </div>
         <div class="chart-wrapper doughnut-wrapper">
           @if (pieData()) {
-            <p-chart type="doughnut" [data]="pieData()" [options]="pieChartOptions" height="260px"></p-chart>
+          <p-chart type="doughnut" [data]="pieData()" [options]="pieChartOptions" height="260px"></p-chart>
           } @else {
-            <div class="chart-empty">No category data</div>
+          <div class="chart-empty">No category data</div>
           }
         </div>
       </div>
@@ -135,11 +139,8 @@
             </span>
           </div>
           <div class="progress-bar-bg">
-            <div
-              class="progress-bar-fill"
-              [style.width.%]="item.accuracy"
-              [ngClass]="getAccuracyBadgeClass(item.accuracy)"
-            ></div>
+            <div class="progress-bar-fill" [style.width.%]="item.accuracy"
+              [ngClass]="getAccuracyBadgeClass(item.accuracy)"></div>
           </div>
           <div class="skill-sub">
             <span>{{ item.count }} quiz{{ item.count > 1 ? 'zes' : '' }}</span>
@@ -163,29 +164,19 @@
         </div>
         <div class="table-search-box">
           <i class="pi pi-search search-icon"></i>
-          <input
-            type="text"
-            placeholder="Search category or date..."
-            [ngModel]="tableSearchQuery()"
-            (ngModelChange)="tableSearchQuery.set($event)"
-            class="search-input"
-          />
+          <input type="text" placeholder="Search category or date..." [ngModel]="tableSearchQuery()"
+            (ngModelChange)="tableSearchQuery.set($event)" class="search-input" />
           @if (tableSearchQuery()) {
-            <button class="clear-search" (click)="tableSearchQuery.set('')">
-              <i class="pi pi-times"></i>
-            </button>
+          <button class="clear-search" (click)="tableSearchQuery.set('')">
+            <i class="pi pi-times"></i>
+          </button>
           }
         </div>
       </div>
 
       <div class="table-responsive">
-        <p-table
-          [value]="filteredQuizAttempts()"
-          [tableStyle]="{ 'min-width': '100%' }"
-          [rows]="6"
-          [paginator]="filteredQuizAttempts().length > 6"
-          styleClass="p-datatable-sm custom-table"
-        >
+        <p-table [value]="filteredQuizAttempts()" [tableStyle]="{ 'min-width': '100%' }" [rows]="5"
+          [paginator]="filteredQuizAttempts().length > 5" class="p-datatable-sm custom-table">
           <ng-template pTemplate="header">
             <tr>
               <th>Category</th>
@@ -205,7 +196,7 @@
                 <span class="category-pill">{{ row.category || 'General' }}</span>
               </td>
               <td class="date-cell">
-                {{ (row.attempedDate || row.attempted_date) ? ((row.attempedDate || row.attempted_date) | date:'mediumDate') : '—' }}
+                {{ row.attemptedDate | date:'mediumDate' : '—' }}
               </td>
               <td><strong>{{ row.totalQuestions }}</strong></td>
               <td>
@@ -216,7 +207,8 @@
               </td>
               <td>{{ row.skippedCount || 0 }}</td>
               <td>
-                <span class="time-badge"><i class="pi pi-clock"></i> {{ formattedTime(row.totalTimeTakenInSeconds) }}</span>
+                <span class="time-badge"><i class="pi pi-clock"></i> {{ formattedTime(row.totalTimeTakenInSeconds)
+                  }}</span>
               </td>
               <td>
                 <span class="score-badge"><i class="pi pi-star-fill"></i> {{ row.totalScore }}</span>
@@ -231,7 +223,7 @@
                   <i class="pi pi-inbox empty-icon"></i>
                   <p>No quiz attempts found matching your query.</p>
                   @if (!quizAttempts().length) {
-                    <button class="action-btn primary-btn btn-sm" (click)="onNewQuiz()">Start First Quiz</button>
+                  <button class="action-btn primary-btn btn-sm" (click)="onNewQuiz()">Start First Quiz</button>
                   }
                 </div>
               </td>

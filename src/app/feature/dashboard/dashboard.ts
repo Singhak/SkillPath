@@ -13,6 +13,10 @@ import { QuizStats } from '../quiz-view/quiz.model';
 import { QuizApiService } from '../../core/services/apis/quiz-api.service';
 import { AuthService } from '../../core/services/auth.service';
 
+import { GamificationPanelComponent } from '../../shared/components/gamification-panel/gamification-panel.component';
+import { SkillGapPanelComponent } from '../../shared/components/skill-gap-panel/skill-gap-panel.component';
+import { AiToolsWidgetComponent } from '../../shared/components/ai-tools-widget/ai-tools-widget.component';
+
 @Component({
   selector: 'app-dashboard',
   imports: [
@@ -25,6 +29,9 @@ import { AuthService } from '../../core/services/auth.service';
     SelectModule,
     FormsModule,
     PanelModule,
+    GamificationPanelComponent,
+    SkillGapPanelComponent,
+    AiToolsWidgetComponent,
   ],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.css',
