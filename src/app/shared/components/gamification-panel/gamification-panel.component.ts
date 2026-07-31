@@ -1,0 +1,224 @@
+import { Component, inject, signal } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { GamificationService } from '../../../core/services/gamification.service';
+import { InterviewReportService } from '../../../core/services/interview-report.service';
+import { Achievement, InterviewReportData } from '../../../core/models/achievement.model';
+import { AuthService } from '../../../core/services/auth.service';
+
+@Component({
+  selector: 'app-gamification-panel',
+  standalone: true,
+  imports: [CommonModule],
+  template: `
+    <!-- Top Gamification & Streaks Header Banner -->
+    <div class="gamification-banner bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 rounded-2xl p-6 shadow-xl border border-indigo-500/20 text-white mb-6">
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-center">
+
+        <!-- User Level & XP Progress -->
+        <div class="flex items-center space-x-4">
+          <div class="relative flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-tr from-indigo-600 to-purple-500 shadow-lg shadow-indigo-500/30 text-white font-extrabold text-2xl border border-indigo-400/40">
+            Lvl {{ gamificationService.level() }}
+          </div>
+          <div class="flex-1">
+            <div class="flex items-center justify-between">
+              <span class="text-xs uppercase tracking-wider font-semibold text-indigo-300">{{ gamificationService.levelTitle() }}</span>
+              <span class="text-xs text-slate-400 font-medium">{{ gamificationService.xpPoints() }} XP</span>
+            </div>
+            <!-- Progress Bar -->
+            <div class="w-full bg-slate-800/80 rounded-full h-3 mt-1.5 overflow-hidden border border-slate-700/50 p-0.5">
+              <div
+                class="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 h-full rounded-full transition-all duration-700 ease-out"
+                [style.width.%]="gamificationService.xpLevelProgress()"
+              ></div>
+            </div>
+            <div class="text-[11px] text-slate-400 mt-1 flex justify-between">
+              <span>Next Lvl: {{ gamificationService.xpNextLevelBase() }} XP</span>
+              <span class="text-indigo-400 font-semibold">{{ gamificationService.xpToNextLevel() }} XP remaining</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Daily Streak Counter -->
+        <div class="flex items-center justify-center lg:justify-start space-x-4 bg-slate-800/40 p-3.5 rounded-xl border border-slate-700/40">
+          <div class="flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-tr from-amber-500 to-orange-600 text-white text-2xl shadow-lg shadow-orange-500/30 animate-pulse">
+            🔥
+          </div>
+          <div>
+            <div class="flex items-baseline space-x-2">
+              <span class="text-2xl font-black tracking-tight text-amber-400">{{ gamificationService.currentStreak() }} Day Streak!</span>
+            </div>
+            <p class="text-xs text-slate-400">Longest Streak: <strong class="text-slate-200">{{ gamificationService.longestStreak() }} Days</strong></p>
+          </div>
+        </div>
+
+        <!-- Action Quick-Buttons (Report PDF & Practice) -->
+        <div class="flex flex-wrap items-center justify-end gap-3">
+          <button
+            (click)="generateAndDownloadReport()"
+            class="px-4 py-2.5 rounded-xl bg-indigo-600/30 hover:bg-indigo-600/50 border border-indigo-400/30 text-indigo-200 hover:text-white font-medium text-xs flex items-center space-x-2 transition-all shadow-md active:scale-95"
+          >
+            <span>📄</span>
+            <span>Export Evaluation PDF</span>
+          </button>
+          <button
+            (click)="filterCategory.set('all')"
+            class="px-4 py-2.5 rounded-xl bg-purple-600/30 hover:bg-purple-600/50 border border-purple-400/30 text-purple-200 hover:text-white font-medium text-xs flex items-center space-x-2 transition-all shadow-md active:scale-95"
+          >
+            <span>🏆</span>
+            <span>Badges ({{ gamificationService.unlockedCount() }}/{{ gamificationService.achievements().length }})</span>
+          </button>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Achievements & Badges Showcase Grid -->
+    <div class="bg-slate-900/90 rounded-2xl p-6 border border-slate-800 shadow-xl mb-6">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-6 pb-4 border-b border-slate-800 gap-4">
+        <div>
+          <h3 class="text-lg font-bold text-white flex items-center space-x-2">
+            <span>🏆</span>
+            <span>SkillPath Achievements & Milestones</span>
+          </h3>
+          <p class="text-xs text-slate-400">Earn XP, level up your developer profile, and unlock exclusive badges.</p>
+        </div>
+
+        <!-- Filter Tabs -->
+        <div class="flex space-x-1.5 bg-slate-800/70 p-1 rounded-xl border border-slate-700/50 self-start sm:self-auto">
+          @for (cat of categories; track $index) {
+          <button
+            (click)="filterCategory.set(cat.id)"
+            [class.bg-indigo-600]="filterCategory() === cat.id"
+            [class.text-white]="filterCategory() === cat.id"
+            [class.text-slate-400]="filterCategory() !== cat.id"
+            class="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all hover:text-white"
+          >
+            {{ cat.label }}
+          </button>
+          }
+        </div>
+      </div>
+
+      <!-- Badges Cards Grid -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+        <div
+          *ngFor="let ach of filteredAchievements()"
+          [class.opacity-60]="!ach.isUnlocked"
+          [class.grayscale]="!ach.isUnlocked"
+          class="relative group bg-slate-800/50 hover:bg-slate-800/80 rounded-xl p-4 border transition-all duration-300 hover:scale-[1.02]"
+          [ngClass]="ach.isUnlocked ? 'border-indigo-500/40 shadow-lg shadow-indigo-500/10' : 'border-slate-800'"
+        >
+          <!-- Badge Header -->
+          <div class="flex items-start justify-between mb-3">
+            <div
+              class="w-11 h-11 rounded-xl flex items-center justify-center text-white text-xl shadow-md bg-gradient-to-tr"
+              [ngClass]="ach.badgeClass"
+            >
+              <i class="pi" [ngClass]="ach.icon"></i>
+            </div>
+            <span
+              *ngIf="ach.isUnlocked"
+              class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 flex items-center space-x-1"
+            >
+              <span>✓</span> <span>Unlocked</span>
+            </span>
+            <span
+              *ngIf="!ach.isUnlocked"
+              class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-700 text-slate-400"
+            >
+              🔒 Locked
+            </span>
+          </div>
+
+          <!-- Title & Desc -->
+          <h4 class="font-bold text-white text-sm mb-1 group-hover:text-indigo-300 transition-colors">{{ ach.title }}</h4>
+          <p class="text-xs text-slate-400 mb-3 min-h-[32px] line-clamp-2">{{ ach.description }}</p>
+
+          <!-- Progress Bar & XP -->
+          <div class="mt-auto pt-2 border-t border-slate-700/40 flex items-center justify-between text-xs">
+            <div class="text-slate-400 text-[11px]">
+              Progress: <strong class="text-indigo-300">{{ ach.currentProgress }}/{{ ach.requiredCount }}</strong>
+            </div>
+            <span class="font-semibold text-amber-400 text-[11px]">+{{ ach.xpReward }} XP</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Celebration Popup Modal for Newly Unlocked Achievement -->
+    <div
+      *ngIf="gamificationService.newlyUnlockedBadge() as badge"
+      class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fadeIn"
+    >
+      <div class="bg-gradient-to-b from-slate-900 to-indigo-950 border border-indigo-500/40 rounded-3xl p-8 max-w-sm w-full text-center shadow-2xl relative overflow-hidden">
+        <!-- Confetti effect ring -->
+        <div class="absolute -top-12 -left-12 w-32 h-32 bg-indigo-500/20 rounded-full blur-2xl"></div>
+        <div class="absolute -bottom-12 -right-12 w-32 h-32 bg-purple-500/20 rounded-full blur-2xl"></div>
+
+        <div class="text-4xl mb-2 animate-bounce">🥳🎉</div>
+        <h3 class="text-xs font-extrabold uppercase tracking-widest text-indigo-400 mb-1">Achievement Unlocked!</h3>
+        <h2 class="text-2xl font-black text-white mb-4">{{ badge.title }}</h2>
+
+        <div
+          class="w-20 h-20 mx-auto mb-4 rounded-2xl flex items-center justify-center text-white text-4xl shadow-xl bg-gradient-to-tr"
+          [ngClass]="badge.badgeClass"
+        >
+          <i class="pi" [ngClass]="badge.icon"></i>
+        </div>
+
+        <p class="text-xs text-slate-300 mb-6">{{ badge.description }}</p>
+
+        <div class="bg-indigo-500/20 border border-indigo-400/30 rounded-xl py-2 px-4 inline-flex items-center space-x-2 text-amber-400 font-bold text-sm mb-6">
+          <span>⚡ Rewards:</span> <span>+{{ badge.xpReward }} XP</span>
+        </div>
+
+        <button
+          (click)="gamificationService.dismissNewlyUnlockedBadge()"
+          class="w-full py-3 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold text-sm shadow-lg shadow-indigo-500/30 transition-all active:scale-95"
+        >
+          Claim Reward & Continue
+        </button>
+      </div>
+    </div>
+  `,
+  styles: [
+    `
+      :host {
+        display: block;
+      }
+    `,
+  ],
+})
+export class GamificationPanelComponent {
+  readonly gamificationService = inject(GamificationService);
+  private readonly interviewReportService = inject(InterviewReportService);
+  private readonly authService = inject(AuthService);
+
+  readonly filterCategory = signal<string>('all');
+
+  readonly categories = [
+    { id: 'all', label: 'All Badges' },
+    { id: 'streak', label: '🔥 Streaks' },
+    { id: 'quiz', label: '🎯 Quizzes' },
+    { id: 'interview', label: '🤖 Interviews' },
+    { id: 'skill', label: '📊 Skills' },
+  ];
+
+  filteredAchievements(): Achievement[] {
+    const cat = this.filterCategory();
+    const list = this.gamificationService.achievements();
+    if (cat === 'all') return list;
+    return list.filter((a) => a.category === cat);
+  }
+
+  generateAndDownloadReport(): void {
+    const user = this.authService.currentUser();
+    const reportData = this.interviewReportService.createReportData({
+      userName: user?.name || 'SkillPath Learner',
+      userEmail: user?.email || 'learner@skillpath.app',
+      roleOrSkill: user?.targetRole || 'Full Stack Engineer',
+      overallScore: 88,
+    });
+    this.interviewReportService.downloadPdfReport(reportData);
+  }
+}
