@@ -1238,3 +1238,66 @@ input:checked + .slider:before {
   font-size: 0.75rem;
   color: var(--text-color, #64748b);
 }
+
+/* ==========================================================================
+   Reusable UI Utility Classes (Callouts, Section Cards, & Common Components)
+   ========================================================================== */
+.gradient-text {
+  background: var(--primary-accent-gradient, linear-gradient(135deg, #6366f1 0%, #a855f7 50%, #ec4899 100%));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.callout-box,
+.pro-tip-box {
+  padding: 1.1rem 1.25rem;
+  border-radius: 14px;
+  background: rgba(254, 243, 199, 0.75);
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  color: #92400e;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.output-box {
+  padding: 1.1rem 1.25rem;
+  border-radius: 14px;
+  background: rgba(209, 250, 229, 0.75);
+  border: 1px solid rgba(16, 185, 129, 0.35);
+  color: #065f46;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+:root[class*='p-dark'] .pro-tip-box,
+:root.dark .pro-tip-box,
+html[data-theme='dark'] .pro-tip-box {
+  background: rgba(245, 158, 11, 0.12);
+  border-color: rgba(245, 158, 11, 0.3);
+  color: #fde68a;
+}
+
+:root[class*='p-dark'] .output-box,
+:root.dark .output-box,
+html[data-theme='dark'] .output-box {
+  background: rgba(16, 185, 129, 0.12);
+  border-color: rgba(16, 185, 129, 0.3);
+  color: #a7f3d0;
+}
+
+.glass-section-card {
+  padding: 2rem;
+  border-radius: 20px;
+  background: var(--card-bg, #ffffff);
+  border: 1px solid var(--border-color, #e2e8f0);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
+  backdrop-filter: blur(12px);
+}
+
+:root[class*='p-dark'] .glass-section-card,
+:root.dark .glass-section-card,
+html[data-theme='dark'] .glass-section-card {
+  background: rgba(30, 41, 59, 0.6);
+  border-color: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.25);
+}

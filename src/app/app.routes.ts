@@ -74,6 +74,10 @@ export const routes: Routes = [
       import('./feature/login/sign-up-component/sign-up-component').then((m) => m.SignUpComponent),
   },
   {
+    path: 'help',
+    loadComponent: () => import('./feature/help/help.component').then((m) => m.HelpComponent),
+  },
+  {
     path: 'create',
     loadComponent: () =>
       import('./feature/ai-interview/jobposting/create-interview.component').then(

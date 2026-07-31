@@ -107,6 +107,19 @@
           <span class="nav-label">Settings</span>
           <div class="active-indicator"></div>
         </a>
+        <a 
+          class="nav-item" 
+          [routerLink]="'/help'"
+          routerLinkActive="active"
+          [routerLinkActiveOptions]="{ exact: true }"
+          [title]="sidebarCollapsed() ? 'Help & Guide' : ''"
+        >
+          <div class="nav-icon-box">
+            <i class="pi pi-question-circle"></i>
+          </div>
+          <span class="nav-label">Help & Guide</span>
+          <div class="active-indicator"></div>
+        </a>
       </div>
     </nav>
 
