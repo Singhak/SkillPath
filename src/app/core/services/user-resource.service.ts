@@ -22,6 +22,7 @@ export class UserResourceService {
       this._userCoins.set(user.coins ?? 0);
       this._paidCredits.set(Number.parseFloat(user.paidCredits ?? "0"));
       this.checkAndResetFreeCredits(user);
+      this.checkUpdateCoins(user)
     } else {
       this._userCoins.set(0);
       this._freeCredits.set(0);
@@ -31,6 +32,16 @@ export class UserResourceService {
 
   updateCoins(id: number | string, newCoinTotal: number): Observable<User> {
     return this.userService.updateUser(id, { coins: newCoinTotal });
+  }
+
+  private checkUpdateCoins(user: User) {
+    if (!user.id) {
+      return;
+    }
+
+    this.userService.getCoins().subscribe((res) => {
+      this._userCoins.set(res.coins)
+    })
   }
 
   private checkAndResetFreeCredits(user: User): void {
@@ -63,10 +74,26 @@ export class UserResourceService {
     return this.userService.updateUseCredit(amount);
   }
 
-  updateFromUser(user: User): void {
-    this._userCoins.set(user.coins ?? 0);
-    this._freeCredits.set(Number.parseFloat(user.freeCredits ?? "0"));
-    this._paidCredits.set(Number.parseFloat(user.paidCredits ?? "0"));
+  updateUserCredits({
+    freeCredits = null,
+    paidCredits = null,
+    coins = null,
+  }: {
+    freeCredits?: string | number | null;
+    paidCredits?: string | number | null;
+    coins?: number | null;
+  }): void {
+    if (coins != null && !Number.isNaN(coins)) {
+      this._userCoins.set(coins);
+    }
+    if (freeCredits != null) {
+      const parsed = typeof freeCredits === 'number' ? freeCredits : Number.parseFloat(freeCredits);
+      if (!Number.isNaN(parsed)) this._freeCredits.set(parsed);
+    }
+    if (paidCredits != null) {
+      const parsed = typeof paidCredits === 'number' ? paidCredits : Number.parseFloat(paidCredits);
+      if (!Number.isNaN(parsed)) this._paidCredits.set(parsed);
+    }
   }
 
   clear(): void {
