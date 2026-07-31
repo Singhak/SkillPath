@@ -276,20 +276,25 @@ export class QuizView implements OnInit, OnDestroy {
     //update coins before close
     const coinsEarned = this.quizStatsService.correctAnswerCount() * 5; // we are not deduting the hint use coins since those already deduted
     const newTotalCoins = this.authService.userCoins() + coinsEarned;
-    this.userService
-      .updateUser(this.authService.currentUser().id, { coins: newTotalCoins, totalQuizAttempted: this.userAttempsCount() + 1 })
-      .subscribe({
-        next: () => {
-          this.authService.updateCoins(newTotalCoins);
-          this.isQuizFinished.set(true);
-          this.isFinishing.set(false);
-        },
-        error: () => {
-          this.authService.updateCoins(newTotalCoins);
-          this.isQuizFinished.set(true);
-          this.isFinishing.set(false);
-        }
-      });
+    const userId = this.authService.currentUser()?.id;
+    if (userId) {
+      this.userService
+        .updateUser(userId, { coins: newTotalCoins, totalQuizAttempted: this.userAttempsCount() + 1 })
+        .subscribe({
+          next: () => {
+            this.authService.updateCoins(newTotalCoins);
+            this.isQuizFinished.set(true);
+            this.isFinishing.set(false);
+          },
+          error: () => {
+            this.isQuizFinished.set(true);
+            this.isFinishing.set(false);
+          }
+        });
+    } else {
+      this.isQuizFinished.set(true);
+      this.isFinishing.set(false);
+    }
     //update stats
     this.quizStatsService.createQuestionStats();
     this.quizStatsService.updateQuizStats();
