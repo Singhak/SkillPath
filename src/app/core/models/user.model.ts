@@ -15,6 +15,13 @@ export interface User {
   aiDifficulty?: 'beginner' | 'intermediate' | 'advanced';
   emailNotifications?: boolean;
   memberSince?: string;
+
+  // Gamification & Stage 3 additions
+  currentStreak?: number;
+  longestStreak?: number;
+  lastActivityDate?: string;
+  xpPoints?: number;
+  level?: number;
 }
 
 export interface LoginResponse {
