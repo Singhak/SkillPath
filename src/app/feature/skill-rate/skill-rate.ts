@@ -13,6 +13,7 @@ import { Rating, RatingApiService } from '../../core/services/apis/rating-api.se
 import { MessageService } from 'primeng/api';
 import { lastValueFrom } from 'rxjs';
 import { QuizStats } from '../quiz-view/quiz.model';
+import { GamificationService } from '../../core/services/gamification.service';
 
 export interface SkillPerformanceRow {
   skill: string;
@@ -44,6 +45,7 @@ export class SkillRate implements OnInit {
   private readonly quizApiService = inject(QuizApiService);
   private readonly ratingApiService = inject(RatingApiService);
   private readonly messageService = inject(MessageService);
+  private readonly gamificationService = inject(GamificationService);
 
   readonly selectedSkill = signal('');
   readonly selectedRating = signal<number | null>(null);
@@ -294,6 +296,7 @@ export class SkillRate implements OnInit {
 
     this.ratingApiService.createorUpdateSelfRating(nextEntry).subscribe({
       next: () => {
+        this.gamificationService.recordActivity('skill');
         this.messageService.add({
           severity: 'success',
           summary: 'Rating Saved',

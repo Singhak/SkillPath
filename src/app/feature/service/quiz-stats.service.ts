@@ -4,12 +4,15 @@ import { QuizStats } from '../quiz-view/quiz.model';
 import { QuizApiService } from '../../core/services/apis/quiz-api.service';
 import { QuestionApiService } from '../../core/services/apis/question-api.service';
 
+import { ReviewDeckService } from '../../core/services/review-deck.service';
+
 @Injectable({
   providedIn: 'root',
 })
 export class QuizStatsService {
   private quizApiService = inject(QuizApiService);
   private questionApiService = inject(QuestionApiService);
+  private readonly reviewDeckService = inject(ReviewDeckService);
   private readonly questionsStats = signal<QuestionStats[]>([]);
   private quizStats = signal<QuizStats | {}>({});
 
@@ -72,6 +75,18 @@ export class QuizStatsService {
 
   endAttempt(options: EndAttemptOptions): void {
     const { question, timeTaken, selectedAnswer, isCorrect, score, coinsEarned } = options;
+
+    if (isCorrect === false) {
+      this.reviewDeckService.addFlashcard({
+        question: question.question,
+        category: question.category || 'Quiz Missed',
+        correctAnswer: question.answer,
+        explanation: question.explanation || `Correct answer: ${question.answer}`,
+        codeSnippet: question.codeSnippet,
+        difficulty: 'medium',
+      });
+    }
+
     this.questionsStats.update((questionsStats) =>
       questionsStats.map((attempt) =>
         attempt.questionId === question.id

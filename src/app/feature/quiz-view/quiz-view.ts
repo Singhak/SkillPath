@@ -16,6 +16,7 @@ import { DialogModule } from 'primeng/dialog';
 import { TextareaModule } from 'primeng/textarea';
 import { CommonModule } from '@angular/common';
 import { ReportIssueService } from '../../core/services/report-issue.service';
+import { GamificationService } from '../../core/services/gamification.service';
 import { ReportIssueComponent } from '../../shared/components/report-issue/report-issue.component';
 import { CatrgoryApiService } from '../../core/services/apis/category-api.service';
 import { QuestionApiService } from '../../core/services/apis/question-api.service';
@@ -49,7 +50,7 @@ export class QuizView implements OnInit, OnDestroy {
   categoryApiService = inject(CatrgoryApiService);
   userService = inject(UserApiService);
   authService = inject(AuthService);
-  reportIssueService = inject(ReportIssueService);
+  private readonly reportIssueService = inject(ReportIssueService);
   timer = inject(Timer);
 
   readonly questionCountOptions = [5, 10, 15];
@@ -271,25 +272,33 @@ export class QuizView implements OnInit, OnDestroy {
   }
   // endregion
 
+  private readonly gamificationService = inject(GamificationService);
+
   // region Private Helpers
   private updateStats() {
+    this.gamificationService.recordActivity('quiz');
     //update coins before close
     const coinsEarned = this.quizStatsService.correctAnswerCount() * 5; // we are not deduting the hint use coins since those already deduted
     const newTotalCoins = this.authService.userCoins() + coinsEarned;
-    this.userService
-      .updateUser(this.authService.currentUser().id, { coins: newTotalCoins, totalQuizAttempted: this.userAttempsCount() + 1 })
-      .subscribe({
-        next: () => {
-          this.authService.updateCoins(newTotalCoins);
-          this.isQuizFinished.set(true);
-          this.isFinishing.set(false);
-        },
-        error: () => {
-          this.authService.updateCoins(newTotalCoins);
-          this.isQuizFinished.set(true);
-          this.isFinishing.set(false);
-        }
-      });
+    const userId = this.authService.currentUser()?.id;
+    if (userId) {
+      this.userService
+        .updateUser(userId, { coins: newTotalCoins, totalQuizAttempted: this.userAttempsCount() + 1 })
+        .subscribe({
+          next: () => {
+            this.authService.updateCoins(newTotalCoins);
+            this.isQuizFinished.set(true);
+            this.isFinishing.set(false);
+          },
+          error: () => {
+            this.isQuizFinished.set(true);
+            this.isFinishing.set(false);
+          }
+        });
+    } else {
+      this.isQuizFinished.set(true);
+      this.isFinishing.set(false);
+    }
     //update stats
     this.quizStatsService.createQuestionStats();
     this.quizStatsService.updateQuizStats();

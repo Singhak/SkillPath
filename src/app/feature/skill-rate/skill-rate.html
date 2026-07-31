@@ -9,7 +9,8 @@
         </div>
         <h1 class="hero-title">Skill Matrix & <span class="highlight">Self Reflection</span></h1>
         <p class="hero-subtitle">
-          Track how confident you feel in each technical area and compare your self-ratings against objective quiz outcomes.
+          Track how confident you feel in each technical area and compare your self-ratings against objective quiz
+          outcomes.
         </p>
       </div>
 
@@ -52,31 +53,20 @@
         <div class="field-row">
           <div class="field-group">
             <p-floatlabel variant="on">
-              <p-select
-                [(ngModel)]="selectedSkill"
-                inputId="skill_select"
-                [options]="availableSkills()"
-                [showClear]="true"
-                class="custom-select"
-                [editable]="true"
-                placeholder="Choose or type skill..."
-              ></p-select>
+              <p-select [(ngModel)]="selectedSkill" inputId="skill_select" [options]="availableSkills()"
+                [showClear]="true" class="custom-select" [editable]="true"
+                placeholder="Choose or type skill..."></p-select>
               <label for="skill_select">Select or Enter Skill</label>
             </p-floatlabel>
           </div>
 
           <div class="field-group">
             <p-floatlabel variant="on">
-              <p-select
-                [(ngModel)]="selectedRating"
-                inputId="rating_select"
-                [options]="ratingOptions"
-                [showClear]="true"
-                class="custom-select"
-              >
+              <p-select [(ngModel)]="selectedRating" inputId="rating_select" [options]="ratingOptions"
+                [showClear]="true" class="custom-select">
                 <ng-template pTemplate="selectedItem" let-item>
                   @if (item) {
-                    <span>{{ item }} / 5 Stars ⭐</span>
+                  <span>{{ item }} / 5 Stars ⭐</span>
                   }
                 </ng-template>
                 <ng-template pTemplate="item" let-item>
@@ -84,7 +74,7 @@
                     <span>{{ item }} Star{{ item > 1 ? 's' : '' }}</span>
                     <span class="stars-inline">
                       @for (star of [1,2,3,4,5]; track star) {
-                        <i class="pi" [ngClass]="star <= item ? 'pi-star-fill active' : 'pi-star'"></i>
+                      <i class="pi" [ngClass]="star <= item ? 'pi-star-fill active' : 'pi-star'"></i>
                       }
                     </span>
                   </div>
@@ -95,12 +85,8 @@
           </div>
 
           <div class="button-group">
-            <button
-              class="action-btn primary-btn"
-              type="button"
-              [disabled]="!selectedSkill() || selectedRating() === null"
-              (click)="onClickAdd()"
-            >
+            <button class="action-btn primary-btn" type="button"
+              [disabled]="!selectedSkill() || selectedRating() === null" (click)="onClickAdd()">
               <i class="pi pi-check-circle"></i>
               <span>Save Rating</span>
             </button>
@@ -111,14 +97,10 @@
           <span class="chips-label"><i class="pi pi-bolt"></i> Quick select:</span>
           <div class="chips-list">
             @for (chip of quickSkillChips; track chip) {
-              <button
-                type="button"
-                class="chip-btn"
-                [class.active]="selectedSkill().toLowerCase() === chip.toLowerCase()"
-                (click)="selectQuickSkill(chip)"
-              >
-                {{ chip }}
-              </button>
+            <button type="button" class="chip-btn" [class.active]="selectedSkill().toLowerCase() === chip.toLowerCase()"
+              (click)="selectQuickSkill(chip)">
+              {{ chip }}
+            </button>
             }
           </div>
         </div>
@@ -187,9 +169,9 @@
         </div>
         <div class="chart-wrapper">
           @if (skillPerformanceRows().length) {
-            <p-chart type="bar" [data]="barChartData()" [options]="barChartOptions" height="260px"></p-chart>
+          <p-chart type="bar" [data]="barChartData()" [options]="barChartOptions" height="260px"></p-chart>
           } @else {
-            <div class="chart-empty">Add a few skill ratings to see comparison graph</div>
+          <div class="chart-empty">Add a few skill ratings to see comparison graph</div>
           }
         </div>
       </div>
@@ -207,9 +189,10 @@
         </div>
         <div class="chart-wrapper doughnut-wrapper">
           @if (skillPerformanceRows().length) {
-            <p-chart type="doughnut" [data]="doughnutChartData()" [options]="doughnutChartOptions" height="260px"></p-chart>
+          <p-chart type="doughnut" [data]="doughnutChartData()" [options]="doughnutChartOptions"
+            height="260px"></p-chart>
           } @else {
-            <div class="chart-empty">No proficiency data</div>
+          <div class="chart-empty">No proficiency data</div>
           }
         </div>
       </div>
@@ -227,29 +210,19 @@
         </div>
         <div class="table-search-box">
           <i class="pi pi-search search-icon"></i>
-          <input
-            type="text"
-            placeholder="Filter skills..."
-            [ngModel]="searchQuery()"
-            (ngModelChange)="searchQuery.set($event)"
-            class="search-input"
-          />
+          <input type="text" placeholder="Filter skills..." [ngModel]="searchQuery()"
+            (ngModelChange)="searchQuery.set($event)" class="search-input" />
           @if (searchQuery()) {
-            <button class="clear-search" (click)="searchQuery.set('')">
-              <i class="pi pi-times"></i>
-            </button>
+          <button class="clear-search" (click)="searchQuery.set('')">
+            <i class="pi pi-times"></i>
+          </button>
           }
         </div>
       </div>
 
       <div class="table-responsive">
-        <p-table
-          [value]="filteredSkillPerformanceRows()"
-          [tableStyle]="{ 'min-width': '100%' }"
-          [rows]="6"
-          [paginator]="filteredSkillPerformanceRows().length > 6"
-          styleClass="p-datatable-sm custom-table"
-        >
+        <p-table [value]="filteredSkillPerformanceRows()" [tableStyle]="{ 'min-width': '100%' }" [rows]="6"
+          [paginator]="filteredSkillPerformanceRows().length > 6" class="p-datatable-sm custom-table">
           <ng-template pTemplate="header">
             <tr>
               <th>Skill</th>
@@ -267,30 +240,32 @@
               </td>
               <td>
                 @if (row.selfRating > 0) {
-                  <div class="rating-stars-badge">
-                    <span class="rating-val">{{ row.selfRating }}/5</span>
-                    <span class="stars-mini">
-                      @for (star of getStarArray(row.selfRating); track $index) {
-                        <i class="pi" [ngClass]="star === 1 ? 'pi-star-fill' : star === 0.5 ? 'pi-star-half-fill' : 'pi-star'"></i>
-                      }
-                    </span>
-                  </div>
+                <div class="rating-stars-badge">
+                  <span class="rating-val">{{ row.selfRating }}/5</span>
+                  <span class="stars-mini">
+                    @for (star of getStarArray(row.selfRating); track $index) {
+                    <i class="pi"
+                      [ngClass]="star === 1 ? 'pi-star-fill' : star === 0.5 ? 'pi-star-half-fill' : 'pi-star'"></i>
+                    }
+                  </span>
+                </div>
                 } @else {
-                  <span class="unrated-tag">Not Rated</span>
+                <span class="unrated-tag">Not Rated</span>
                 }
               </td>
               <td>
                 @if (row.quizRating > 0) {
-                  <div class="rating-stars-badge quiz-badge">
-                    <span class="rating-val">{{ row.quizRating }}/5</span>
-                    <span class="stars-mini">
-                      @for (star of getStarArray(row.quizRating); track $index) {
-                        <i class="pi" [ngClass]="star === 1 ? 'pi-star-fill' : star === 0.5 ? 'pi-star-half-fill' : 'pi-star'"></i>
-                      }
-                    </span>
-                  </div>
+                <div class="rating-stars-badge quiz-badge">
+                  <span class="rating-val">{{ row.quizRating }}/5</span>
+                  <span class="stars-mini">
+                    @for (star of getStarArray(row.quizRating); track $index) {
+                    <i class="pi"
+                      [ngClass]="star === 1 ? 'pi-star-fill' : star === 0.5 ? 'pi-star-half-fill' : 'pi-star'"></i>
+                    }
+                  </span>
+                </div>
                 } @else {
-                  <span class="unrated-tag">No Quizzes</span>
+                <span class="unrated-tag">No Quizzes</span>
                 }
               </td>
               <td>
@@ -301,13 +276,13 @@
               <td>
                 <span class="alignment-badge" [ngClass]="getAlignmentBadgeClass(row.alignment)">
                   @if (row.alignment === 'High Match') {
-                    <i class="pi pi-check-circle"></i> High Match
+                  <i class="pi pi-check-circle"></i> High Match
                   } @else if (row.alignment === 'Underestimating') {
-                    <i class="pi pi-arrow-up-right"></i> Underestimating
+                  <i class="pi pi-arrow-up-right"></i> Underestimating
                   } @else if (row.alignment === 'Overestimating') {
-                    <i class="pi pi-arrow-down-right"></i> Overestimating
+                  <i class="pi pi-arrow-down-right"></i> Overestimating
                   } @else {
-                    <i class="pi pi-minus-circle"></i> Needs Quiz
+                  <i class="pi pi-minus-circle"></i> Needs Quiz
                   }
                 </span>
               </td>
