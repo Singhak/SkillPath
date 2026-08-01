@@ -1,0 +1,212 @@
+<div class="wizard-grid">
+  <!-- Left Side: Custom Requirement Configurator -->
+  <div class="card wizard-card">
+    <div class="card-header">
+      <div class="badge">Step 1</div>
+      <h2>Interview Requirements & Stack Matrix</h2>
+      <p>Configure technology weights, difficulty distribution, and role level to generate a custom interview co-pilot plan.</p>
+    </div>
+
+    <form (ngSubmit)="generateAndStartSession()" #wizardForm="ngForm" class="form-body">
+      <!-- Role & Candidate Info -->
+      <div class="form-row">
+        <div class="form-group">
+          <label for="candidateName">Candidate Name</label>
+          <input
+            type="text"
+            id="candidateName"
+            name="candidateName"
+            [(ngModel)]="candidateName"
+            required
+            placeholder="e.g. Alex Mercer"
+            class="input-field"
+          />
+        </div>
+        <div class="form-group">
+          <label for="jobTitle">Job Role / Title</label>
+          <input
+            type="text"
+            id="jobTitle"
+            name="jobTitle"
+            [(ngModel)]="jobTitle"
+            required
+            placeholder="e.g. Senior MEAN Stack + AWS Engineer"
+            class="input-field"
+          />
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="experienceLevel">Experience Level</label>
+          <select
+            id="experienceLevel"
+            name="experienceLevel"
+            [(ngModel)]="experienceLevel"
+            class="select-field"
+          >
+            <option *ngFor="let exp of experienceLevels" [value]="exp">{{ exp }}</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="roundType">Interview Round Type</label>
+          <select
+            id="roundType"
+            name="roundType"
+            [(ngModel)]="roundType"
+            class="select-field"
+          >
+            <option *ngFor="let round of roundTypes" [value]="round">{{ round }}</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Technology Stack Weight Allocator -->
+      <div class="section-divider">
+        <h3>Technology Breakdown & Allocations</h3>
+        <span class="weight-indicator" [class.valid]="totalWeight === 100">
+          Total Weight: {{ totalWeight }}% ({{ totalQuestionsCount }} Questions)
+        </span>
+      </div>
+
+      <div class="tech-list">
+        <div *ngFor="let tech of technologies; let i = index" class="tech-item-row">
+          <div class="tech-name">
+            <span class="tech-bullet">⚡</span>
+            <span>{{ tech.name }}</span>
+          </div>
+
+          <div class="tech-weight">
+            <label>Weight %</label>
+            <input
+              type="number"
+              [(ngModel)]="tech.weightPercentage"
+              [name]="'weight_' + i"
+              min="5"
+              max="100"
+              (change)="normalizeWeights()"
+              class="number-input"
+            />
+          </div>
+
+          <div class="tech-count">
+            <label>Questions</label>
+            <input
+              type="number"
+              [(ngModel)]="tech.questionCount"
+              [name]="'count_' + i"
+              min="1"
+              max="10"
+              class="number-input"
+            />
+          </div>
+
+          <button
+            type="button"
+            class="remove-btn"
+            (click)="removeTechnology(i)"
+            [disabled]="technologies.length <= 1"
+            title="Remove Technology"
+          >
+            ✕
+          </button>
+        </div>
+      </div>
+
+      <!-- Add Custom Tech -->
+      <div class="add-tech-row">
+        <input
+          type="text"
+          [(ngModel)]="newTechName"
+          name="newTechName"
+          placeholder="Add tech (e.g., Docker, GraphQL, Redis)"
+          class="input-field"
+        />
+        <button type="button" class="btn-secondary" (click)="addTechnology()">
+          + Add Technology
+        </button>
+      </div>
+
+      <!-- Difficulty Distribution Sliders -->
+      <div class="section-divider">
+        <h3>Difficulty & Question Types</h3>
+      </div>
+
+      <div class="difficulty-grid">
+        <div class="diff-card easy">
+          <span class="diff-label">Easy (Fundamentals)</span>
+          <span class="diff-val">{{ difficultyDistribution.easyPercentage }}%</span>
+          <input
+            type="range"
+            min="0"
+            max="100"
+            [(ngModel)]="difficultyDistribution.easyPercentage"
+            name="easyPct"
+          />
+        </div>
+        <div class="diff-card medium">
+          <span class="diff-label">Medium (Scenarios)</span>
+          <span class="diff-val">{{ difficultyDistribution.mediumPercentage }}%</span>
+          <input
+            type="range"
+            min="0"
+            max="100"
+            [(ngModel)]="difficultyDistribution.mediumPercentage"
+            name="medPct"
+          />
+        </div>
+        <div class="diff-card hard">
+          <span class="diff-label">Hard (Deep Dive / Arch)</span>
+          <span class="diff-val">{{ difficultyDistribution.hardPercentage }}%</span>
+          <input
+            type="range"
+            min="0"
+            max="100"
+            [(ngModel)]="difficultyDistribution.hardPercentage"
+            name="hardPct"
+          />
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="form-actions">
+        <button type="button" class="btn-outline" (click)="saveAsTeamTemplate()">
+          💾 Save as Team Template
+        </button>
+        <button type="submit" class="btn-primary-lg">
+          ⚡ Generate Interview Matrix & Launch Co-Pilot →
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Right Side: Shared Team Templates Library -->
+  <div class="card template-card">
+    <div class="card-header">
+      <div class="badge-purple">Team Library</div>
+      <h2>Shared Hiring Blueprints</h2>
+      <p>Select a pre-validated team template to instantly align questions with organizational hiring standards.</p>
+    </div>
+
+    <div class="template-list">
+      <div
+        *ngFor="let template of teamTemplates()"
+        class="template-item"
+        (click)="selectTemplate(template)"
+      >
+        <div class="template-top">
+          <h4>{{ template.title }}</h4>
+          <span class="round-chip">{{ template.roundType }}</span>
+        </div>
+        <p class="template-desc">{{ template.description }}</p>
+        <div class="tag-cloud">
+          <span *ngFor="let tag of template.tags" class="tech-tag">{{ tag }}</span>
+        </div>
+        <div class="template-footer">
+          <span class="exp-badge">🎓 {{ template.experienceLevel }}</span>
+          <button type="button" class="use-btn">Use Blueprint ⚡</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
