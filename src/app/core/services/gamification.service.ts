@@ -4,6 +4,14 @@ import { Achievement, UserGamificationStats } from '../models/achievement.model'
 import { UserResourceService } from './user-resource.service';
 import { INITIAL_ACHIEVEMENTS } from '../../shared/constants';
 import { environment } from '../../environments/environment';
+import { NetworkService } from '../../shared/services/network.service';
+
+export interface PendingSyncActivity {
+  id: string;
+  type: 'quiz' | 'interview' | 'skill' | 'daily_login';
+  countIncrement: number;
+  timestamp: string;
+}
 
 @Injectable({
   providedIn: 'root',
@@ -20,11 +28,23 @@ export class GamificationService {
   readonly lastActivityDate = signal<string>('');
   readonly achievements = signal<Achievement[]>(INITIAL_ACHIEVEMENTS);
   readonly newlyUnlockedBadge = signal<Achievement | null>(null);
+  readonly networkService = inject(NetworkService)
+
+  // Network & Sync State signals
+  readonly isSyncing = signal<boolean>(false);
+  readonly pendingSyncCount = signal<number>(0);
+  readonly lastSyncedAt = signal<string | null>(null);
+  readonly syncStatusMessage = signal<string | null>(null);
 
   // Stats Counters
   readonly quizCompletedCount = signal<number>(0);
   readonly interviewCompletedCount = signal<number>(0);
   readonly skillsRatedCount = signal<number>(0);
+
+  // Offline queue storage & deduplication tracking
+  private pendingQueue: PendingSyncActivity[] = [];
+  private syncedActivityIds: Set<string> = new Set();
+  private autoSyncIntervalId: any = null;
 
   // Derived Computed signals
   readonly level = computed(() => {
@@ -60,20 +80,100 @@ export class GamificationService {
 
   constructor() {
     this.loadStateFromStorage();
-    this.fetchBackendStats();
+    this.loadPendingQueue();
+    this.loadSyncedIds();
     this.checkAndUpdateDailyStreak();
+    // Immediate initial sync on app startup/login
+    this.syncProgressWithBackend(false);
   }
 
   fetchBackendStats(): void {
     this.http.get<any>(`${this.apiUrl}/stats`).subscribe({
       next: (data) => {
         if (data) {
-          if (data.xpPoints != null) this.xpPoints.set(data.xpPoints);
-          if (data.currentStreak != null) this.currentStreak.set(data.currentStreak);
-          if (data.longestStreak != null) this.longestStreak.set(data.longestStreak);
+          if (data.xpPoints != null && data.xpPoints > this.xpPoints()) {
+            this.xpPoints.set(data.xpPoints);
+          }
+          if (data.currentStreak != null && data.currentStreak > this.currentStreak()) {
+            this.currentStreak.set(data.currentStreak);
+          }
+          if (data.longestStreak != null && data.longestStreak > this.longestStreak()) {
+            this.longestStreak.set(data.longestStreak);
+          }
+          this.saveStateToStorage();
         }
       },
       error: () => { }
+    });
+  }
+
+  /**
+   * Automatically or manually sync pending activities & local stats with backend.
+   * Deduplicates records so double-syncing or duplicate network requests will not repeat stats.
+   */
+  syncProgressWithBackend(manual = false): void {
+    if (this.isSyncing()) return;
+
+    if (!this.networkService.status()) {
+      if (manual) {
+        this.syncStatusMessage.set('Currently offline. Progress stored locally until connection is restored.');
+      }
+      return;
+    }
+
+    this.isSyncing.set(true);
+    if (manual) {
+      this.syncStatusMessage.set('Synchronizing progress with cloud backend...');
+    }
+
+    // Filter queue to ensure no duplicate IDs are sent
+    const activitiesToSend = this.pendingQueue.filter((act) => !this.syncedActivityIds.has(act.id));
+
+    const payload = {
+      activities: activitiesToSend,
+      localStats: {
+        xpPoints: this.xpPoints(),
+        currentStreak: this.currentStreak(),
+        longestStreak: this.longestStreak(),
+      },
+    };
+
+    this.http.post<any>(`${this.apiUrl}/sync`, payload).subscribe({
+      next: (res) => {
+        // Mark sent activities as synced for deduplication
+        activitiesToSend.forEach((act) => this.syncedActivityIds.add(act.id));
+        this.saveSyncedIds();
+
+        // Clear synced items from pending queue
+        this.pendingQueue = this.pendingQueue.filter((act) => !this.syncedActivityIds.has(act.id));
+        this.savePendingQueue();
+
+        if (res && res.stats) {
+          const s = res.stats;
+          if (s.xpPoints != null && s.xpPoints > this.xpPoints()) this.xpPoints.set(s.xpPoints);
+          if (s.currentStreak != null && s.currentStreak > this.currentStreak()) this.currentStreak.set(s.currentStreak);
+          if (s.longestStreak != null && s.longestStreak > this.longestStreak()) this.longestStreak.set(s.longestStreak);
+        }
+
+        this.lastSyncedAt.set(new Date().toLocaleTimeString());
+        this.isSyncing.set(false);
+
+        if (manual || activitiesToSend.length > 0) {
+          this.syncStatusMessage.set('Progress synced with backend!');
+          setTimeout(() => {
+            if (this.syncStatusMessage() === 'Progress synced with backend!') {
+              this.syncStatusMessage.set(null);
+            }
+          }, 4000);
+        }
+      },
+      error: () => {
+        this.isSyncing.set(false);
+        this.fetchBackendStats();
+        if (manual) {
+          this.syncStatusMessage.set('Cloud sync failed. Will retry automatically.');
+        }
+      },
     });
   }
 
@@ -107,8 +207,41 @@ export class GamificationService {
     this.checkAchievementUnlocks();
     this.saveStateToStorage();
 
-    // Post activity to backend
-    this.http.post<any>(`${this.apiUrl}/activity`, { type, increment: countIncrement }).subscribe({ error: () => { } });
+    // Create unique activity item with deduplication ID
+    const activityId = `act_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+    const activityItem: PendingSyncActivity = {
+      id: activityId,
+      type,
+      countIncrement,
+      timestamp: new Date().toISOString(),
+    };
+
+    if (!this.networkService.status()) {
+      this.enqueuePendingActivity(activityItem);
+      this.syncStatusMessage.set('Progress saved locally (Offline). Will auto-sync when online.');
+    } else {
+      // Send directly with deduplication activityId payload
+      this.http.post<any>(`${this.apiUrl}/activity`, { type, increment: countIncrement, activityId }).subscribe({
+        next: () => {
+          this.syncedActivityIds.add(activityId);
+          this.saveSyncedIds();
+          this.lastSyncedAt.set(new Date().toLocaleTimeString());
+        },
+        error: () => {
+          // If network error occurs, queue item for auto-sync retry
+          this.enqueuePendingActivity(activityItem);
+          this.syncStatusMessage.set('Network issue. Saved locally for background retry.');
+        },
+      });
+    }
+  }
+
+  private enqueuePendingActivity(item: PendingSyncActivity): void {
+    // Avoid enqueueing duplicates
+    if (!this.pendingQueue.some((a) => a.id === item.id) && !this.syncedActivityIds.has(item.id)) {
+      this.pendingQueue.push(item);
+      this.savePendingQueue();
+    }
   }
 
   addXp(amount: number): void {
@@ -233,6 +366,52 @@ export class GamificationService {
         achievements: this.achievements(),
       };
       localStorage.setItem('skillpath_gamification', JSON.stringify(data));
+    } catch {
+      // Ignore
+    }
+  }
+
+  private loadPendingQueue(): void {
+    try {
+      const saved = localStorage.getItem('skillpath_pending_sync');
+      if (saved) {
+        this.pendingQueue = JSON.parse(saved) || [];
+      } else {
+        this.pendingQueue = [];
+      }
+      this.pendingSyncCount.set(this.pendingQueue.length);
+    } catch {
+      this.pendingQueue = [];
+      this.pendingSyncCount.set(0);
+    }
+  }
+
+  private savePendingQueue(): void {
+    try {
+      localStorage.setItem('skillpath_pending_sync', JSON.stringify(this.pendingQueue));
+      this.pendingSyncCount.set(this.pendingQueue.length);
+    } catch {
+      // Ignore
+    }
+  }
+
+  private loadSyncedIds(): void {
+    try {
+      const saved = localStorage.getItem('skillpath_synced_ids');
+      if (saved) {
+        const arr = JSON.parse(saved);
+        this.syncedActivityIds = new Set(arr);
+      }
+    } catch {
+      this.syncedActivityIds = new Set();
+    }
+  }
+
+  private saveSyncedIds(): void {
+    try {
+      // Limit saved synced IDs to last 500 to keep localStorage clean
+      const arr = Array.from(this.syncedActivityIds).slice(-500);
+      localStorage.setItem('skillpath_synced_ids', JSON.stringify(arr));
     } catch {
       // Ignore
     }
