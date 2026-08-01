@@ -367,3 +367,7 @@
   .sidebar { position: sticky; transform: none; }
   .mobile-toggle { display: none; }
 }
+
+.online-status.offline {
+  background: #ef4444;
+}

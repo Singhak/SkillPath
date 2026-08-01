@@ -78,6 +78,43 @@ export const routes: Routes = [
     loadComponent: () => import('./feature/help/help.component').then((m) => m.HelpComponent),
   },
   {
+    path: 'interviewer-studio',
+    loadComponent: () =>
+      import('./feature/interviewer-studio/interviewer-studio-layout').then(
+        (m) => m.InterviewerStudioLayoutComponent
+      ),
+    children: [
+      {
+        path: '',
+        loadComponent: () =>
+          import('./feature/interviewer-studio/wizard/studio-wizard').then(
+            (m) => m.StudioWizardComponent
+          ),
+      },
+      {
+        path: 'session',
+        loadComponent: () =>
+          import('./feature/interviewer-studio/copilot-session/copilot-session').then(
+            (m) => m.CopilotSessionComponent
+          ),
+      },
+      {
+        path: 'report',
+        loadComponent: () =>
+          import('./feature/interviewer-studio/candidate-report/candidate-report').then(
+            (m) => m.CandidateReportComponent
+          ),
+      },
+    ],
+  },
+  {
+    path: 'candidate-view',
+    loadComponent: () =>
+      import('./feature/interviewer-studio/candidate-view/candidate-view').then(
+        (m) => m.CandidateViewComponent
+      ),
+  },
+  {
     path: 'create',
     loadComponent: () =>
       import('./feature/ai-interview/jobposting/create-interview.component').then(

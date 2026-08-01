@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { GamificationService } from '../../../core/services/gamification.service';
 import { InterviewReportService } from '../../../core/services/interview-report.service';
@@ -12,6 +12,21 @@ import { AuthService } from '../../../core/services/auth.service';
   template: `
     <!-- Top Gamification & Streaks Header Banner -->
     <div class="gamification-banner bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 rounded-2xl p-6 shadow-xl border border-indigo-500/20 text-white mb-6">
+      
+      <!-- Network & Sync Status Banner Notification -->
+      <div
+        *ngIf="gamificationService.syncStatusMessage() as statusMsg"
+        class="mb-4 p-3 rounded-xl bg-indigo-900/60 border border-indigo-500/40 text-indigo-200 text-xs flex items-center justify-between animate-fadeIn"
+      >
+        <div class="flex items-center space-x-2">
+          <span class="text-base">⚡</span>
+          <span class="font-medium">{{ statusMsg }}</span>
+        </div>
+        <span *ngIf="gamificationService.lastSyncedAt()" class="text-[10px] text-indigo-300/80">
+          Last synced: {{ gamificationService.lastSyncedAt() }}
+        </span>
+      </div>
+
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-center">
 
         <!-- User Level & XP Progress -->
@@ -51,21 +66,46 @@ import { AuthService } from '../../../core/services/auth.service';
           </div>
         </div>
 
-        <!-- Action Quick-Buttons (Report PDF & Practice) -->
-        <div class="flex flex-wrap items-center justify-end gap-3">
+        <!-- Quick-Buttons & Sync Progress Option -->
+        <div class="flex flex-wrap items-center justify-end gap-2.5">
+          <!-- Network Indicator Badge -->
+          <div class="flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-slate-800/80 border border-slate-700/60 text-xs">
+            <span
+              class="w-2.5 h-2.5 rounded-full inline-block"
+              [ngClass]="isOnline()? 'bg-emerald-400 shadow-sm shadow-emerald-400/50' : 'bg-rose-500 animate-ping'"
+            ></span>
+            <span class="text-[11px] font-medium text-slate-300">
+              {{ isOnline() ? 'Online' : 'Offline Mode' }}
+            </span>
+          </div>
+
+          <!-- Pending Sync Badge -->
+          <div
+            *ngIf="gamificationService.pendingSyncCount() > 0"
+            class="px-2.5 py-1.5 rounded-xl bg-amber-500/20 border border-amber-500/40 text-amber-300 font-bold text-[11px] flex items-center space-x-1"
+          >
+            <span>⚡</span>
+            <span>{{ gamificationService.pendingSyncCount() }} Unsynced</span>
+          </div>
+
+          <!-- Sync Progress Button -->
+          <button
+            (click)="gamificationService.syncProgressWithBackend(true)"
+            [disabled]="gamificationService.isSyncing()"
+            class="px-3.5 py-2 rounded-xl bg-emerald-600/30 hover:bg-emerald-600/50 border border-emerald-400/40 text-emerald-200 hover:text-white font-medium text-xs flex items-center space-x-2 transition-all shadow-md active:scale-95 disabled:opacity-50"
+            title="Sync offline badges, XP, and progress with cloud backend"
+          >
+            <span [class.animate-spin]="gamificationService.isSyncing()">🔄</span>
+            <span>{{ gamificationService.isSyncing() ? 'Syncing...' : 'Sync Progress' }}</span>
+          </button>
+
+          <!-- Report PDF -->
           <button
             (click)="generateAndDownloadReport()"
-            class="px-4 py-2.5 rounded-xl bg-indigo-600/30 hover:bg-indigo-600/50 border border-indigo-400/30 text-indigo-200 hover:text-white font-medium text-xs flex items-center space-x-2 transition-all shadow-md active:scale-95"
+            class="px-3.5 py-2 rounded-xl bg-indigo-600/30 hover:bg-indigo-600/50 border border-indigo-400/30 text-indigo-200 hover:text-white font-medium text-xs flex items-center space-x-2 transition-all shadow-md active:scale-95"
           >
             <span>📄</span>
-            <span>Export Evaluation PDF</span>
-          </button>
-          <button
-            (click)="filterCategory.set('all')"
-            class="px-4 py-2.5 rounded-xl bg-purple-600/30 hover:bg-purple-600/50 border border-purple-400/30 text-purple-200 hover:text-white font-medium text-xs flex items-center space-x-2 transition-all shadow-md active:scale-95"
-          >
-            <span>🏆</span>
-            <span>Badges ({{ gamificationService.unlockedCount() }}/{{ gamificationService.achievements().length }})</span>
+            <span>Report PDF</span>
           </button>
         </div>
 
@@ -193,7 +233,7 @@ export class GamificationPanelComponent {
   readonly gamificationService = inject(GamificationService);
   private readonly interviewReportService = inject(InterviewReportService);
   private readonly authService = inject(AuthService);
-
+  readonly isOnline = computed(() => this.gamificationService.networkService.status());
   readonly filterCategory = signal<string>('all');
 
   readonly categories = [

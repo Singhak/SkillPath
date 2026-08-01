@@ -128,7 +128,7 @@
         <div class="user-profile-card">
           <div class="avatar-container">
             <div class="avatar">{{ userInitials() }}</div>
-            <span class="online-status" title="Online"></span>
+            <span class="online-status" [class.offline]="!isOnline()" [title]="isOnline() ? 'Online' : 'Offline'"></span>
           </div>
           <div class="user-meta">
             <strong class="user-name">{{ currentUser()?.name }}</strong>

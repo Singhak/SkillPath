@@ -27,6 +27,7 @@ export class App {
   private authService = inject(AuthService);
   private healthService = inject(HealthService);
   isWakingUp$ = this.healthService.isWakingUp$;
+  isOnline = signal(typeof navigator !== 'undefined' ? navigator.onLine : true);
 
   readonly mobileMenuOpen = signal(false);
   protected readonly title = signal('SkillPath');
@@ -46,6 +47,11 @@ export class App {
   });
   constructor() {
     this.healthService.pingBackend();
+    
+    if (typeof window !== 'undefined') {
+      window.addEventListener('online', () => this.isOnline.set(true));
+      window.addEventListener('offline', () => this.isOnline.set(false));
+    }
   }
   toggleSidebar(): void {
     if (typeof window !== 'undefined' && window.innerWidth < 1024) {
