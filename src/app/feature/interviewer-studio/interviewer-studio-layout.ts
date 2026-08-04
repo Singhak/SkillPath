@@ -1,6 +1,7 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
+import { AuthService } from '../../core/services/auth.service';
 
 @Component({
   selector: 'app-interviewer-studio-layout',
@@ -17,19 +18,33 @@ import { RouterModule } from '@angular/router';
           </div>
         </div>
         <div class="nav-links">
-          <a routerLink="/interviewer-studio" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" class="nav-btn">
+          <a routerLink="/interviewer-studio" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" class="nav-btn" [class.disabled]="currentPlan() !== 'Gold'">
             <span>⚙️ Config Wizard</span>
           </a>
-          <a routerLink="/interviewer-studio/session" routerLinkActive="active" class="nav-btn">
+          <a routerLink="/interviewer-studio/session" routerLinkActive="active" class="nav-btn" [class.disabled]="currentPlan() !== 'Gold'">
             <span>⚡ Live Session Co-Pilot</span>
           </a>
-          <a routerLink="/interviewer-studio/report" routerLinkActive="active" class="nav-btn">
+          <a routerLink="/interviewer-studio/report" routerLinkActive="active" class="nav-btn" [class.disabled]="currentPlan() !== 'Gold'">
             <span>📊 Assessment Report</span>
           </a>
         </div>
       </header>
       <main class="studio-content">
-        <router-outlet></router-outlet>
+        @if (currentPlan() !== 'Gold') {
+          <div class="locked-overlay">
+            <div class="locked-content">
+              <span style="font-size: 3rem; margin-bottom: 1rem; display: block;">🔒</span>
+              <h2 style="font-size: 1.8rem; margin: 0 0 0.5rem 0; color: #fff;">Gold Plan Required</h2>
+              <p style="color: #94a3b8; margin: 0 0 2rem 0; font-size: 1.1rem; line-height: 1.5;">The Interviewer Studio is an exclusive feature for our Gold members.<br>Upgrade your plan to unlock AI-assisted interviewing.</p>
+              <a routerLink="/pricing" class="upgrade-btn">
+                <span>⭐ Upgrade to Gold</span>
+              </a>
+            </div>
+          </div>
+        }
+        <div [class.blurred]="currentPlan() !== 'Gold'">
+          <router-outlet></router-outlet>
+        </div>
       </main>
     </div>
   `,
@@ -94,16 +109,79 @@ import { RouterModule } from '@angular/router';
       border: 1px solid rgba(255, 255, 255, 0.05);
       transition: all 0.2s ease;
     }
-    .nav-btn:hover {
+    .nav-btn:hover:not(.disabled) {
       background: rgba(99, 102, 241, 0.2);
       color: #818cf8;
       border-color: rgba(99, 102, 241, 0.4);
     }
-    .nav-btn.active {
+    .nav-btn.active:not(.disabled) {
       background: linear-gradient(135deg, #4f46e5, #7c3aed);
       color: #ffffff;
       border-color: transparent;
       box-shadow: 0 4px 14px rgba(79, 70, 229, 0.4);
+    }
+    .nav-btn.disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      pointer-events: none;
+    }
+    .studio-content {
+      position: relative;
+    }
+    .locked-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 10;
+      background: rgba(15, 23, 42, 0.4);
+      border-radius: 16px;
+    }
+    .locked-content {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 11;
+      background: rgba(30, 41, 59, 0.95);
+      backdrop-filter: blur(16px);
+      padding: 3rem;
+      border-radius: 24px;
+      text-align: center;
+      border: 1px solid rgba(245, 158, 11, 0.2);
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(245, 158, 11, 0.1);
+      max-width: 500px;
+      width: 90%;
+      animation: popIn 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .upgrade-btn {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.8rem 2rem;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #f59e0b, #ea580c);
+      color: #ffffff;
+      text-decoration: none;
+      font-size: 1.1rem;
+      font-weight: 700;
+      border: none;
+      transition: all 0.2s ease;
+      box-shadow: 0 4px 14px rgba(245, 158, 11, 0.4);
+    }
+    .upgrade-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(245, 158, 11, 0.6);
+    }
+    .blurred {
+      filter: blur(8px) grayscale(50%);
+      pointer-events: none;
+      user-select: none;
+      opacity: 0.6;
+    }
+    @keyframes popIn {
+      0% { opacity: 0; transform: scale(0.9) translateY(10px); }
+      100% { opacity: 1; transform: scale(1) translateY(0); }
     }
     @media (max-width: 768px) {
       .studio-header {
@@ -116,6 +194,10 @@ import { RouterModule } from '@angular/router';
         flex-wrap: wrap;
       }
     }
-  `],
+  `]
 })
-export class InterviewerStudioLayoutComponent {}
+export class InterviewerStudioLayoutComponent {
+  private authService = inject(AuthService);
+  currentPlan = this.authService.currentPlan;
+}
+
