@@ -1,5 +1,6 @@
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
+import { Meta, Title } from '@angular/platform-browser';
 import { RouterLink } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
@@ -11,7 +12,19 @@ import { DividerModule } from 'primeng/divider';
   templateUrl: './home-page.html',
   styleUrl: './home-page.css',
 })
-export class HomePageComponent {
+export class HomePageComponent implements OnInit {
+  constructor(private meta: Meta, private title: Title) {}
+
+  ngOnInit() {
+    this.title.setTitle('SkillPath - Master Your Interviews');
+    this.meta.addTags([
+      { name: 'description', content: 'Practice with confidence. Answer interview-style questions, receive guidance, and sharpen your communication rhythm.' },
+      { name: 'keywords', content: 'interview, practice, AI, skills, gamification, software engineering' },
+      { property: 'og:title', content: 'SkillPath - Master Your Interviews' },
+      { property: 'og:description', content: 'Practice with confidence and improve every session with SkillPath.' }
+    ]);
+  }
+
   readonly features = [
     {
       title: 'Practice with confidence',
