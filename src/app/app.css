@@ -134,6 +134,18 @@
   color: white;
 }
 
+.brand-tag.plan-gold {
+  background: linear-gradient(135deg, #eab308, #ca8a04);
+}
+
+.brand-tag.plan-copper {
+  background: linear-gradient(135deg, #f97316, #ea580c);
+}
+
+.brand-tag.plan-silver {
+  background: linear-gradient(135deg, #94a3b8, #64748b);
+}
+
 .collapse-btn {
   border: 1px solid rgba(255, 255, 255, 0.1);
   width: 34px;

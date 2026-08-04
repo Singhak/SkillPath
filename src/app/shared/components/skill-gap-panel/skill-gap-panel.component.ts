@@ -3,257 +3,21 @@ import { CommonModule } from '@angular/common';
 import { JobCompetencyService } from '../../../core/services/job-competency.service';
 import { ReviewDeckService } from '../../../core/services/review-deck.service';
 import { Router } from '@angular/router';
+import { AuthService } from '../../../core/services/auth.service';
+import { ConfirmationService } from 'primeng/api';
 
 @Component({
   selector: 'app-skill-gap-panel',
   standalone: true,
   imports: [CommonModule],
-  template: `
-    <div class="skill-gap-panel bg-slate-900/90 rounded-2xl p-6 border border-slate-800 shadow-xl mb-6 text-white">
-
-      <!-- Header Section -->
-      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 pb-4 border-b border-slate-800">
-        <div>
-          <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/30 text-indigo-300 text-xs font-semibold mb-2">
-            <span>🎯</span> <span>Target Role Competency Radar</span>
-          </div>
-          <h2 class="text-xl font-bold text-white flex items-center space-x-2">
-            <span>Skill Gap & Industry Readiness Analysis</span>
-          </h2>
-          <p class="text-xs text-slate-400">Compare your current rated proficiency against benchmark job role requirements.</p>
-        </div>
-
-        <!-- Target Role Dropdown & Study Deck Trigger -->
-        <div class="flex flex-wrap items-center gap-3">
-          <select
-            [value]="competencyService.selectedRoleId()"
-            (change)="onRoleChange($event)"
-            class="bg-slate-800 border border-slate-700 text-slate-200 text-xs font-semibold rounded-xl px-4 py-2.5 outline-none focus:border-indigo-500 transition-all cursor-pointer"
-          >
-            <option *ngFor="let role of competencyService.availableRoles()" [value]="role.roleId">
-              {{ role.title }} ({{ role.category }})
-            </option>
-          </select>
-
-          <button
-            (click)="showFlashcardsModal.set(true)"
-            class="px-4 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-xs flex items-center space-x-2 shadow-lg shadow-purple-500/20 transition-all active:scale-95"
-          >
-            <span>📇</span>
-            <span>Review Flashcards Deck ({{ reviewDeckService.totalCards() }})</span>
-          </button>
-        </div>
-      </div>
-
-      <!-- Active Role Overview Card & Overall Score -->
-      <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-6">
-
-        <!-- Readiness Score Dial -->
-        <div class="lg:col-span-1 bg-gradient-to-br from-indigo-950/60 to-slate-950/60 p-6 rounded-xl border border-indigo-500/30 flex flex-col items-center justify-center text-center">
-          <div class="text-xs font-bold uppercase tracking-wider text-indigo-300 mb-2">Target Role Readiness</div>
-          <div class="relative w-28 h-28 flex items-center justify-center my-2">
-            <svg class="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
-              <path
-                class="text-slate-800"
-                stroke-width="3.5"
-                stroke="currentColor"
-                fill="none"
-                d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-              />
-              <path
-                class="text-indigo-500 transition-all duration-1000"
-                stroke-dasharray="100"
-                [attr.stroke-dashoffset]="100 - competencyService.overallReadiness()"
-                stroke-width="3.5"
-                stroke-linecap="round"
-                stroke="currentColor"
-                fill="none"
-                d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-              />
-            </svg>
-            <div class="absolute inset-0 flex flex-col items-center justify-center">
-              <span class="text-3xl font-black text-white">{{ competencyService.overallReadiness() }}%</span>
-              <span class="text-[10px] text-slate-400">Match Rate</span>
-            </div>
-          </div>
-          <p class="text-[11px] text-slate-400 mt-2 line-clamp-2">{{ competencyService.activeRole().description }}</p>
-        </div>
-
-        <!-- Competency Skill Gaps List -->
-        <div class="lg:col-span-3 space-y-3">
-          <div
-            *ngFor="let item of competencyService.skillGapAnalysis()"
-            class="bg-slate-800/40 border border-slate-700/50 rounded-xl p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:border-indigo-500/40 transition-all"
-          >
-            <div class="flex-1">
-              <div class="flex items-center justify-between mb-1.5">
-                <div class="flex items-center space-x-2">
-                  <span class="font-bold text-sm text-white">{{ item.skillName }}</span>
-                  <span
-                    [ngClass]="{
-                      'bg-emerald-500/20 text-emerald-300 border-emerald-500/30': item.status === 'Mastered',
-                      'bg-blue-500/20 text-blue-300 border-blue-500/30': item.status === 'On Track',
-                      'bg-amber-500/20 text-amber-300 border-amber-500/30': item.status === 'Needs Practice',
-                      'bg-rose-500/20 text-rose-300 border-rose-500/30': item.status === 'Critical Gap'
-                    }"
-                    class="px-2 py-0.5 rounded-full text-[10px] font-bold border"
-                  >
-                    {{ item.status }}
-                  </span>
-                </div>
-                <div class="text-xs text-slate-400">
-                  Rating: <strong class="text-indigo-300">{{ item.currentRating }}★</strong> / Required: <strong>{{ item.requiredRating }}★</strong>
-                </div>
-              </div>
-
-              <!-- Progress bar -->
-              <div class="w-full bg-slate-800 rounded-full h-2 overflow-hidden border border-slate-700/60">
-                <div
-                  [ngClass]="{
-                    'bg-emerald-500': item.status === 'Mastered',
-                    'bg-indigo-500': item.status === 'On Track',
-                    'bg-amber-500': item.status === 'Needs Practice',
-                    'bg-rose-500': item.status === 'Critical Gap'
-                  }"
-                  class="h-full rounded-full transition-all duration-700"
-                  [style.width.%]="item.readinessPercentage"
-                ></div>
-              </div>
-            </div>
-
-            <!-- Action Button -->
-            <button
-              (click)="navigateToSkillsOrQuiz(item.skillName)"
-              class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-indigo-600 text-slate-200 hover:text-white font-semibold text-xs transition-colors self-end sm:self-auto flex items-center space-x-1"
-            >
-              <span>Practice</span>
-              <span>→</span>
-            </button>
-          </div>
-        </div>
-
-      </div>
-    </div>
-
-    <!-- Spaced Repetition Flashcards Modal with Multi-Domain Filter -->
-    <div
-      *ngIf="showFlashcardsModal()"
-      class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fadeIn"
-    >
-      <div class="bg-slate-900 border border-indigo-500/30 rounded-3xl p-6 max-w-lg w-full shadow-2xl relative">
-        <button
-          (click)="showFlashcardsModal.set(false)"
-          class="absolute top-4 right-4 text-slate-400 hover:text-white text-xl font-bold w-8 h-8 flex items-center justify-center rounded-full bg-slate-800"
-        >
-          ✕
-        </button>
-
-        <div class="flex items-center space-x-2 text-xs font-bold text-indigo-400 uppercase tracking-widest mb-1">
-          <span>📇</span> <span>Spaced Repetition Flashcards</span>
-        </div>
-        <h3 class="text-lg font-extrabold text-white mb-3">
-          Card {{ reviewDeckService.totalCards() > 0 ? reviewDeckService.activeCardIndex() + 1 : 0 }} of {{ reviewDeckService.totalCards() }}
-        </h3>
-
-        <!-- Multi-Domain Filter Buttons -->
-        <div class="flex flex-wrap gap-1.5 mb-4 bg-slate-800/60 p-1.5 rounded-xl border border-slate-700/50">
-          <button
-            (click)="reviewDeckService.setDomainFilter('all')"
-            [class.bg-indigo-600]="reviewDeckService.selectedDomain() === 'all'"
-            [class.text-white]="reviewDeckService.selectedDomain() === 'all'"
-            [class.text-slate-400]="reviewDeckService.selectedDomain() !== 'all'"
-            class="px-2.5 py-1 rounded-lg text-xs font-bold transition-all"
-          >
-            🌐 All Domains
-          </button>
-          <button
-            *ngFor="let dom of reviewDeckService.availableDomains()"
-            (click)="reviewDeckService.setDomainFilter(dom)"
-            [class.bg-indigo-600]="reviewDeckService.selectedDomain() === dom"
-            [class.text-white]="reviewDeckService.selectedDomain() === dom"
-            [class.text-slate-400]="reviewDeckService.selectedDomain() !== dom"
-            class="px-2.5 py-1 rounded-lg text-xs font-bold transition-all"
-          >
-            ⚡ {{ dom }}
-          </button>
-        </div>
-
-        <!-- Interactive Flip Card Container -->
-        <div
-          *ngIf="reviewDeckService.currentCard() as card; else noCardsView"
-          (click)="reviewDeckService.flipCard()"
-          class="bg-gradient-to-b from-slate-850 to-slate-950 border border-indigo-500/20 rounded-2xl p-6 min-h-[220px] flex flex-col justify-between cursor-pointer hover:border-indigo-400/50 transition-all shadow-inner relative group mb-6"
-        >
-          <div class="flex items-center justify-between text-xs text-slate-400 mb-2">
-            <span class="px-2.5 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 font-semibold border border-indigo-500/30">
-              🏷️ {{ card.category }}
-            </span>
-            <span class="text-[11px] text-slate-400">Click card to {{ reviewDeckService.isCardFlipped() ? 'see Question' : 'reveal Answer' }} 🔄</span>
-          </div>
-
-          <!-- Question View (Front) -->
-          <div *ngIf="!reviewDeckService.isCardFlipped()" class="my-auto text-center py-4">
-            <h4 class="text-base font-bold text-white leading-relaxed">{{ card.question }}</h4>
-          </div>
-
-          <!-- Answer View (Back) -->
-          <div *ngIf="reviewDeckService.isCardFlipped()" class="my-auto py-2 animate-fadeIn">
-            <div class="text-xs font-bold text-emerald-400 uppercase tracking-wider mb-1">Answer & Explanation:</div>
-            <p class="text-xs text-slate-200 leading-relaxed mb-3">{{ card.correctAnswer }}</p>
-
-            <div *ngIf="card.codeSnippet" class="bg-slate-950 p-2.5 rounded-lg border border-slate-800 text-[11px] font-mono text-emerald-300 overflow-x-auto">
-              <code>{{ card.codeSnippet }}</code>
-            </div>
-          </div>
-
-          <div class="text-center text-[10px] text-slate-400 mt-2">
-            Tap card to flip
-          </div>
-        </div>
-
-        <ng-template #noCardsView>
-          <div class="bg-slate-800/30 border border-slate-800 rounded-2xl p-8 text-center text-slate-400 text-xs mb-6">
-            No flashcards available in domain "{{ reviewDeckService.selectedDomain() }}".
-          </div>
-        </ng-template>
-
-        <!-- Rating Buttons (Spaced Repetition SM-2) -->
-        <div *ngIf="reviewDeckService.isCardFlipped() && reviewDeckService.currentCard()" class="grid grid-cols-3 gap-3 animate-fadeIn">
-          <button
-            (click)="reviewDeckService.rateCardRecall('hard')"
-            class="py-2.5 rounded-xl bg-rose-600/30 hover:bg-rose-600/50 border border-rose-500/40 text-rose-200 font-bold text-xs transition-all"
-          >
-            🔴 Hard (1 day)
-          </button>
-          <button
-            (click)="reviewDeckService.rateCardRecall('good')"
-            class="py-2.5 rounded-xl bg-amber-600/30 hover:bg-amber-600/50 border border-amber-500/40 text-amber-200 font-bold text-xs transition-all"
-          >
-            🟡 Good (3 days)
-          </button>
-          <button
-            (click)="reviewDeckService.rateCardRecall('easy')"
-            class="py-2.5 rounded-xl bg-emerald-600/30 hover:bg-emerald-600/50 border border-emerald-500/40 text-emerald-200 font-bold text-xs transition-all"
-          >
-            🟢 Easy (7 days)
-          </button>
-        </div>
-
-        <!-- Navigation buttons if front side -->
-        <div *ngIf="!reviewDeckService.isCardFlipped() && reviewDeckService.currentCard()" class="flex items-center justify-between text-xs text-slate-400">
-          <button (click)="reviewDeckService.prevCard()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-white">← Previous</button>
-          <span>Tap card to reveal answer</span>
-          <button (click)="reviewDeckService.nextCard()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-white">Next →</button>
-        </div>
-
-      </div>
-    </div>
-  `,
+  templateUrl: 'skill-gap-panel.component.html',
 })
 export class SkillGapPanelComponent {
   readonly competencyService = inject(JobCompetencyService);
   readonly reviewDeckService = inject(ReviewDeckService);
   private readonly router = inject(Router);
+  public readonly authService = inject(AuthService);
+  private readonly confirmationService = inject(ConfirmationService, { optional: true });
 
   readonly showFlashcardsModal = signal<boolean>(false);
 
@@ -263,6 +27,27 @@ export class SkillGapPanelComponent {
   }
 
   navigateToSkillsOrQuiz(skillName: string): void {
-    this.router.navigate(['/skills']);
+    this.router.navigate(['/quiz'], { queryParams: { category: skillName } });
+  }
+
+  openFlashcards(): void {
+    if (this.authService.currentPlan() !== 'Gold') {
+      if (this.confirmationService) {
+        this.confirmationService.confirm({
+          message: 'Spaced Repetition Review Deck requires the Gold plan. Would you like to upgrade your plan?',
+          header: 'Upgrade Required',
+          icon: 'pi pi-lock',
+          acceptLabel: 'View Plans',
+          rejectLabel: 'Cancel',
+          accept: () => {
+            this.router.navigate(['/pricing']);
+          }
+        });
+      } else {
+        this.router.navigate(['/pricing']);
+      }
+      return;
+    }
+    this.showFlashcardsModal.set(true);
   }
 }

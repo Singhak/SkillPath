@@ -1,4 +1,5 @@
 import { Component, computed, effect, inject, OnDestroy, OnInit, signal } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
 import { TagModule } from 'primeng/tag';
 import { ButtonModule } from 'primeng/button';
 import { SelectModule } from 'primeng/select';
@@ -51,6 +52,7 @@ export class QuizView implements OnInit, OnDestroy {
   userService = inject(UserApiService);
   authService = inject(AuthService);
   private readonly reportIssueService = inject(ReportIssueService);
+  private readonly route = inject(ActivatedRoute);
   timer = inject(Timer);
 
   readonly questionCountOptions = [5, 10, 15];
@@ -112,6 +114,16 @@ export class QuizView implements OnInit, OnDestroy {
   private loadInitialData(): void {
     this.categoryApiService.getCategory().subscribe((categories) => {
       this.allCategories.set(categories);
+      this.route.queryParams.subscribe(params => {
+        const categoryQuery = params['category'];
+        if (categoryQuery) {
+          const matchedCategory = categories.find(c => c.category.toLowerCase() === categoryQuery.toLowerCase());
+          if (matchedCategory) {
+            this.selectedCategory.set(matchedCategory.category);
+            this.onCategoryChange();
+          }
+        }
+      });
     });
   }
 

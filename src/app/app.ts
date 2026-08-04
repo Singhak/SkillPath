@@ -33,6 +33,7 @@ export class App {
   protected readonly title = signal('SkillPath');
   readonly sidebarCollapsed = signal(true);
   currentUser = this.authService.currentUser;
+  currentPlan = this.authService.currentPlan;
   isAuthenticated = this.authService.isAuthenticated;
   userInitials = computed(() => {
     const user = this.currentUser();
@@ -68,5 +69,12 @@ export class App {
 
   logout(): void {
     this.authService.logout();
+  }
+
+  getPlanColorClass(): string {
+    const plan = this.currentPlan();
+    if (plan === 'Gold') return 'plan-gold';
+    if (plan === 'Copper') return 'plan-copper';
+    return 'plan-silver';
   }
 }

@@ -121,4 +121,9 @@ export const routes: Routes = [
         (m) => m.CreateInterviewComponent,
       ),
   },
+  {
+    path: 'pricing',
+    loadComponent: () =>
+      import('./feature/pricing/pricing.component').then((m) => m.PricingComponent),
+  },
 ];
