@@ -9,6 +9,8 @@ import { SelectModule } from 'primeng/select';
 import { TableModule } from 'primeng/table';
 import { Router } from '@angular/router';
 import { PanelModule } from 'primeng/panel';
+import { ConfirmDialogModule } from 'primeng/confirmdialog';
+import { ConfirmationService } from 'primeng/api';
 import { QuizStats } from '../quiz-view/quiz.model';
 import { QuizApiService } from '../../core/services/apis/quiz-api.service';
 import { AuthService } from '../../core/services/auth.service';
@@ -16,6 +18,7 @@ import { AuthService } from '../../core/services/auth.service';
 import { GamificationPanelComponent } from '../../shared/components/gamification-panel/gamification-panel.component';
 import { SkillGapPanelComponent } from '../../shared/components/skill-gap-panel/skill-gap-panel.component';
 import { AiToolsWidgetComponent } from '../../shared/components/ai-tools-widget/ai-tools-widget.component';
+import { JobCompetencyService } from '../../core/services/job-competency.service';
 
 @Component({
   selector: 'app-dashboard',
@@ -32,14 +35,18 @@ import { AiToolsWidgetComponent } from '../../shared/components/ai-tools-widget/
     GamificationPanelComponent,
     SkillGapPanelComponent,
     AiToolsWidgetComponent,
+    ConfirmDialogModule,
   ],
+  providers: [ConfirmationService],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.css',
 })
 export class Dashboard implements OnInit {
   private readonly quizApiService = inject(QuizApiService);
   private readonly router = inject(Router);
-  private readonly authService = inject(AuthService);
+  public readonly authService = inject(AuthService); // changed to public for html access
+  private readonly jobCompetencyService = inject(JobCompetencyService);
+  private readonly confirmationService = inject(ConfirmationService);
 
   readonly quizAttempts = signal<QuizStats[]>([]);
   readonly selectChartCategory = signal('angular');
@@ -242,6 +249,7 @@ export class Dashboard implements OnInit {
   }
 
   ngOnInit(): void {
+    this.jobCompetencyService.refreshUserRatings();
     this.quizApiService.getQuizAttempts().subscribe((attempts: QuizStats[]) => {
       this.quizAttempts.set(attempts);
       const categories = [...new Set(attempts.map((item: any) => item.category))] as string[];
@@ -330,6 +338,19 @@ export class Dashboard implements OnInit {
   }
 
   onStartAiInterview() {
+    if (this.authService.currentPlan() !== 'Gold') {
+      this.confirmationService.confirm({
+        message: 'This feature requires the Gold plan. Would you like to upgrade your plan?',
+        header: 'Upgrade Required',
+        icon: 'pi pi-lock',
+        acceptLabel: 'View Plans',
+        rejectLabel: 'Cancel',
+        accept: () => {
+          this.router.navigate(['/pricing']);
+        }
+      });
+      return;
+    }
     this.router.navigate(['/aiinterview']);
   }
 

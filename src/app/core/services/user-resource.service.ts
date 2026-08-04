@@ -1,5 +1,6 @@
 import { Injectable, signal, inject } from '@angular/core';
 import { Observable, of, throwError } from 'rxjs';
+import { tap } from 'rxjs/operators';
 import { User } from '../models/user.model';
 import { UserApiService } from './apis/user-api.service';
 
@@ -72,6 +73,18 @@ export class UserResourceService {
 
     // Persist the change to the database
     return this.userService.updateUseCredit(amount);
+  }
+
+  buyAiCreditsWithCoins(amount: number): Observable<{ message: string, coins: number, freeCredits: string, paidCredits: string }> {
+    return this.userService.buyAiCreditsWithCoins(amount).pipe(
+      tap((res) => {
+        this.updateUserCredits({
+          coins: res.coins,
+          freeCredits: res.freeCredits,
+          paidCredits: res.paidCredits
+        });
+      })
+    );
   }
 
   updateUserCredits({

@@ -39,7 +39,7 @@ export const globalErrorInterceptor: HttpInterceptorFn = (req, next) => {
             errorMessage = 'Unauthorized! Please log in again.';
             break;
           case 403:
-            errorMessage = 'Forbidden! You do not have permission.';
+            errorMessage = error.error?.message || 'Forbidden! You do not have permission.';
             break;
           case 404:
             errorMessage = 'Resource not found.';

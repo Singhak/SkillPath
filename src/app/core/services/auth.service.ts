@@ -28,6 +28,7 @@ export class AuthService {
   readonly freeCredits = this.userResourceService.freeCredits;
   readonly paidCredits = this.userResourceService.paidCredits;
   readonly isAuthenticated = computed(() => !!this._currentUser());
+  readonly currentPlan = computed(() => this._currentUser()?.plan || 'Silver');
 
   constructor() {
     if (isPlatformBrowser(this.platformId)) {
@@ -81,6 +82,10 @@ export class AuthService {
         }
       }),
     );
+  }
+
+  buyAiCreditsWithCoins(amount: number): Observable<{ message: string, coins: number, freeCredits: string, paidCredits: string }> {
+    return this.userResourceService.buyAiCreditsWithCoins(amount);
   }
 
   updateUserProfile(updatedData: Partial<User>): void {

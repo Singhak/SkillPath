@@ -22,6 +22,11 @@ export interface User {
   lastActivityDate?: string;
   xpPoints?: number;
   level?: number;
+
+  // Subscription additions
+  plan?: 'Silver' | 'Copper' | 'Gold';
+  subscriptionDate?: string | Date;
+  subscriptionExpiryDate?: string | Date;
 }
 
 export interface LoginResponse {

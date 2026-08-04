@@ -4,11 +4,14 @@ import { GamificationService } from '../../../core/services/gamification.service
 import { InterviewReportService } from '../../../core/services/interview-report.service';
 import { Achievement, InterviewReportData } from '../../../core/models/achievement.model';
 import { AuthService } from '../../../core/services/auth.service';
+import { Router } from '@angular/router';
+import { ConfirmationService, MessageService } from 'primeng/api';
+import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-gamification-panel',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   template: `
     <!-- Top Gamification & Streaks Header Banner -->
     <div class="gamification-banner bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 rounded-2xl p-6 shadow-xl border border-indigo-500/20 text-white mb-6">
@@ -88,6 +91,16 @@ import { AuthService } from '../../../core/services/auth.service';
             <span>{{ gamificationService.pendingSyncCount() }} Unsynced</span>
           </div>
 
+          <!-- Convert Coins Button -->
+          <button
+            (click)="promptBuyAiCredits()"
+            class="px-3.5 py-2 rounded-xl bg-amber-600/30 hover:bg-amber-600/50 border border-amber-400/40 text-amber-200 hover:text-white font-medium text-xs flex items-center space-x-2 transition-all shadow-md active:scale-95"
+            title="Convert Coins to AI Credits"
+          >
+            <span>🪙</span>
+            <span>Convert Coins</span>
+          </button>
+
           <!-- Sync Progress Button -->
           <button
             (click)="gamificationService.syncProgressWithBackend(true)"
@@ -102,8 +115,11 @@ import { AuthService } from '../../../core/services/auth.service';
           <!-- Report PDF -->
           <button
             (click)="generateAndDownloadReport()"
-            class="px-3.5 py-2 rounded-xl bg-indigo-600/30 hover:bg-indigo-600/50 border border-indigo-400/30 text-indigo-200 hover:text-white font-medium text-xs flex items-center space-x-2 transition-all shadow-md active:scale-95"
+            class="px-3.5 py-2 rounded-xl bg-indigo-600/30 hover:bg-indigo-600/50 border border-indigo-400/30 text-indigo-200 hover:text-white font-medium text-xs flex items-center space-x-2 transition-all shadow-md active:scale-95 relative"
           >
+            <span *ngIf="authService.currentPlan() !== 'Gold'" class="absolute -top-2 -right-2 bg-rose-500 rounded-full w-5 h-5 flex items-center justify-center border border-white text-[10px]">
+              <i class="pi pi-lock"></i>
+            </span>
             <span>📄</span>
             <span>Report PDF</span>
           </button>
@@ -220,6 +236,64 @@ import { AuthService } from '../../../core/services/auth.service';
         </button>
       </div>
     </div>
+
+    <!-- Buy Credits Modal -->
+    <div
+      *ngIf="showBuyCreditsModal()"
+      class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fadeIn"
+    >
+      <div class="bg-gradient-to-b from-slate-900 to-indigo-950 border border-amber-500/40 rounded-3xl p-6 max-w-sm w-full text-center shadow-2xl relative overflow-hidden">
+        <h2 class="text-xl font-bold text-white mb-2 flex justify-center items-center gap-2">
+          <span>🪙</span> Convert Coins
+        </h2>
+        <p class="text-sm text-slate-300 mb-6">
+          Your conversion rate: <strong class="text-amber-400 font-semibold">{{ currentConversionRate() }} Coins = 1 AI Credit</strong>
+        </p>
+
+        <div class="mb-6 flex flex-col items-center">
+          <label class="text-xs font-semibold text-slate-400 mb-2 uppercase tracking-wide">Number of Credits</label>
+          <div class="flex items-center space-x-3 bg-slate-800/50 p-2 rounded-xl border border-slate-700/50">
+            <button 
+              (click)="creditsToBuy.set(creditsToBuy() > 1 ? creditsToBuy() - 1 : 1)"
+              class="w-8 h-8 rounded-lg bg-slate-700 hover:bg-slate-600 text-white flex justify-center items-center"
+            >
+              <i class="pi pi-minus text-xs"></i>
+            </button>
+            <input 
+              type="number" 
+              [ngModel]="creditsToBuy()" 
+              (ngModelChange)="onCreditsChange($event)"
+              class="w-16 text-center bg-transparent text-white font-bold text-lg outline-none appearance-none" 
+              min="1"
+            />
+            <button 
+              (click)="creditsToBuy.set(creditsToBuy() + 1)"
+              class="w-8 h-8 rounded-lg bg-slate-700 hover:bg-slate-600 text-white flex justify-center items-center"
+            >
+              <i class="pi pi-plus text-xs"></i>
+            </button>
+          </div>
+          <div class="mt-4 text-sm text-slate-300">
+            Total Cost: <strong class="text-amber-400">{{ creditsToBuy() * currentConversionRate() }} Coins</strong>
+          </div>
+        </div>
+
+        <div class="flex space-x-3">
+          <button
+            (click)="showBuyCreditsModal.set(false)"
+            class="flex-1 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white font-bold text-sm transition-all"
+          >
+            Cancel
+          </button>
+          <button
+            (click)="confirmBuyAiCredits()"
+            class="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 text-white font-bold text-sm shadow-lg shadow-amber-500/30 transition-all active:scale-95"
+          >
+            Confirm
+          </button>
+        </div>
+      </div>
+    </div>
   `,
   styles: [
     `
@@ -232,9 +306,19 @@ import { AuthService } from '../../../core/services/auth.service';
 export class GamificationPanelComponent {
   readonly gamificationService = inject(GamificationService);
   private readonly interviewReportService = inject(InterviewReportService);
-  private readonly authService = inject(AuthService);
+  public readonly authService = inject(AuthService); // public for template
+  private readonly router = inject(Router);
+  private readonly confirmationService = inject(ConfirmationService, { optional: true });
+  private readonly messageService = inject(MessageService, { optional: true });
   readonly isOnline = computed(() => this.gamificationService.networkService.status());
   readonly filterCategory = signal<string>('all');
+  
+  readonly showBuyCreditsModal = signal<boolean>(false);
+  readonly creditsToBuy = signal<number>(1);
+  readonly currentConversionRate = computed(() => {
+    const plan = this.authService.currentPlan();
+    return plan === 'Gold' ? 30 : plan === 'Copper' ? 50 : 100;
+  });
 
   readonly categories = [
     { id: 'all', label: 'All Badges' },
@@ -252,6 +336,23 @@ export class GamificationPanelComponent {
   }
 
   generateAndDownloadReport(): void {
+    if (this.authService.currentPlan() !== 'Gold') {
+      if (this.confirmationService) {
+        this.confirmationService.confirm({
+          message: 'PDF Evaluation Reports require the Gold plan. Would you like to upgrade your plan?',
+          header: 'Upgrade Required',
+          icon: 'pi pi-lock',
+          acceptLabel: 'View Plans',
+          rejectLabel: 'Cancel',
+          accept: () => {
+            this.router.navigate(['/pricing']);
+          }
+        });
+      } else {
+        this.router.navigate(['/pricing']);
+      }
+      return;
+    }
     const user = this.authService.currentUser();
     const reportData = this.interviewReportService.createReportData({
       userName: user?.name || 'SkillPath Learner',
@@ -260,5 +361,59 @@ export class GamificationPanelComponent {
       overallScore: 88,
     });
     this.interviewReportService.downloadPdfReport(reportData);
+  }
+
+  onCreditsChange(val: any): void {
+    let parsed = parseInt(val, 10);
+    if (isNaN(parsed) || parsed < 1) parsed = 1;
+    this.creditsToBuy.set(parsed);
+  }
+
+  promptBuyAiCredits(): void {
+    this.creditsToBuy.set(1);
+    this.showBuyCreditsModal.set(true);
+  }
+
+  confirmBuyAiCredits(): void {
+    this.executeBuyAiCredits(this.creditsToBuy(), this.currentConversionRate());
+    this.showBuyCreditsModal.set(false);
+  }
+
+  private executeBuyAiCredits(credits: number, rate: number): void {
+    const cost = credits * rate;
+    const currentCoins = this.authService.userCoins();
+    if (currentCoins < cost) {
+      if (this.messageService) {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Insufficient Coins',
+          detail: `You need ${cost} coins, but only have ${currentCoins}.`,
+        });
+      } else {
+        alert(`Insufficient Coins. You need ${cost} coins, but only have ${currentCoins}.`);
+      }
+      return;
+    }
+
+    this.authService.buyAiCreditsWithCoins(credits).subscribe({
+      next: (res) => {
+        if (this.messageService) {
+          this.messageService.add({
+            severity: 'success',
+            summary: 'Success',
+            detail: `Converted ${cost} coins to ${credits} AI credits!`,
+          });
+        }
+      },
+      error: (err) => {
+        if (this.messageService) {
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: err.error?.message || 'Failed to convert coins.',
+          });
+        }
+      }
+    });
   }
 }

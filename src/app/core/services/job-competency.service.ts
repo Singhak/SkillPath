@@ -29,7 +29,7 @@ export class JobCompetencyService {
     const userRatingsMap = this.userRatings();
 
     return role.competencies.map((comp) => {
-      const current = userRatingsMap.get(comp.skillName) || 0;
+      const current = userRatingsMap.get(comp.skillName.toLowerCase().trim()) || 0;
       const gap = Math.max(0, comp.requiredRating - current);
       const percentage = Math.round((current / comp.requiredRating) * 100);
 
@@ -77,7 +77,9 @@ export class JobCompetencyService {
       const map = new Map<string, number>();
       for (const r of ratings) {
         if (r.category && r.rating) {
-          map.set(r.category, Number(r.rating));
+          const key = r.category.toLowerCase().trim();
+          const existing = map.get(key) || 0;
+          map.set(key, Math.max(existing, Number(r.rating)));
         }
       }
       this.userRatings.set(map);

@@ -5,6 +5,9 @@ import { SpeechAnalyticsService } from '../../../core/services/speech-analytics.
 import { ResumeParserService } from '../../../core/services/resume-parser.service';
 import { StarCoachService } from '../../../core/services/star-coach.service';
 import { UserResourceService } from '../../../core/services/user-resource.service';
+import { AuthService } from '../../../core/services/auth.service';
+import { ConfirmationService } from 'primeng/api';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-ai-tools-widget',
@@ -211,7 +214,7 @@ import { UserResourceService } from '../../../core/services/user-resource.servic
             <div class="bg-slate-800/60 p-3 rounded-xl border border-slate-700/60 flex items-center justify-between">
               <div>
                 <span class="text-xs font-bold text-white block">Evaluation Engine Mode</span>
-                <span class="text-[11px] text-slate-400">Choose between instant rule engine or Groq AI</span>
+                <span class="text-[11px] text-slate-400">Choose between instant rule engine or AI</span>
               </div>
 
               <div class="flex space-x-1 bg-slate-900 p-1 rounded-lg border border-slate-800 text-xs">
@@ -225,13 +228,16 @@ import { UserResourceService } from '../../../core/services/user-resource.servic
                   ⚡ Fast (Free)
                 </button>
                 <button
-                  (click)="evaluationMode.set('ai_groq')"
+                  (click)="selectGroqAiMode()"
+                  class="relative px-2.5 py-1.5 rounded-md font-semibold transition-all flex items-center space-x-1"
                   [class.bg-indigo-600]="evaluationMode() === 'ai_groq'"
                   [class.text-white]="evaluationMode() === 'ai_groq'"
                   [class.text-slate-400]="evaluationMode() !== 'ai_groq'"
-                  class="px-2.5 py-1.5 rounded-md font-semibold transition-all flex items-center space-x-1"
                 >
-                  <span>🤖 Groq AI</span>
+                  <span *ngIf="authService.currentPlan() === 'Silver'" class="absolute -top-2 -right-2 bg-rose-500 rounded-full w-4 h-4 flex items-center justify-center border border-white text-[8px]">
+                    <i class="pi pi-lock"></i>
+                  </span>
+                  <span>🤖 AI</span>
                   <span class="text-[10px] px-1 bg-amber-500/30 text-amber-300 rounded font-bold">1 Cr</span>
                 </button>
               </div>
@@ -263,8 +269,8 @@ import { UserResourceService } from '../../../core/services/user-resource.servic
               [disabled]="starCoachService.isEvaluatingWithAi()"
               class="w-full py-3 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold text-xs shadow-lg shadow-indigo-500/20 transition-all active:scale-95 disabled:opacity-50"
             >
-              <span *ngIf="!starCoachService.isEvaluatingWithAi()">⭐️ Grade Response ({{ evaluationMode() === 'ai_groq' ? 'Groq AI - 1 Credit' : 'Instant - Free' }})</span>
-              <span *ngIf="starCoachService.isEvaluatingWithAi()" class="animate-pulse">🤖 Evaluating with Groq AI...</span>
+              <span *ngIf="!starCoachService.isEvaluatingWithAi()">⭐️ Grade Response ({{ evaluationMode() === 'ai_groq' ? 'AI - 1 Credit' : 'Instant - Free' }})</span>
+              <span *ngIf="starCoachService.isEvaluatingWithAi()" class="animate-pulse">🤖 Evaluating with AI...</span>
             </button>
           </div>
 
@@ -273,7 +279,7 @@ import { UserResourceService } from '../../../core/services/user-resource.servic
             <div class="text-xs font-bold text-indigo-400 uppercase tracking-wider mb-3 flex items-center justify-between">
               <span>STAR Breakdown Score</span>
               <span *ngIf="starCoachService.latestEvaluation() as eval" class="text-slate-400 font-normal">
-                Engine: <strong class="text-indigo-300">{{ eval.evaluationMode === 'ai_groq' ? '🤖 Groq AI' : '⚡ Instant Logic' }}</strong>
+                Engine: <strong class="text-indigo-300">{{ eval.evaluationMode === 'ai_groq' ? '🤖 AI' : '⚡ Instant Logic' }}</strong>
               </span>
             </div>
 
@@ -326,6 +332,9 @@ export class AiToolsWidgetComponent {
   readonly resumeService = inject(ResumeParserService);
   readonly starCoachService = inject(StarCoachService);
   readonly userResourceService = inject(UserResourceService);
+  public readonly authService = inject(AuthService);
+  private readonly confirmationService = inject(ConfirmationService, { optional: true });
+  private readonly router = inject(Router);
 
   readonly activeTab = signal<'resume' | 'speech' | 'star'>('resume');
   readonly evaluationMode = signal<'instant' | 'ai_groq'>('instant');
@@ -340,8 +349,34 @@ export class AiToolsWidgetComponent {
     }
   }
 
+  selectGroqAiMode(): void {
+    if (this.authService.currentPlan() === 'Silver') {
+      if (this.confirmationService) {
+        this.confirmationService.confirm({
+          message: 'AI Evaluation requires at least the Copper plan. Would you like to upgrade your plan?',
+          header: 'Upgrade Required',
+          icon: 'pi pi-lock',
+          acceptLabel: 'View Plans',
+          rejectLabel: 'Cancel',
+          accept: () => {
+            this.router.navigate(['/pricing']);
+          }
+        });
+      } else {
+        this.router.navigate(['/pricing']);
+      }
+      return;
+    }
+    this.evaluationMode.set('ai_groq');
+  }
+
   evaluateStarResponse(): void {
     if (this.evaluationMode() === 'ai_groq') {
+      if (this.authService.currentPlan() === 'Silver') {
+        this.selectGroqAiMode();
+        return;
+      }
+
       this.starCoachService.evaluateWithGroqAi(
         this.behavioralQuestion(),
         this.answerInput(),
