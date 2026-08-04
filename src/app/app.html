@@ -78,7 +78,7 @@
           class="nav-item"
           [routerLink]="'/aiinterview'"
           routerLinkActive="active"
-          [routerLinkActiveOptions]="{ exact: true }"
+          [routerLinkActiveOptions]="{ exact: false }"
           [title]="sidebarCollapsed() ? 'AI Interview' : ''"
         >
           <div class="nav-icon-box">
@@ -86,6 +86,19 @@
           </div>
           <span class="nav-label">AI Interview</span>
           <span class="nav-badge">HOT</span>
+          <div class="active-indicator"></div>
+        </a>
+        <a
+          class="nav-item"
+          [routerLink]="'/interviewer-studio'"
+          routerLinkActive="active"
+          [routerLinkActiveOptions]="{ exact: false }"
+          [title]="sidebarCollapsed() ? 'Interviewer Studio' : ''"
+        >
+          <div class="nav-icon-box">
+            <i class="pi pi-users"></i>
+          </div>
+          <span class="nav-label">Interviewer Studio</span>
           <div class="active-indicator"></div>
         </a>
       </div>
@@ -125,6 +138,16 @@
 
     <div class="sidebar-footer">
       @if(isAuthenticated()){
+        <a 
+          class="nav-item" 
+          [routerLink]="'/pricing'" 
+          routerLinkActive="active" 
+          [title]="sidebarCollapsed() ? 'Upgrade Plan' : ''"
+          style="height: 38px; padding: 0 12px; margin-bottom: 12px; background: linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(234, 88, 12, 0.15)); border: 1px solid rgba(245, 158, 11, 0.2); border-radius: 10px;"
+        >
+          <i class="pi pi-bolt" style="color: #f59e0b; font-size: 1rem;" [style.margin-right]="sidebarCollapsed() ? '0' : '8px'"></i>
+          <span class="nav-label" style="color: #f59e0b; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; font-size: 0.75rem; line-height: 1;">Upgrade</span>
+        </a>
         <div class="user-profile-card">
           <div class="avatar-container">
             <div class="avatar">{{ userInitials() }}</div>
