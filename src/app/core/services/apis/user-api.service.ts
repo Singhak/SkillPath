@@ -9,7 +9,7 @@ export class UserApiService {
   private readonly http = inject(HttpClient);
   private readonly apiUrl = `${environment.apiUrl}/users`;
 
-  updateUser(userId: number | string, user: Partial<User>) {
+  updateUser(userId: number | string, user: Partial<User>): Observable<User> {
     const url = `${this.apiUrl}/${userId}`;
     return this.http.put<User>(url, user);
   }
@@ -42,7 +42,7 @@ export class UserApiService {
     return this.http.post<{ message: string, coins: number, freeCredits: string, paidCredits: string }>(`${this.apiUrl}/credits/buy-with-coins`, { credits });
   }
 
-  startFreeTrial(): Observable<any> {
-    return this.http.post(`${this.apiUrl}/start-trial`, {});
+  startFreeTrial(): Observable<{ message: string, user: User }> {
+    return this.http.post<{ message: string, user: User }>(`${this.apiUrl}/start-trial`, {});
   }
 }

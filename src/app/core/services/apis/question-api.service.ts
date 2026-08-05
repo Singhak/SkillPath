@@ -29,7 +29,7 @@ export class QuestionApiService {
     return this.http.get<Quiz>(`${this.apiUrl}/questions`, { params });
   }
 
-  createQuestionStats(questionStats: QuestionStats[] | QuestionStats) {
-    return this.http.post(`${this.apiUrl}/question-stats`, questionStats);
+  createQuestionStats(questionStats: QuestionStats[] | QuestionStats): Observable<void> {
+    return this.http.post<void>(`${this.apiUrl}/question-stats`, questionStats);
   }
 }

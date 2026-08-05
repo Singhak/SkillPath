@@ -9,8 +9,8 @@ export class QuizApiService {
   private readonly apiUrl = `${environment.apiUrl}/quizzes`;
   private http = inject(HttpClient);
 
-  updateQuizStats(quizId: number): Observable<any> {
-    return this.http.put(`${environment.apiUrl}/quizzes/${quizId}/complete`, {});
+  updateQuizStats(quizId: number): Observable<void> {
+    return this.http.put<void>(`${environment.apiUrl}/quizzes/${quizId}/complete`, {});
   }
 
   getQuizAttempts(): Observable<QuizStats[]> {
