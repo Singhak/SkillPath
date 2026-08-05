@@ -25,22 +25,34 @@
 
       <div class="hero-widgets">
         <div class="glass-widget">
-          <div class="widget-icon credit-icon">
-            <i class="pi pi-microchip-ai"></i>
+          <div class="widget-main">
+            <div class="widget-icon credit-icon">
+              <i class="pi pi-microchip-ai"></i>
+            </div>
+            <div class="widget-details">
+              <span class="widget-label">AI Credits</span>
+              <strong class="widget-val">{{ totalAiCredits() }}</strong>
+            </div>
           </div>
-          <div class="widget-details">
-            <span class="widget-label">AI Credits</span>
-            <strong class="widget-val">{{ totalAiCredits() }}</strong>
-          </div>
+          <button class="widget-action-btn credit-action" type="button" (click)="onBuyCredits()">
+            <i class="pi pi-plus"></i>
+            <span>Buy Credit</span>
+          </button>
         </div>
         <div class="glass-widget">
-          <div class="widget-icon coin-icon">
-            <i class="pi pi-bitcoin"></i>
+          <div class="widget-main">
+            <div class="widget-icon coin-icon">
+              <i class="pi pi-bitcoin"></i>
+            </div>
+            <div class="widget-details">
+              <span class="widget-label">Net Coins</span>
+              <strong class="widget-val">{{ totalCoins() }}</strong>
+            </div>
           </div>
-          <div class="widget-details">
-            <span class="widget-label">Net Coins</span>
-            <strong class="widget-val">{{ totalCoins() }}</strong>
-          </div>
+          <button class="widget-action-btn coin-action" type="button" (click)="onConvertCoins()">
+            <i class="pi pi-sync"></i>
+            <span>Convert to Credit</span>
+          </button>
         </div>
       </div>
     </section>

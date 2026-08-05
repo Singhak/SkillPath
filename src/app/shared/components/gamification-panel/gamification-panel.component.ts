@@ -96,16 +96,6 @@ import { FormsModule } from '@angular/forms';
             </div>
           }
 
-          <!-- Convert Coins Button -->
-          <button
-            (click)="promptBuyAiCredits()"
-            class="px-3.5 py-2 rounded-xl bg-amber-600/30 hover:bg-amber-600/50 border border-amber-400/40 text-amber-200 hover:text-white font-medium text-xs flex items-center space-x-2 transition-all shadow-md active:scale-95"
-            title="Convert Coins to AI Credits"
-          >
-            <span>🪙</span>
-            <span>Convert Coins</span>
-          </button>
-
           <!-- Sync Progress Button -->
           <button
             (click)="gamificationService.syncProgressWithBackend(true)"

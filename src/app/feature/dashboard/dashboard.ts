@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, computed, effect, inject, OnInit, signal, DestroyRef } from '@angular/core';
+import { Component, computed, effect, inject, OnInit, signal, DestroyRef, ViewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { CardModule } from 'primeng/card';
@@ -43,6 +43,8 @@ import { JobCompetencyService } from '../../core/services/job-competency.service
   styleUrl: './dashboard.css',
 })
 export class Dashboard implements OnInit {
+  @ViewChild(GamificationPanelComponent) gamificationPanel?: GamificationPanelComponent;
+
   private readonly quizApiService = inject(QuizApiService);
   private readonly router = inject(Router);
   public readonly authService = inject(AuthService); // changed to public for html access
@@ -335,6 +337,16 @@ export class Dashboard implements OnInit {
         },
       ],
     });
+  }
+
+  onBuyCredits(): void {
+    this.router.navigate(['/pricing']);
+  }
+
+  onConvertCoins(): void {
+    if (this.gamificationPanel) {
+      this.gamificationPanel.promptBuyAiCredits();
+    }
   }
 
   onNewQuiz() {
