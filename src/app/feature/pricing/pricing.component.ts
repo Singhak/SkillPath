@@ -128,9 +128,11 @@ import { Router } from '@angular/router';
             <span class="text-gray-400">/mo</span>
           </div>
 
-          <button *ngIf="!hasUsedTrial && !isTrialActive" (click)="startTrial()" class="w-full py-3 px-6 rounded-full font-bold bg-gradient-to-r from-green-400 to-emerald-500 text-white hover:from-green-500 hover:to-emerald-600 transition-colors mb-4 shadow-[0_0_20px_rgba(16,185,129,0.4)]">
-            Start 14-Day Free Trial
-          </button>
+          @if (!hasUsedTrial && !isTrialActive) {
+            <button (click)="startTrial()" class="w-full py-3 px-6 rounded-full font-bold bg-gradient-to-r from-green-400 to-emerald-500 text-white hover:from-green-500 hover:to-emerald-600 transition-colors mb-4 shadow-[0_0_20px_rgba(16,185,129,0.4)]">
+              Start 14-Day Free Trial
+            </button>
+          }
 
           <button class="w-full py-3 px-6 rounded-full font-bold bg-white text-blue-900 hover:bg-gray-100 transition-colors mb-8 shadow-[0_0_20px_rgba(255,255,255,0.3)]">
             Go Gold

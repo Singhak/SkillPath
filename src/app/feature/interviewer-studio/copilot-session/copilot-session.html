@@ -1,255 +1,280 @@
-<div *ngIf="activeMatrix(); else noMatrix" class="session-layout">
-  <!-- Top Session Meta Bar -->
-  <div class="session-bar">
-    <div class="meta-left">
-      <span class="role-title">Candidate: {{ activeMatrix()?.config?.candidateName }}</span>
-      <span class="dot">•</span>
-      <span class="job-chip">{{ activeMatrix()?.config?.jobTitle }}</span>
-      <span class="exp-chip">{{ activeMatrix()?.config?.experienceLevel }}</span>
-    </div>
-
-    <div class="meta-right">
-      <!-- Candidate Share Buttons -->
-      <button
-        type="button"
-        class="share-canvas-btn"
-        (click)="openCandidateWindow()"
-        title="Open clean candidate view in a separate window for screen sharing"
-      >
-        📺 Candidate Window
-      </button>
-      <button
-        type="button"
-        class="share-link-btn"
-        (click)="copyCandidateLink()"
-        title="Copy candidate URL to share with candidate"
-      >
-        {{ copiedCandidateLink ? '✓ Link Copied!' : '🔗 Copy Candidate Link' }}
-      </button>
-      <button
-        type="button"
-        class="unlock-device-btn"
-        (click)="unlockCandidateDevice()"
-        title="Reset candidate device lock if candidate needs to switch browsers or reconnect"
-      >
-        {{ unlockedDeviceNotice ? '✓ Lock Reset!' : '🔓 Unlock Lock' }}
-      </button>
-
-      <!-- Real-Time Sync Enable / Disable Toggle -->
-      <button
-        type="button"
-        class="sync-toggle-btn"
-        [class.paused]="!syncEnabled()"
-        (click)="toggleSync()"
-        title="Enable or pause real-time question synchronization with candidate view"
-      >
-        <span>{{ syncEnabled() ? '📡 Sync ENABLED' : '⏸️ Sync PAUSED' }}</span>
-      </button>
-
-      <!-- Immediate End Interview Button -->
-      <button
-        type="button"
-        class="end-interview-btn"
-        (click)="endInterviewNow()"
-        title="End the interview session immediately"
-      >
-        🛑 End Interview
-      </button>
-
-      <!-- Start Time & Live Elapsed Clock -->
-      <div class="timer-badge" [ngClass]="pacingStatus.cssClass">
-        <span class="timer-clock">🕒 {{ startTimeFormatted }}</span>
-        <span class="timer-sep">|</span>
-        <span class="timer-elapsed">⏱️ {{ elapsedFormatted }} / {{ allocatedMinutes }}:00</span>
-        <span class="pacing-pill">{{ pacingStatus.text }}</span>
+@if (activeMatrix()) {
+  <div class="session-layout">
+    <!-- Top Session Meta Bar -->
+    <div class="session-bar">
+      <div class="meta-left">
+        <span class="role-title">Candidate: {{ activeMatrix()?.config?.candidateName }}</span>
+        <span class="dot">•</span>
+        <span class="job-chip">{{ activeMatrix()?.config?.jobTitle }}</span>
+        <span class="exp-chip">{{ activeMatrix()?.config?.experienceLevel }}</span>
       </div>
 
-      <!-- Hybrid Speech Assist Toggle -->
-      <button
-        type="button"
-        class="speech-toggle-btn"
-        [class.listening]="speechActive()"
-        (click)="toggleSpeech()"
-      >
-        <span class="mic-icon">🎙️</span>
-        <span>{{ speechActive() ? 'AI Listener ACTIVE' : 'Enable AI Listener' }}</span>
-        <span *ngIf="speechActive()" class="live-pulse"></span>
-      </button>
-
-      <div class="progress-chip">
-        Q {{ currentIdx() + 1 }} / {{ totalQuestions }}
-      </div>
-    </div>
-  </div>
-
-  <!-- Live Transcript Alert Banner if Speech Listener is Active -->
-  <div *ngIf="speechActive()" class="speech-banner">
-    <div class="speech-banner-header">
-      <span class="speech-indicator">🔴 Live Audio Listener</span>
-      <div class="speech-banner-actions">
-        <span class="auto-tag-count" *ngIf="autoCheckedCount() > 0">
-          ✨ {{ autoCheckedCount() }} Rubric keywords auto-detected & checked!
-        </span>
-        <button type="button" class="sim-btn" (click)="simulateSpeechDemo()" title="Test keyword matching without microphone">
-          🧪 Test Auto-Detect Demo
-        </button>
-      </div>
-    </div>
-    <p class="transcript-preview">
-      "{{ transcript() || 'Listening to candidate voice response...' }}"
-    </p>
-  </div>
-
-  <!-- Main Workstation Grid -->
-  <div *ngIf="currentQuestion as q" class="workstation-grid">
-    <!-- Left Column: Question Details, Code Snippet & Probes -->
-    <div class="card question-card">
-      <div class="q-header">
-        <div class="q-tags">
-          <span class="tech-badge">{{ q.technology }}</span>
-          <span class="cat-badge">{{ q.category }}</span>
-          <span class="diff-badge" [ngClass]="q.difficulty.toLowerCase()">{{ q.difficulty }}</span>
-        </div>
-        <span class="time-est">⏱️ ~{{ q.estimatedMinutes }} mins</span>
-      </div>
-
-      <h2 class="q-title">{{ q.questionText }}</h2>
-
-      <!-- Code Snippet Display if available -->
-      <div *ngIf="q.contextOrCodeSnippet" class="code-box">
-        <div class="code-header">
-          <span>Code Context / Scenario Snippet</span>
-        </div>
-        <pre><code>{{ q.contextOrCodeSnippet }}</code></pre>
-      </div>
-
-      <!-- Ideal Answer Summary Reference -->
-      <div class="ideal-answer-box">
-        <div class="ideal-header">
-          <span>💡 Expected Core Concept Summary</span>
-        </div>
-        <p>{{ q.idealAnswerSummary }}</p>
-      </div>
-
-      <!-- Adaptive Probing Accordions (Level Up & Hints) -->
-      <div class="probes-container">
-        <div class="probe-item level-up">
-          <button type="button" class="probe-toggle" (click)="showLevelUp.set(!showLevelUp())">
-            <span>🚀 Level Up Probe (If Candidate Answers Easily)</span>
-            <span>{{ showLevelUp() ? '▲' : '▼' }}</span>
-          </button>
-          <div *ngIf="showLevelUp()" class="probe-content">
-            <p>{{ q.probes.levelUpProbe }}</p>
-          </div>
-        </div>
-
-        <div class="probe-item hint">
-          <button type="button" class="probe-toggle" (click)="showHint.set(!showHint())">
-            <span>💡 Give Nudge / Hint (If Candidate Is Stuck)</span>
-            <span>{{ showHint() ? '▲' : '▼' }}</span>
-          </button>
-          <div *ngIf="showHint()" class="probe-content">
-            <p>{{ q.probes.simplifyingHint }}</p>
-          </div>
-        </div>
-
-        <div class="probe-item red-flags">
-          <button type="button" class="probe-toggle" (click)="showRedFlags.set(!showRedFlags())">
-            <span>🚩 Red Flags & Misconceptions to Watch For</span>
-            <span>{{ showRedFlags() ? '▲' : '▼' }}</span>
-          </button>
-          <div *ngIf="showRedFlags()" class="probe-content">
-            <ul>
-              <li *ngFor="let rf of q.probes.redFlags">{{ rf }}</li>
-            </ul>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Right Column: Real-time Rubric Checklist & Scorecard -->
-    <div class="card rubric-card">
-      <div class="rubric-header">
-        <h3>Answer Evaluation Rubric</h3>
-        <p>Check off key concepts as the candidate mentions them.</p>
-      </div>
-
-      <div class="rubric-list">
-        <div
-          *ngFor="let item of q.rubricItems"
-          class="rubric-item"
-          [class.checked]="item.checked"
-          (click)="toggleRubric(item.id)"
+      <div class="meta-right">
+        <!-- Candidate Share Buttons -->
+        <button
+          type="button"
+          class="share-canvas-btn"
+          (click)="openCandidateWindow()"
+          title="Open clean candidate view in a separate window for screen sharing"
         >
-          <div class="checkbox-custom">
-            <span *ngIf="item.checked">✓</span>
+          📺 Candidate Window
+        </button>
+        <button
+          type="button"
+          class="share-link-btn"
+          (click)="copyCandidateLink()"
+          title="Copy candidate URL to share with candidate"
+        >
+          {{ copiedCandidateLink ? '✓ Link Copied!' : '🔗 Copy Candidate Link' }}
+        </button>
+        <button
+          type="button"
+          class="unlock-device-btn"
+          (click)="unlockCandidateDevice()"
+          title="Reset candidate device lock if candidate needs to switch browsers or reconnect"
+        >
+          {{ unlockedDeviceNotice ? '✓ Lock Reset!' : '🔓 Unlock Lock' }}
+        </button>
+
+        <!-- Real-Time Sync Enable / Disable Toggle -->
+        <button
+          type="button"
+          class="sync-toggle-btn"
+          [class.paused]="!syncEnabled()"
+          (click)="toggleSync()"
+          title="Enable or pause real-time question synchronization with candidate view"
+        >
+          <span>{{ syncEnabled() ? '📡 Sync ENABLED' : '⏸️ Sync PAUSED' }}</span>
+        </button>
+
+        <!-- Immediate End Interview Button -->
+        <button
+          type="button"
+          class="end-interview-btn"
+          (click)="endInterviewNow()"
+          title="End the interview session immediately"
+        >
+          🛑 End Interview
+        </button>
+
+        <!-- Start Time & Live Elapsed Clock -->
+        <div class="timer-badge" [ngClass]="pacingStatus.cssClass">
+          <span class="timer-clock">🕒 {{ startTimeFormatted }}</span>
+          <span class="timer-sep">|</span>
+          <span class="timer-elapsed">⏱️ {{ elapsedFormatted }} / {{ allocatedMinutes }}:00</span>
+          <span class="pacing-pill">{{ pacingStatus.text }}</span>
+        </div>
+
+        <!-- Hybrid Speech Assist Toggle -->
+        <button
+          type="button"
+          class="speech-toggle-btn"
+          [class.listening]="speechActive()"
+          (click)="toggleSpeech()"
+        >
+          <span class="mic-icon">🎙️</span>
+          <span>{{ speechActive() ? 'AI Listener ACTIVE' : 'Enable AI Listener' }}</span>
+          @if (speechActive()) {
+            <span class="live-pulse"></span>
+          }
+        </button>
+
+        <div class="progress-chip">
+          Q {{ currentIdx() + 1 }} / {{ totalQuestions }}
+        </div>
+      </div>
+    </div>
+
+    <!-- Live Transcript Alert Banner if Speech Listener is Active -->
+    @if (speechActive()) {
+      <div class="speech-banner">
+        <div class="speech-banner-header">
+          <span class="speech-indicator">🔴 Live Audio Listener</span>
+          <div class="speech-banner-actions">
+            @if (autoCheckedCount() > 0) {
+              <span class="auto-tag-count">
+                ✨ {{ autoCheckedCount() }} Rubric keywords auto-detected & checked!
+              </span>
+            }
+            <button type="button" class="sim-btn" (click)="simulateSpeechDemo()" title="Test keyword matching without microphone">
+              🧪 Test Auto-Detect Demo
+            </button>
           </div>
-          <div class="rubric-text">
-            <span class="rubric-title">{{ item.title }}</span>
-            <div class="keyword-tags">
-              <span *ngFor="let kw of item.keywords" class="kw-tag">{{ kw }}</span>
+        </div>
+        <p class="transcript-preview">
+          "{{ transcript() || 'Listening to candidate voice response...' }}"
+        </p>
+      </div>
+    }
+
+    <!-- Main Workstation Grid -->
+    @if (currentQuestion; as q) {
+      <div class="workstation-grid">
+        <!-- Left Column: Question Details, Code Snippet & Probes -->
+        <div class="card question-card">
+          <div class="q-header">
+            <div class="q-tags">
+              <span class="tech-badge">{{ q.technology }}</span>
+              <span class="cat-badge">{{ q.category }}</span>
+              <span class="diff-badge" [ngClass]="q.difficulty.toLowerCase()">{{ q.difficulty }}</span>
+            </div>
+            <span class="time-est">⏱️ ~{{ q.estimatedMinutes }} mins</span>
+          </div>
+
+          <h2 class="q-title">{{ q.questionText }}</h2>
+
+          <!-- Code Snippet Display if available -->
+          @if (q.contextOrCodeSnippet) {
+            <div class="code-box">
+              <div class="code-header">
+                <span>Code Context / Scenario Snippet</span>
+              </div>
+              <pre><code>{{ q.contextOrCodeSnippet }}</code></pre>
+            </div>
+          }
+
+          <!-- Ideal Answer Summary Reference -->
+          <div class="ideal-answer-box">
+            <div class="ideal-header">
+              <span>💡 Expected Core Concept Summary</span>
+            </div>
+            <p>{{ q.idealAnswerSummary }}</p>
+          </div>
+
+          <!-- Adaptive Probing Accordions (Level Up & Hints) -->
+          <div class="probes-container">
+            <div class="probe-item level-up">
+              <button type="button" class="probe-toggle" (click)="showLevelUp.set(!showLevelUp())">
+                <span>🚀 Level Up Probe (If Candidate Answers Easily)</span>
+                <span>{{ showLevelUp() ? '▲' : '▼' }}</span>
+              </button>
+              @if (showLevelUp()) {
+                <div class="probe-content">
+                  <p>{{ q.probes.levelUpProbe }}</p>
+                </div>
+              }
+            </div>
+
+            <div class="probe-item hint">
+              <button type="button" class="probe-toggle" (click)="showHint.set(!showHint())">
+                <span>💡 Give Nudge / Hint (If Candidate Is Stuck)</span>
+                <span>{{ showHint() ? '▲' : '▼' }}</span>
+              </button>
+              @if (showHint()) {
+                <div class="probe-content">
+                  <p>{{ q.probes.simplifyingHint }}</p>
+                </div>
+              }
+            </div>
+
+            <div class="probe-item red-flags">
+              <button type="button" class="probe-toggle" (click)="showRedFlags.set(!showRedFlags())">
+                <span>🚩 Red Flags & Misconceptions to Watch For</span>
+                <span>{{ showRedFlags() ? '▲' : '▼' }}</span>
+              </button>
+              @if (showRedFlags()) {
+                <div class="probe-content">
+                  <ul>
+                    @for (rf of q.probes.redFlags; track rf) {
+                      <li>{{ rf }}</li>
+                    }
+                  </ul>
+                </div>
+              }
             </div>
           </div>
         </div>
-      </div>
 
-      <!-- Rating & Notes Section -->
-      <div class="scoring-section">
-        <h4>Interviewer Rating for Question</h4>
-        <div class="star-rating">
-          <button
-            *ngFor="let star of [1,2,3,4,5]"
-            type="button"
-            class="star-btn"
-            [class.active]="star <= manualScore"
-            (click)="rateCurrentQuestion(star)"
-          >
-            ★
-          </button>
-          <span class="rating-text">
-            {{ manualScore === 5 ? '5 - Exceptional' : manualScore === 4 ? '4 - Solid Answer' : manualScore === 3 ? '3 - Partial/Needs Nudge' : manualScore === 2 ? '2 - Weak' : '1 - Incorrect' }}
-          </span>
+        <!-- Right Column: Real-time Rubric Checklist & Scorecard -->
+        <div class="card rubric-card">
+          <div class="rubric-header">
+            <h3>Answer Evaluation Rubric</h3>
+            <p>Check off key concepts as the candidate mentions them.</p>
+          </div>
+
+          <div class="rubric-list">
+            @for (item of q.rubricItems; track item.id) {
+              <div
+                class="rubric-item"
+                [class.checked]="item.checked"
+                (click)="toggleRubric(item.id)"
+              >
+                <div class="checkbox-custom">
+                  @if (item.checked) {
+                    <span>✓</span>
+                  }
+                </div>
+                <div class="rubric-text">
+                  <span class="rubric-title">{{ item.title }}</span>
+                  <div class="keyword-tags">
+                    @for (kw of item.keywords; track kw) {
+                      <span class="kw-tag">{{ kw }}</span>
+                    }
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
+
+          <!-- Rating & Notes Section -->
+          <div class="scoring-section">
+            <h4>Interviewer Rating for Question</h4>
+            <div class="star-rating">
+              @for (star of [1,2,3,4,5]; track star) {
+                <button
+                  type="button"
+                  class="star-btn"
+                  [class.active]="star <= manualScore"
+                  (click)="rateCurrentQuestion(star)"
+                >
+                  ★
+                </button>
+              }
+              <span class="rating-text">
+                {{ manualScore === 5 ? '5 - Exceptional' : manualScore === 4 ? '4 - Solid Answer' : manualScore === 3 ? '3 - Partial/Needs Nudge' : manualScore === 2 ? '2 - Weak' : '1 - Incorrect' }}
+              </span>
+            </div>
+
+            @if (candidateCodeSnippet()) {
+              <div class="live-code-monitor">
+                <label>💻 Live Candidate Code / Notes Feed</label>
+                <pre><code>{{ candidateCodeSnippet() }}</code></pre>
+              </div>
+            }
+
+            <div class="notes-field">
+              <label>Interviewer Observation Notes</label>
+              <textarea
+                [(ngModel)]="manualNotes"
+                (change)="onNotesChange()"
+                placeholder="e.g. Candidate explained call stack & nextTick accurately, but needed slight hint on stream backpressure..."
+                rows="3"
+              ></textarea>
+            </div>
+          </div>
+
+          <!-- Footer Navigation Controls -->
+          <div class="card-footer">
+            <button type="button" class="btn-nav" (click)="prev()" [disabled]="currentIdx() === 0">
+              ← Previous
+            </button>
+            <button
+              type="button"
+              class="btn-nav primary"
+              (click)="currentIdx() < totalQuestions - 1 ? next() : finishInterview()"
+            >
+              {{ currentIdx() < totalQuestions - 1 ? 'Next Question →' : '📊 Finalize & Generate Candidate Report →' }}
+            </button>
+          </div>
         </div>
-
-        <div *ngIf="candidateCodeSnippet()" class="live-code-monitor">
-          <label>💻 Live Candidate Code / Notes Feed</label>
-          <pre><code>{{ candidateCodeSnippet() }}</code></pre>
-        </div>
-
-        <div class="notes-field">
-          <label>Interviewer Observation Notes</label>
-          <textarea
-            [(ngModel)]="manualNotes"
-            (change)="onNotesChange()"
-            placeholder="e.g. Candidate explained call stack & nextTick accurately, but needed slight hint on stream backpressure..."
-            rows="3"
-          ></textarea>
-        </div>
       </div>
-
-      <!-- Footer Navigation Controls -->
-      <div class="card-footer">
-        <button type="button" class="btn-nav" (click)="prev()" [disabled]="currentIdx() === 0">
-          ← Previous
-        </button>
-        <button
-          *ngFor="let btn of [1]"
-          type="button"
-          class="btn-nav primary"
-          (click)="currentIdx() < totalQuestions - 1 ? next() : finishInterview()"
-        >
-          {{ currentIdx() < totalQuestions - 1 ? 'Next Question →' : '📊 Finalize & Generate Candidate Report →' }}
-        </button>
-      </div>
-    </div>
+    }
   </div>
-</div>
-
-<ng-template #noMatrix>
+} @else {
   <div class="empty-state card">
     <span class="empty-icon">🎙️</span>
     <h2>No Active Interview Session Found</h2>
     <p>Please configure your job requirements and tech stack in the Studio Wizard to launch your live interview co-pilot.</p>
     <a routerLink="/interviewer-studio" class="btn-primary">Go to Studio Wizard →</a>
   </div>
-</ng-template>
+}

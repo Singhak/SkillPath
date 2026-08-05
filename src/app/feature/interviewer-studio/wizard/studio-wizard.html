@@ -45,7 +45,9 @@
             [(ngModel)]="experienceLevel"
             class="select-field"
           >
-            <option *ngFor="let exp of experienceLevels" [value]="exp">{{ exp }}</option>
+            @for (exp of experienceLevels; track exp) {
+              <option [value]="exp">{{ exp }}</option>
+            }
           </select>
         </div>
         <div class="form-group">
@@ -56,7 +58,9 @@
             [(ngModel)]="roundType"
             class="select-field"
           >
-            <option *ngFor="let round of roundTypes" [value]="round">{{ round }}</option>
+            @for (round of roundTypes; track round) {
+              <option [value]="round">{{ round }}</option>
+            }
           </select>
         </div>
       </div>
@@ -70,47 +74,49 @@
       </div>
 
       <div class="tech-list">
-        <div *ngFor="let tech of technologies; let i = index" class="tech-item-row">
-          <div class="tech-name">
-            <span class="tech-bullet">⚡</span>
-            <span>{{ tech.name }}</span>
-          </div>
+        @for (tech of technologies; track $index; let i = $index) {
+          <div class="tech-item-row">
+            <div class="tech-name">
+              <span class="tech-bullet">⚡</span>
+              <span>{{ tech.name }}</span>
+            </div>
 
-          <div class="tech-weight">
-            <label>Weight %</label>
-            <input
-              type="number"
-              [(ngModel)]="tech.weightPercentage"
-              [name]="'weight_' + i"
-              min="5"
-              max="100"
-              (change)="normalizeWeights()"
-              class="number-input"
-            />
-          </div>
+            <div class="tech-weight">
+              <label>Weight %</label>
+              <input
+                type="number"
+                [(ngModel)]="tech.weightPercentage"
+                [name]="'weight_' + i"
+                min="5"
+                max="100"
+                (change)="normalizeWeights()"
+                class="number-input"
+              />
+            </div>
 
-          <div class="tech-count">
-            <label>Questions</label>
-            <input
-              type="number"
-              [(ngModel)]="tech.questionCount"
-              [name]="'count_' + i"
-              min="1"
-              max="10"
-              class="number-input"
-            />
-          </div>
+            <div class="tech-count">
+              <label>Questions</label>
+              <input
+                type="number"
+                [(ngModel)]="tech.questionCount"
+                [name]="'count_' + i"
+                min="1"
+                max="10"
+                class="number-input"
+              />
+            </div>
 
-          <button
-            type="button"
-            class="remove-btn"
-            (click)="removeTechnology(i)"
-            [disabled]="technologies.length <= 1"
-            title="Remove Technology"
-          >
-            ✕
-          </button>
-        </div>
+            <button
+              type="button"
+              class="remove-btn"
+              (click)="removeTechnology(i)"
+              [disabled]="technologies.length <= 1"
+              title="Remove Technology"
+            >
+              ✕
+            </button>
+          </div>
+        }
       </div>
 
       <!-- Add Custom Tech -->
@@ -189,24 +195,27 @@
     </div>
 
     <div class="template-list">
-      <div
-        *ngFor="let template of teamTemplates()"
-        class="template-item"
-        (click)="selectTemplate(template)"
-      >
-        <div class="template-top">
-          <h4>{{ template.title }}</h4>
-          <span class="round-chip">{{ template.roundType }}</span>
+      @for (template of teamTemplates(); track template.title) {
+        <div
+          class="template-item"
+          (click)="selectTemplate(template)"
+        >
+          <div class="template-top">
+            <h4>{{ template.title }}</h4>
+            <span class="round-chip">{{ template.roundType }}</span>
+          </div>
+          <p class="template-desc">{{ template.description }}</p>
+          <div class="tag-cloud">
+            @for (tag of template.tags; track tag) {
+              <span class="tech-tag">{{ tag }}</span>
+            }
+          </div>
+          <div class="template-footer">
+            <span class="exp-badge">🎓 {{ template.experienceLevel }}</span>
+            <button type="button" class="use-btn">Use Blueprint ⚡</button>
+          </div>
         </div>
-        <p class="template-desc">{{ template.description }}</p>
-        <div class="tag-cloud">
-          <span *ngFor="let tag of template.tags" class="tech-tag">{{ tag }}</span>
-        </div>
-        <div class="template-footer">
-          <span class="exp-badge">🎓 {{ template.experienceLevel }}</span>
-          <button type="button" class="use-btn">Use Blueprint ⚡</button>
-        </div>
-      </div>
+      }
     </div>
   </div>
 </div>

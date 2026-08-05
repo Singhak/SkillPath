@@ -18,16 +18,20 @@
         <div class="flex flex-wrap items-center gap-3">
             <select [value]="competencyService.selectedRoleId()" (change)="onRoleChange($event)"
                 class="bg-slate-800 border border-slate-700 text-slate-200 text-xs font-semibold rounded-xl px-4 py-2.5 outline-none focus:border-indigo-500 transition-all cursor-pointer">
-                <option *ngFor="let role of competencyService.availableRoles()" [value]="role.roleId">
-                    {{ role.title }} ({{ role.category }})
-                </option>
+                @for (role of competencyService.availableRoles(); track role.roleId) {
+                    <option [value]="role.roleId">
+                        {{ role.title }} ({{ role.category }})
+                    </option>
+                }
             </select>
 
             <button (click)="openFlashcards()"
                 class="relative px-4 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-xs flex items-center space-x-2 shadow-lg shadow-purple-500/20 transition-all active:scale-95">
-                <span *ngIf="authService.currentPlan() !== 'Gold'" class="absolute -top-2 -right-2 bg-rose-500 rounded-full w-5 h-5 flex items-center justify-center border border-white text-[10px]">
-                    <i class="pi pi-lock"></i>
-                </span>
+                @if (authService.currentPlan() !== 'Gold') {
+                    <span class="absolute -top-2 -right-2 bg-rose-500 rounded-full w-5 h-5 flex items-center justify-center border border-white text-[10px]">
+                        <i class="pi pi-lock"></i>
+                    </span>
+                }
                 <span>📇</span>
                 <span>Review Flashcards Deck ({{ reviewDeckService.totalCards() }})</span>
             </button>
@@ -60,154 +64,165 @@
 
         <!-- Competency Skill Gaps List -->
         <div class="lg:col-span-3 space-y-3">
-            <div *ngFor="let item of competencyService.skillGapAnalysis()"
-                class="bg-slate-800/40 border border-slate-700/50 rounded-xl p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:border-indigo-500/40 transition-all">
-                <div class="flex-1">
-                    <div class="flex items-center justify-between mb-1.5">
-                        <div class="flex items-center space-x-2">
-                            <span class="font-bold text-sm text-white">{{ item.skillName }}</span>
-                            <span [ngClass]="{
-                      'bg-emerald-500/20 text-emerald-300 border-emerald-500/30': item.status === 'Mastered',
-                      'bg-blue-500/20 text-blue-300 border-blue-500/30': item.status === 'On Track',
-                      'bg-amber-500/20 text-amber-300 border-amber-500/30': item.status === 'Needs Practice',
-                      'bg-rose-500/20 text-rose-300 border-rose-500/30': item.status === 'Critical Gap'
-                    }" class="px-2 py-0.5 rounded-full text-[10px] font-bold border">
-                                {{ item.status }}
-                            </span>
+            @for (item of competencyService.skillGapAnalysis(); track item.skillName) {
+                <div
+                    class="bg-slate-800/40 border border-slate-700/50 rounded-xl p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:border-indigo-500/40 transition-all">
+                    <div class="flex-1">
+                        <div class="flex items-center justify-between mb-1.5">
+                            <div class="flex items-center space-x-2">
+                                <span class="font-bold text-sm text-white">{{ item.skillName }}</span>
+                                <span [ngClass]="{
+                          'bg-emerald-500/20 text-emerald-300 border-emerald-500/30': item.status === 'Mastered',
+                          'bg-blue-500/20 text-blue-300 border-blue-500/30': item.status === 'On Track',
+                          'bg-amber-500/20 text-amber-300 border-amber-500/30': item.status === 'Needs Practice',
+                          'bg-rose-500/20 text-rose-300 border-rose-500/30': item.status === 'Critical Gap'
+                        }" class="px-2 py-0.5 rounded-full text-[10px] font-bold border">
+                                    {{ item.status }}
+                                </span>
+                            </div>
+                            <div class="text-xs text-slate-400">
+                                Rating: <strong class="text-indigo-300">{{ item.currentRating }}★</strong> / Required:
+                                <strong>{{ item.requiredRating }}★</strong>
+                            </div>
                         </div>
-                        <div class="text-xs text-slate-400">
-                            Rating: <strong class="text-indigo-300">{{ item.currentRating }}★</strong> / Required:
-                            <strong>{{ item.requiredRating }}★</strong>
+
+                        <!-- Progress bar -->
+                        <div class="w-full bg-slate-800 rounded-full h-2 overflow-hidden border border-slate-700/60">
+                            <div [ngClass]="{
+                        'bg-emerald-500': item.status === 'Mastered',
+                        'bg-indigo-500': item.status === 'On Track',
+                        'bg-amber-500': item.status === 'Needs Practice',
+                        'bg-rose-500': item.status === 'Critical Gap'
+                      }" class="h-full rounded-full transition-all duration-700"
+                                [style.width.%]="item.readinessPercentage"></div>
                         </div>
                     </div>
 
-                    <!-- Progress bar -->
-                    <div class="w-full bg-slate-800 rounded-full h-2 overflow-hidden border border-slate-700/60">
-                        <div [ngClass]="{
-                    'bg-emerald-500': item.status === 'Mastered',
-                    'bg-indigo-500': item.status === 'On Track',
-                    'bg-amber-500': item.status === 'Needs Practice',
-                    'bg-rose-500': item.status === 'Critical Gap'
-                  }" class="h-full rounded-full transition-all duration-700"
-                            [style.width.%]="item.readinessPercentage"></div>
-                    </div>
+                    <!-- Action Button -->
+                    <button (click)="navigateToSkillsOrQuiz(item.skillName)"
+                        class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-indigo-600 text-slate-200 hover:text-white font-semibold text-xs transition-colors self-end sm:self-auto flex items-center space-x-1">
+                        <span>Practice</span>
+                        <span>→</span>
+                    </button>
                 </div>
-
-                <!-- Action Button -->
-                <button (click)="navigateToSkillsOrQuiz(item.skillName)"
-                    class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-indigo-600 text-slate-200 hover:text-white font-semibold text-xs transition-colors self-end sm:self-auto flex items-center space-x-1">
-                    <span>Practice</span>
-                    <span>→</span>
-                </button>
-            </div>
+            }
         </div>
 
     </div>
 </div>
 
 <!-- Spaced Repetition Flashcards Modal with Multi-Domain Filter -->
-<div *ngIf="showFlashcardsModal()"
-    class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fadeIn">
-    <div class="bg-slate-900 border border-indigo-500/30 rounded-3xl p-6 max-w-lg w-full shadow-2xl relative">
-        <button (click)="showFlashcardsModal.set(false)"
-            class="absolute top-4 right-4 text-slate-400 hover:text-white text-xl font-bold w-8 h-8 flex items-center justify-center rounded-full bg-slate-800">
-            ✕
-        </button>
-
-        <div class="flex items-center space-x-2 text-xs font-bold text-indigo-400 uppercase tracking-widest mb-1">
-            <span>📇</span> <span>Spaced Repetition Flashcards</span>
-        </div>
-        <h3 class="text-lg font-extrabold text-white mb-3">
-            Card {{ reviewDeckService.totalCards() > 0 ? reviewDeckService.activeCardIndex() + 1 : 0 }} of {{
-            reviewDeckService.totalCards() }}
-        </h3>
-
-        <!-- Multi-Domain Filter Buttons -->
-        <div class="flex flex-wrap gap-1.5 mb-4 bg-slate-800/60 p-1.5 rounded-xl border border-slate-700/50">
-            <button (click)="reviewDeckService.setDomainFilter('all')"
-                [class.bg-indigo-600]="reviewDeckService.selectedDomain() === 'all'"
-                [class.text-white]="reviewDeckService.selectedDomain() === 'all'"
-                [class.text-slate-400]="reviewDeckService.selectedDomain() !== 'all'"
-                class="px-2.5 py-1 rounded-lg text-xs font-bold transition-all">
-                🌐 All Domains
+@if (showFlashcardsModal()) {
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fadeIn">
+        <div class="bg-slate-900 border border-indigo-500/30 rounded-3xl p-6 max-w-lg w-full shadow-2xl relative">
+            <button (click)="showFlashcardsModal.set(false)"
+                class="absolute top-4 right-4 text-slate-400 hover:text-white text-xl font-bold w-8 h-8 flex items-center justify-center rounded-full bg-slate-800">
+                ✕
             </button>
-            <button *ngFor="let dom of reviewDeckService.availableDomains()"
-                (click)="reviewDeckService.setDomainFilter(dom)"
-                [class.bg-indigo-600]="reviewDeckService.selectedDomain() === dom"
-                [class.text-white]="reviewDeckService.selectedDomain() === dom"
-                [class.text-slate-400]="reviewDeckService.selectedDomain() !== dom"
-                class="px-2.5 py-1 rounded-lg text-xs font-bold transition-all">
-                ⚡ {{ dom }}
-            </button>
-        </div>
 
-        <!-- Interactive Flip Card Container -->
-        <div *ngIf="reviewDeckService.currentCard() as card; else noCardsView" (click)="reviewDeckService.flipCard()"
-            class="bg-gradient-to-b from-slate-850 to-slate-950 border border-indigo-500/20 rounded-2xl p-6 min-h-[220px] flex flex-col justify-between cursor-pointer hover:border-indigo-400/50 transition-all shadow-inner relative group mb-6">
-            <div class="flex items-center justify-between text-xs text-slate-400 mb-2">
-                <span
-                    class="px-2.5 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 font-semibold border border-indigo-500/30">
-                    🏷️ {{ card.category }}
-                </span>
-                <span class="text-[11px] text-slate-400">Click card to {{ reviewDeckService.isCardFlipped() ? 'see
-                    Question' : 'reveal Answer' }} 🔄</span>
+            <div class="flex items-center space-x-2 text-xs font-bold text-indigo-400 uppercase tracking-widest mb-1">
+                <span>📇</span> <span>Spaced Repetition Flashcards</span>
+            </div>
+            <h3 class="text-lg font-extrabold text-white mb-3">
+                Card {{ reviewDeckService.totalCards() > 0 ? reviewDeckService.activeCardIndex() + 1 : 0 }} of {{
+                reviewDeckService.totalCards() }}
+            </h3>
+
+            <!-- Multi-Domain Filter Buttons -->
+            <div class="flex flex-wrap gap-1.5 mb-4 bg-slate-800/60 p-1.5 rounded-xl border border-slate-700/50">
+                <button (click)="reviewDeckService.setDomainFilter('all')"
+                    [class.bg-indigo-600]="reviewDeckService.selectedDomain() === 'all'"
+                    [class.text-white]="reviewDeckService.selectedDomain() === 'all'"
+                    [class.text-slate-400]="reviewDeckService.selectedDomain() !== 'all'"
+                    class="px-2.5 py-1 rounded-lg text-xs font-bold transition-all">
+                    🌐 All Domains
+                </button>
+                @for (dom of reviewDeckService.availableDomains(); track dom) {
+                    <button (click)="reviewDeckService.setDomainFilter(dom)"
+                        [class.bg-indigo-600]="reviewDeckService.selectedDomain() === dom"
+                        [class.text-white]="reviewDeckService.selectedDomain() === dom"
+                        [class.text-slate-400]="reviewDeckService.selectedDomain() !== dom"
+                        class="px-2.5 py-1 rounded-lg text-xs font-bold transition-all">
+                        ⚡ {{ dom }}
+                    </button>
+                }
             </div>
 
-            <!-- Question View (Front) -->
-            <div *ngIf="!reviewDeckService.isCardFlipped()" class="my-auto text-center py-4">
-                <h4 class="text-base font-bold text-white leading-relaxed">{{ card.question }}</h4>
-            </div>
+            <!-- Interactive Flip Card Container -->
+            @if (reviewDeckService.currentCard(); as card) {
+                <div (click)="reviewDeckService.flipCard()"
+                    class="bg-gradient-to-b from-slate-850 to-slate-950 border border-indigo-500/20 rounded-2xl p-6 min-h-[220px] flex flex-col justify-between cursor-pointer hover:border-indigo-400/50 transition-all shadow-inner relative group mb-6">
+                    <div class="flex items-center justify-between text-xs text-slate-400 mb-2">
+                        <span
+                            class="px-2.5 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 font-semibold border border-indigo-500/30">
+                            🏷️ {{ card.category }}
+                        </span>
+                        <span class="text-[11px] text-slate-400">Click card to {{ reviewDeckService.isCardFlipped() ? 'see Question' : 'reveal Answer' }} 🔄</span>
+                    </div>
 
-            <!-- Answer View (Back) -->
-            <div *ngIf="reviewDeckService.isCardFlipped()" class="my-auto py-2 animate-fadeIn">
-                <div class="text-xs font-bold text-emerald-400 uppercase tracking-wider mb-1">Answer & Explanation:
+                    <!-- Question View (Front) -->
+                    @if (!reviewDeckService.isCardFlipped()) {
+                        <div class="my-auto text-center py-4">
+                            <h4 class="text-base font-bold text-white leading-relaxed">{{ card.question }}</h4>
+                        </div>
+                    }
+
+                    <!-- Answer View (Back) -->
+                    @if (reviewDeckService.isCardFlipped()) {
+                        <div class="my-auto py-2 animate-fadeIn">
+                            <div class="text-xs font-bold text-emerald-400 uppercase tracking-wider mb-1">Answer & Explanation:
+                            </div>
+                            <p class="text-xs text-slate-200 leading-relaxed mb-3">{{ card.correctAnswer }}</p>
+
+                            @if (card.codeSnippet) {
+                                <div
+                                    class="bg-slate-950 p-2.5 rounded-lg border border-slate-800 text-[11px] font-mono text-emerald-300 overflow-x-auto">
+                                    <code>{{ card.codeSnippet }}</code>
+                                </div>
+                            }
+                        </div>
+                    }
+
+                    <div class="text-center text-[10px] text-slate-400 mt-2">
+                        Tap card to flip
+                    </div>
                 </div>
-                <p class="text-xs text-slate-200 leading-relaxed mb-3">{{ card.correctAnswer }}</p>
-
-                <div *ngIf="card.codeSnippet"
-                    class="bg-slate-950 p-2.5 rounded-lg border border-slate-800 text-[11px] font-mono text-emerald-300 overflow-x-auto">
-                    <code>{{ card.codeSnippet }}</code>
+            } @else {
+                <div
+                    class="bg-slate-800/30 border border-slate-800 rounded-2xl p-8 text-center text-slate-400 text-xs mb-6">
+                    No flashcards available in domain "{{ reviewDeckService.selectedDomain() }}".
                 </div>
-            </div>
+            }
 
-            <div class="text-center text-[10px] text-slate-400 mt-2">
-                Tap card to flip
-            </div>
+            <!-- Rating Buttons (Spaced Repetition SM-2) -->
+            @if (reviewDeckService.isCardFlipped() && reviewDeckService.currentCard()) {
+                <div class="grid grid-cols-3 gap-3 animate-fadeIn">
+                    <button (click)="reviewDeckService.rateCardRecall('hard')"
+                        class="py-2.5 rounded-xl bg-rose-600/30 hover:bg-rose-600/50 border border-rose-500/40 text-rose-200 font-bold text-xs transition-all">
+                        🔴 Hard (1 day)
+                    </button>
+                    <button (click)="reviewDeckService.rateCardRecall('good')"
+                        class="py-2.5 rounded-xl bg-amber-600/30 hover:bg-amber-600/50 border border-amber-500/40 text-amber-200 font-bold text-xs transition-all">
+                        🟡 Good (3 days)
+                    </button>
+                    <button (click)="reviewDeckService.rateCardRecall('easy')"
+                        class="py-2.5 rounded-xl bg-emerald-600/30 hover:bg-emerald-600/50 border border-emerald-500/40 text-emerald-200 font-bold text-xs transition-all">
+                        🟢 Easy (7 days)
+                    </button>
+                </div>
+            }
+
+            <!-- Navigation buttons if front side -->
+            @if (!reviewDeckService.isCardFlipped() && reviewDeckService.currentCard()) {
+                <div class="flex items-center justify-between text-xs text-slate-400">
+                    <button (click)="reviewDeckService.prevCard()"
+                        class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-white">← Previous</button>
+                    <span>Tap card to reveal answer</span>
+                    <button (click)="reviewDeckService.nextCard()"
+                        class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-white">Next →</button>
+                </div>
+            }
+
         </div>
-
-        <ng-template #noCardsView>
-            <div
-                class="bg-slate-800/30 border border-slate-800 rounded-2xl p-8 text-center text-slate-400 text-xs mb-6">
-                No flashcards available in domain "{{ reviewDeckService.selectedDomain() }}".
-            </div>
-        </ng-template>
-
-        <!-- Rating Buttons (Spaced Repetition SM-2) -->
-        <div *ngIf="reviewDeckService.isCardFlipped() && reviewDeckService.currentCard()"
-            class="grid grid-cols-3 gap-3 animate-fadeIn">
-            <button (click)="reviewDeckService.rateCardRecall('hard')"
-                class="py-2.5 rounded-xl bg-rose-600/30 hover:bg-rose-600/50 border border-rose-500/40 text-rose-200 font-bold text-xs transition-all">
-                🔴 Hard (1 day)
-            </button>
-            <button (click)="reviewDeckService.rateCardRecall('good')"
-                class="py-2.5 rounded-xl bg-amber-600/30 hover:bg-amber-600/50 border border-amber-500/40 text-amber-200 font-bold text-xs transition-all">
-                🟡 Good (3 days)
-            </button>
-            <button (click)="reviewDeckService.rateCardRecall('easy')"
-                class="py-2.5 rounded-xl bg-emerald-600/30 hover:bg-emerald-600/50 border border-emerald-500/40 text-emerald-200 font-bold text-xs transition-all">
-                🟢 Easy (7 days)
-            </button>
-        </div>
-
-        <!-- Navigation buttons if front side -->
-        <div *ngIf="!reviewDeckService.isCardFlipped() && reviewDeckService.currentCard()"
-            class="flex items-center justify-between text-xs text-slate-400">
-            <button (click)="reviewDeckService.prevCard()"
-                class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-white">← Previous</button>
-            <span>Tap card to reveal answer</span>
-            <button (click)="reviewDeckService.nextCard()"
-                class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-white">Next →</button>
-        </div>
-
     </div>
-</div>
+}

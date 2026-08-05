@@ -14,22 +14,22 @@ import { InterviewQuestionItem, InterviewSessionMatrix } from '../../../core/mod
   template: `
     <div class="candidate-canvas">
       <!-- Interview Completed Thank You Screen -->
-      <div *ngIf="isInterviewEnded(); else sessionActiveState" class="completed-card card">
-        <span class="done-icon">🎉</span>
-        <h2>Interview Session Completed!</h2>
-        <p class="done-desc">
-          Thank you for participating in your technical interview session for <strong>{{ activeMatrix()?.config?.jobTitle || 'this position' }}</strong>.
-          Your pseudocode, solution notes, and responses have been successfully submitted to the interviewer.
-        </p>
-        <div class="done-meta">
-          <span>✅ Status: Evaluation Submitted</span>
-          <p>You may safely close this browser window now.</p>
+      @if (isInterviewEnded()) {
+        <div class="completed-card card">
+          <span class="done-icon">🎉</span>
+          <h2>Interview Session Completed!</h2>
+          <p class="done-desc">
+            Thank you for participating in your technical interview session for <strong>{{ activeMatrix()?.config?.jobTitle || 'this position' }}</strong>.
+            Your pseudocode, solution notes, and responses have been successfully submitted to the interviewer.
+          </p>
+          <div class="done-meta">
+            <span>✅ Status: Evaluation Submitted</span>
+            <p>You may safely close this browser window now.</p>
+          </div>
         </div>
-      </div>
-
-      <ng-template #sessionActiveState>
+      } @else if (isDeviceLocked()) {
         <!-- Anti-Cheating Device Lock Security Warning -->
-        <div *ngIf="isDeviceLocked(); else mainWorkstation" class="locked-card card">
+        <div class="locked-card card">
           <span class="lock-icon">🚨</span>
           <h2>Access Denied: Active Session on Another Device</h2>
           <p class="lock-desc">
@@ -44,8 +44,7 @@ import { InterviewQuestionItem, InterviewSessionMatrix } from '../../../core/mod
             🔄 Re-check Session Status
           </button>
         </div>
-
-        <ng-template #mainWorkstation>
+      } @else {
         <!-- Top Clean Header for Candidate -->
         <header class="canvas-header">
           <div class="brand">
@@ -64,42 +63,43 @@ import { InterviewQuestionItem, InterviewSessionMatrix } from '../../../core/mod
         </header>
 
         <!-- Main Candidate Workstation -->
-        <main *ngIf="currentQuestion as q; else waitingState" class="canvas-main">
-          <div class="question-container card">
-            <div class="q-meta">
-              <span class="tech-chip">{{ q.technology }}</span>
-              <span class="cat-chip">{{ q.category }}</span>
-              <span class="q-num">Question {{ currentIdx() + 1 }} of {{ totalQuestions }}</span>
-            </div>
-            <h1 class="q-prompt">{{ q.questionText }}</h1>
-
-            <!-- Code Snippet / Context Box -->
-            <div *ngIf="q.contextOrCodeSnippet" class="code-container">
-              <div class="code-header">
-                <span>Code Snippet / Problem Context</span>
+        @if (currentQuestion; as q) {
+          <main class="canvas-main">
+            <div class="question-container card">
+              <div class="q-meta">
+                <span class="tech-chip">{{ q.technology }}</span>
+                <span class="cat-chip">{{ q.category }}</span>
+                <span class="q-num">Question {{ currentIdx() + 1 }} of {{ totalQuestions }}</span>
               </div>
-              <pre><code>{{ q.contextOrCodeSnippet }}</code></pre>
-            </div>
-          </div>
+              <h1 class="q-prompt">{{ q.questionText }}</h1>
 
-          <!-- Candidate Live Code & Scratchpad Editor -->
-          <div class="editor-container card">
-            <div class="editor-header">
-              <span>📝 Candidate Code / Notes Scratchpad</span>
-              <span class="hint-text">Type your solution or pseudocode here</span>
+              <!-- Code Snippet / Context Box -->
+              @if (q.contextOrCodeSnippet) {
+                <div class="code-container">
+                  <div class="code-header">
+                    <span>Code Snippet / Problem Context</span>
+                  </div>
+                  <pre><code>{{ q.contextOrCodeSnippet }}</code></pre>
+                </div>
+              }
             </div>
-            <textarea
-              [(ngModel)]="candidateCode"
-              (input)="onCodeChange()"
-              placeholder="// Write your solution, pseudocode, or architectural notes here..."
-              class="code-editor"
-              rows="16"
-            ></textarea>
-          </div>
-        </main>
-      </ng-template>
 
-        <ng-template #waitingState>
+            <!-- Candidate Live Code & Scratchpad Editor -->
+            <div class="editor-container card">
+              <div class="editor-header">
+                <span>📝 Candidate Code / Notes Scratchpad</span>
+                <span class="hint-text">Type your solution or pseudocode here</span>
+              </div>
+              <textarea
+                [(ngModel)]="candidateCode"
+                (input)="onCodeChange()"
+                placeholder="// Write your solution, pseudocode, or architectural notes here..."
+                class="code-editor"
+                rows="16"
+              ></textarea>
+            </div>
+          </main>
+        } @else {
           <div class="waiting-card card">
             <span class="spinner">⏳</span>
             <h2>Waiting for Interviewer...</h2>
@@ -116,8 +116,8 @@ import { InterviewQuestionItem, InterviewSessionMatrix } from '../../../core/mod
               </button>
             </div>
           </div>
-        </ng-template>
-      </ng-template>
+        }
+      }
     </div>
   `,
   styles: [`

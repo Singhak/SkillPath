@@ -1,110 +1,120 @@
-<div *ngIf="report; else noReport" class="report-wrapper">
-  <!-- Top Action Bar -->
-  <div class="top-bar">
-    <div>
-      <span class="report-badge">Assessment Summary Report</span>
-      <h2 class="candidate-header">{{ report.candidateName }}</h2>
-      <p class="meta-sub">
-        {{ report.jobTitle }} • {{ report.experienceLevel }} • {{ report.date }}
-        <span *ngIf="report.startTimeFormatted">• 🕒 Started {{ report.startTimeFormatted }} (Duration: {{ report.durationFormatted }})</span>
-      </p>
-    </div>
-
-    <div class="action-buttons">
-      <button type="button" class="btn-secondary" (click)="copyReportForHR()">
-        {{ copiedFeedback ? '✓ Copied to Clipboard!' : '📋 Copy Summary for ATS / HR' }}
-      </button>
-      <button type="button" class="btn-secondary" (click)="printReport()">
-        🖨️ Print / Save PDF
-      </button>
-      <button type="button" class="btn-primary" (click)="startNewInterview()">
-        + New Interview Setup
-      </button>
-    </div>
-  </div>
-
-  <!-- Score & Recommendation Hero Banner -->
-  <div class="hero-banner" [ngClass]="recommendationClass">
-    <div class="hero-left">
-      <span class="rec-label">Hiring Decision Recommendation</span>
-      <h1 class="rec-title">{{ report.recommendation }}</h1>
-      <p class="rec-summary">{{ report.summaryFeedback }}</p>
-    </div>
-    <div class="hero-right">
-      <div class="score-circle">
-        <span class="score-num">{{ report.overallScore }}%</span>
-        <span class="score-label">Overall Index</span>
-      </div>
-    </div>
-  </div>
-
-  <!-- Main Report Grid -->
-  <div class="report-grid">
-    <!-- Left: Technology Radar Breakdown -->
-    <div class="card tech-card">
-      <h3>Technology Stack Competency Index</h3>
-      <div class="tech-bar-list">
-        <div *ngFor="let tech of report.technologyScores" class="tech-bar-item">
-          <div class="bar-top">
-            <span class="tech-name">{{ tech.techName }}</span>
-            <span class="tech-score">{{ tech.score }}%</span>
-          </div>
-          <div class="bar-bg">
-            <div
-              class="bar-fill"
-              [style.width.%]="tech.score"
-              [ngClass]="tech.score >= 75 ? 'high' : tech.score >= 55 ? 'mid' : 'low'"
-            ></div>
-          </div>
-        </div>
+@if (report) {
+  <div class="report-wrapper">
+    <!-- Top Action Bar -->
+    <div class="top-bar">
+      <div>
+        <span class="report-badge">Assessment Summary Report</span>
+        <h2 class="candidate-header">{{ report.candidateName }}</h2>
+        <p class="meta-sub">
+          {{ report.jobTitle }} • {{ report.experienceLevel }} • {{ report.date }}
+          @if (report.startTimeFormatted) {
+            <span>• 🕒 Started {{ report.startTimeFormatted }} (Duration: {{ report.durationFormatted }})</span>
+          }
+        </p>
       </div>
 
-      <div class="insights-box">
-        <div class="insight-col">
-          <h4>🌟 Key Strengths</h4>
-          <ul>
-            <li *ngFor="let s of report.strengths">{{ s }}</li>
-          </ul>
-        </div>
-        <div class="insight-col">
-          <h4>🎯 Areas for Improvement</h4>
-          <ul>
-            <li *ngFor="let a of report.areasForImprovement">{{ a }}</li>
-          </ul>
+      <div class="action-buttons">
+        <button type="button" class="btn-secondary" (click)="copyReportForHR()">
+          {{ copiedFeedback ? '✓ Copied to Clipboard!' : '📋 Copy Summary for ATS / HR' }}
+        </button>
+        <button type="button" class="btn-secondary" (click)="printReport()">
+          🖨️ Print / Save PDF
+        </button>
+        <button type="button" class="btn-primary" (click)="startNewInterview()">
+          + New Interview Setup
+        </button>
+      </div>
+    </div>
+
+    <!-- Score & Recommendation Hero Banner -->
+    <div class="hero-banner" [ngClass]="recommendationClass">
+      <div class="hero-left">
+        <span class="rec-label">Hiring Decision Recommendation</span>
+        <h1 class="rec-title">{{ report.recommendation }}</h1>
+        <p class="rec-summary">{{ report.summaryFeedback }}</p>
+      </div>
+      <div class="hero-right">
+        <div class="score-circle">
+          <span class="score-num">{{ report.overallScore }}%</span>
+          <span class="score-label">Overall Index</span>
         </div>
       </div>
     </div>
 
-    <!-- Right: Detailed Question Breakdown & Notes -->
-    <div class="card detail-card">
-      <h3>Question-by-Question Evaluation Log</h3>
-      <div class="q-log-list">
-        <div *ngFor="let item of report.detailedQuestionScores; let i = index" class="q-log-item">
-          <div class="q-log-header">
-            <span class="q-index">Q{{ i + 1 }}</span>
-            <span class="q-tech-tag">{{ item.technology }}</span>
-            <div class="q-score-badge">
-              Rating: {{ item.score }}/5 ⭐
+    <!-- Main Report Grid -->
+    <div class="report-grid">
+      <!-- Left: Technology Radar Breakdown -->
+      <div class="card tech-card">
+        <h3>Technology Stack Competency Index</h3>
+        <div class="tech-bar-list">
+          @for (tech of report.technologyScores; track tech.techName) {
+            <div class="tech-bar-item">
+              <div class="bar-top">
+                <span class="tech-name">{{ tech.techName }}</span>
+                <span class="tech-score">{{ tech.score }}%</span>
+              </div>
+              <div class="bar-bg">
+                <div
+                  class="bar-fill"
+                  [style.width.%]="tech.score"
+                  [ngClass]="tech.score >= 75 ? 'high' : tech.score >= 55 ? 'mid' : 'low'"
+                ></div>
+              </div>
             </div>
+          }
+        </div>
+
+        <div class="insights-box">
+          <div class="insight-col">
+            <h4>🌟 Key Strengths</h4>
+            <ul>
+              @for (s of report.strengths; track s) {
+                <li>{{ s }}</li>
+              }
+            </ul>
           </div>
-          <p class="q-text">{{ item.questionText }}</p>
-          <div class="rubric-match-info">
-            <span class="match-chip">Rubric Match: {{ item.rubricMatchCount }} / {{ item.totalRubricCount }} key concepts</span>
+          <div class="insight-col">
+            <h4>🎯 Areas for Improvement</h4>
+            <ul>
+              @for (a of report.areasForImprovement; track a) {
+                <li>{{ a }}</li>
+              }
+            </ul>
           </div>
-          <div class="notes-quote">
-            <strong>Interviewer Note:</strong> {{ item.notes }}
-          </div>
+        </div>
+      </div>
+
+      <!-- Right: Detailed Question Breakdown & Notes -->
+      <div class="card detail-card">
+        <h3>Question-by-Question Evaluation Log</h3>
+        <div class="q-log-list">
+          @for (item of report.detailedQuestionScores; track $index; let i = $index) {
+            <div class="q-log-item">
+              <div class="q-log-header">
+                <span class="q-index">Q{{ i + 1 }}</span>
+                <span class="q-tech-tag">{{ item.technology }}</span>
+                <div class="q-score-badge">
+                  Rating: {{ item.score }}/5 ⭐
+                </div>
+              </div>
+              <p class="q-text">{{ item.questionText }}</p>
+              <div class="rubric-match-info">
+                <span class="match-chip">Rubric Match: {{ item.rubricMatchCount }} / {{ item.totalRubricCount }} key concepts</span>
+              </div>
+              <div class="notes-quote">
+                <strong>Interviewer Note:</strong> {{ item.notes }}
+              </div>
+            </div>
+          }
         </div>
       </div>
     </div>
   </div>
-</div>
-
-<ng-template #noReport>
+} @else {
   <div class="empty-state card">
     <span class="empty-icon">📊</span>
     <h2>No Report Available</h2>
     <p>Please complete a live interview co-pilot session to view the assessment report.</p>
     <a routerLink="/interviewer-studio" class="btn-primary">Go to Studio Wizard →</a>
   </div>
-</ng-template>
+}
