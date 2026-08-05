@@ -1,5 +1,9 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { AuthService } from '../../core/services/auth.service';
+import { UserResourceService } from '../../core/services/user-resource.service';
+import { PaymentService } from '../../core/services/payment.service';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-pricing',
@@ -123,6 +127,10 @@ import { CommonModule } from '@angular/common';
             <span class="text-gray-400">/mo</span>
           </div>
 
+          <button *ngIf="!hasUsedTrial && !isTrialActive" (click)="startTrial()" class="w-full py-3 px-6 rounded-full font-bold bg-gradient-to-r from-green-400 to-emerald-500 text-white hover:from-green-500 hover:to-emerald-600 transition-colors mb-4 shadow-[0_0_20px_rgba(16,185,129,0.4)]">
+            Start 14-Day Free Trial
+          </button>
+
           <button class="w-full py-3 px-6 rounded-full font-bold bg-white text-blue-900 hover:bg-gray-100 transition-colors mb-8 shadow-[0_0_20px_rgba(255,255,255,0.3)]">
             Go Gold
           </button>
@@ -162,6 +170,50 @@ import { CommonModule } from '@angular/common';
           </div>
         </div>
 
+      </div>
+
+      <!-- Buy AI Credits Section -->
+      <div class="max-w-5xl mx-auto w-full mt-24 relative z-10 px-4">
+        <div class="text-center mb-12">
+          <h2 class="text-3xl font-bold text-white mb-4">Buy AI Credits</h2>
+          <p class="text-gray-400">Need more power right now? Top up your AI credits instantly.</p>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <!-- 1 Credit -->
+          <div class="rounded-2xl bg-white/5 border border-white/10 p-6 flex flex-col items-center hover:bg-white/10 transition-colors">
+             <div class="w-16 h-16 rounded-full bg-blue-500/20 flex items-center justify-center mb-4">
+               <span class="text-2xl font-bold text-blue-400">1</span>
+             </div>
+             <h4 class="text-xl font-semibold text-white mb-2">1 AI Credit</h4>
+             <div class="text-3xl font-bold text-white mb-4">₹5</div>
+             <button (click)="buyCredits(5, 1)" class="w-full py-2 rounded-full font-medium bg-white/10 hover:bg-blue-600 transition-colors">Buy Now</button>
+          </div>
+          
+          <!-- 3 Credits -->
+          <div class="rounded-2xl bg-white/5 border border-purple-500/30 p-6 flex flex-col items-center relative overflow-hidden hover:bg-white/10 transition-colors shadow-[0_0_20px_rgba(168,85,247,0.15)]">
+             <div class="absolute top-0 right-0 bg-purple-500 text-white text-xs font-bold px-3 py-1 rounded-bl-lg">33% OFF</div>
+             <div class="w-16 h-16 rounded-full bg-purple-500/20 flex items-center justify-center mb-4">
+               <span class="text-2xl font-bold text-purple-400">3</span>
+             </div>
+             <h4 class="text-xl font-semibold text-white mb-2">3 AI Credits</h4>
+             <div class="text-3xl font-bold text-white mb-1">₹10</div>
+             <div class="text-sm text-purple-300 line-through mb-4">₹15</div>
+             <button (click)="buyCredits(10, 3)" class="w-full py-2 rounded-full font-medium bg-purple-600 hover:bg-purple-500 transition-colors shadow-lg shadow-purple-500/25">Buy Now</button>
+          </div>
+          
+          <!-- 10 Credits -->
+          <div class="rounded-2xl bg-white/5 border border-cyan-500/30 p-6 flex flex-col items-center relative overflow-hidden hover:bg-white/10 transition-colors shadow-[0_0_20px_rgba(6,182,212,0.15)]">
+             <div class="absolute top-0 right-0 bg-cyan-500 text-white text-xs font-bold px-3 py-1 rounded-bl-lg">50% OFF</div>
+             <div class="w-16 h-16 rounded-full bg-cyan-500/20 flex items-center justify-center mb-4">
+               <span class="text-2xl font-bold text-cyan-400">10</span>
+             </div>
+             <h4 class="text-xl font-semibold text-white mb-2">10 AI Credits</h4>
+             <div class="text-3xl font-bold text-white mb-1">₹25</div>
+             <div class="text-sm text-cyan-300 line-through mb-4">₹50</div>
+             <button (click)="buyCredits(25, 10)" class="w-full py-2 rounded-full font-medium bg-cyan-600 hover:bg-cyan-500 transition-colors shadow-lg shadow-cyan-500/25">Buy Now</button>
+          </div>
+        </div>
       </div>
 
       <!-- Detailed Comparison Table -->
@@ -232,4 +284,52 @@ import { CommonModule } from '@angular/common';
     </div>
   `
 })
-export class PricingComponent {}
+export class PricingComponent {
+  authService = inject(AuthService);
+  userResourceService = inject(UserResourceService);
+  paymentService = inject(PaymentService);
+  router = inject(Router);
+
+  get isTrialActive(): boolean {
+    return this.authService.currentUser()?.isTrialActive || false;
+  }
+
+  get hasUsedTrial(): boolean {
+    return this.authService.currentUser()?.hasUsedTrial || false;
+  }
+
+  startTrial() {
+    if (!this.authService.isAuthenticated()) {
+      this.router.navigate(['/login']);
+      return;
+    }
+    
+    if (this.hasUsedTrial) {
+      alert("You have already used your free trial.");
+      return;
+    }
+
+    this.userResourceService.startFreeTrial().subscribe({
+      next: (res) => {
+        alert("14-Day Free Trial started successfully!");
+        this.authService.updateUserProfile({
+          plan: res.plan,
+          isTrialActive: res.isTrialActive,
+          trialExpiryDate: res.trialExpiryDate,
+          hasUsedTrial: true
+        });
+      },
+      error: (err) => {
+        alert(err.error?.message || "Error starting trial");
+      }
+    });
+  }
+
+  buyCredits(amount: number, credits: number) {
+    if (!this.authService.isAuthenticated()) {
+      this.router.navigate(['/login']);
+      return;
+    }
+    this.paymentService.initiatePayment(amount, credits);
+  }
+}

@@ -27,6 +27,9 @@ export interface User {
   plan?: 'Silver' | 'Copper' | 'Gold';
   subscriptionDate?: string | Date;
   subscriptionExpiryDate?: string | Date;
+  isTrialActive?: boolean;
+  trialExpiryDate?: string | Date;
+  hasUsedTrial?: boolean;
 }
 
 export interface LoginResponse {

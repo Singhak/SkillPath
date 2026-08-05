@@ -46,6 +46,18 @@ export class App {
     }
     return user.name.substring(0, 2).toUpperCase();
   });
+  
+  remainingTrialDays = computed(() => {
+    const user = this.currentUser();
+    if (!user?.isTrialActive || !user?.trialExpiryDate) {
+      return null;
+    }
+    const expiryDate = new Date(user.trialExpiryDate);
+    const today = new Date();
+    const diffTime = expiryDate.getTime() - today.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays > 0 ? diffDays : 0;
+  });
   constructor() {
     this.healthService.pingBackend();
     

@@ -114,4 +114,8 @@ export class UserResourceService {
     this._freeCredits.set(0);
     this._paidCredits.set(0);
   }
+
+  startFreeTrial(): Observable<any> {
+    return this.userService.startFreeTrial();
+  }
 }

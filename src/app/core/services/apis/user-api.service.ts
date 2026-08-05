@@ -41,4 +41,8 @@ export class UserApiService {
   buyAiCreditsWithCoins(credits: number): Observable<{ message: string, coins: number, freeCredits: string, paidCredits: string }> {
     return this.http.post<{ message: string, coins: number, freeCredits: string, paidCredits: string }>(`${this.apiUrl}/credits/buy-with-coins`, { credits });
   }
+
+  startFreeTrial(): Observable<any> {
+    return this.http.post(`${this.apiUrl}/start-trial`, {});
+  }
 }
