@@ -1,4 +1,5 @@
-import { Component, inject, OnDestroy, signal } from '@angular/core';
+import { Component, inject, OnDestroy, signal, DestroyRef } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
   AbstractControl,
   FormBuilder,
@@ -46,6 +47,7 @@ export class LoginComponent implements OnDestroy {
   private router = inject(Router);
   private messageService = inject(MessageService);
   private loggingService = inject(LoggingService);
+  private destroyRef = inject(DestroyRef);
 
   loading = signal(false);
   otpSent = signal(false);
@@ -105,7 +107,10 @@ export class LoginComponent implements OnDestroy {
     this.loggingService.log('Sending OTP to:', emailControl?.value);
     this.loginService
       .sendOtp(emailControl?.value)
-      .pipe(finalize(() => this.loading.set(false)))
+      .pipe(
+        finalize(() => this.loading.set(false)),
+        takeUntilDestroyed(this.destroyRef)
+      )
       .subscribe(() => {
         this.messageService.add({
           severity: 'success',
@@ -143,10 +148,11 @@ export class LoginComponent implements OnDestroy {
         ? this.loginService.loginWithOtp({ emailId, otp })
         : this.loginService.login({ emailId, password });
 
-    login$.pipe(finalize(() => this.loading.set(false))).subscribe({
-      next: () => this.router.navigate(['/dashboard']),
-      // Error is handled by the global interceptor, but you could add specific logic here if needed
-      error: () => {},
+    login$.pipe(
+      finalize(() => this.loading.set(false)),
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe({
+      next: () => this.router.navigate(['/dashboard'])
     });
   }
 

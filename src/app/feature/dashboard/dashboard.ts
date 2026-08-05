@@ -1,5 +1,6 @@
 import { CommonModule } from '@angular/common';
-import { Component, computed, effect, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, effect, inject, OnInit, signal, DestroyRef } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { CardModule } from 'primeng/card';
 import { ChartModule } from 'primeng/chart';
@@ -47,6 +48,7 @@ export class Dashboard implements OnInit {
   public readonly authService = inject(AuthService); // changed to public for html access
   private readonly jobCompetencyService = inject(JobCompetencyService);
   private readonly confirmationService = inject(ConfirmationService);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly quizAttempts = signal<QuizStats[]>([]);
   readonly selectChartCategory = signal('angular');
@@ -250,7 +252,9 @@ export class Dashboard implements OnInit {
 
   ngOnInit(): void {
     this.jobCompetencyService.refreshUserRatings();
-    this.quizApiService.getQuizAttempts().subscribe((attempts: QuizStats[]) => {
+    this.quizApiService.getQuizAttempts().pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe((attempts: QuizStats[]) => {
       this.quizAttempts.set(attempts);
       const categories = [...new Set(attempts.map((item: any) => item.category))] as string[];
       this.categoryList.set(categories);

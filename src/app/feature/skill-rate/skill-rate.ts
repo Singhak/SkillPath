@@ -1,5 +1,6 @@
 import { CommonModule } from '@angular/common';
-import { Component, computed, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, inject, OnInit, signal, DestroyRef } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
 import { ChartModule } from 'primeng/chart';
@@ -46,6 +47,7 @@ export class SkillRate implements OnInit {
   private readonly ratingApiService = inject(RatingApiService);
   private readonly messageService = inject(MessageService);
   private readonly gamificationService = inject(GamificationService);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly selectedSkill = signal('');
   readonly selectedRating = signal<number | null>(null);
@@ -294,7 +296,9 @@ export class SkillRate implements OnInit {
       type: 'SELF',
     };
 
-    this.ratingApiService.createorUpdateSelfRating(nextEntry).subscribe({
+    this.ratingApiService.createorUpdateSelfRating(nextEntry).pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe({
       next: () => {
         this.gamificationService.recordActivity('skill');
         this.messageService.add({

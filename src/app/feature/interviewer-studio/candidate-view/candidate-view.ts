@@ -1,4 +1,5 @@
-import { Component, inject, signal, OnInit, OnDestroy } from '@angular/core';
+import { Component, inject, signal, OnInit, OnDestroy, DestroyRef } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
@@ -393,6 +394,7 @@ import { InterviewQuestionItem, InterviewSessionMatrix } from '../../../core/mod
 export class CandidateViewComponent implements OnInit, OnDestroy {
   readonly copilotService = inject(InterviewerCopilotService);
   private readonly http = inject(HttpClient);
+  private readonly destroyRef = inject(DestroyRef);
 
   activeMatrix = this.copilotService.activeMatrix;
   currentIdx = this.copilotService.currentQuestionIndex;
@@ -456,7 +458,9 @@ export class CandidateViewComponent implements OnInit, OnDestroy {
     this.http.post<any>(`${environment.apiUrl}/interviews/session/${sId}/claim`, {
       candidateDeviceId: this.candidateDeviceId,
       userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : 'Candidate Device',
-    }).subscribe({
+    }).pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe({
       next: (res) => {
         if (res && res.status === 'GRANTED') {
           this.isDeviceLocked.set(false);
@@ -576,7 +580,9 @@ export class CandidateViewComponent implements OnInit, OnDestroy {
       const sId = this.sessionId || this.activeMatrix()?.id;
       if (!sId) return;
 
-      this.http.get<any>(`${environment.apiUrl}/interviews/session/${sId}/sync`).subscribe({
+      this.http.get<any>(`${environment.apiUrl}/interviews/session/${sId}/sync`).pipe(
+        takeUntilDestroyed(this.destroyRef)
+      ).subscribe({
         next: (data) => {
           if (data) {
             if (data.isEnded) {
@@ -616,7 +622,9 @@ export class CandidateViewComponent implements OnInit, OnDestroy {
 
     const sId = this.sessionId || this.activeMatrix()?.id;
     if (sId) {
-      this.http.post(`${environment.apiUrl}/interviews/session/${sId}/sync`, { candidateCode: this.candidateCode }).subscribe({ error: () => {} });
+      this.http.post(`${environment.apiUrl}/interviews/session/${sId}/sync`, { candidateCode: this.candidateCode }).pipe(
+        takeUntilDestroyed(this.destroyRef)
+      ).subscribe();
     }
   }
 

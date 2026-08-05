@@ -176,7 +176,9 @@ export class MockInterviewComponent {
           }
           this.startInterviewWithQuestions(generatedQuestions, topic);
           this.speakQuestion(generatedQuestions[0].question);
-          this.authService.decrementAiCredits(1).subscribe()
+          this.authService.decrementAiCredits(1).pipe(
+            takeUntilDestroyed(this.destroyRef)
+          ).subscribe()
         },
         error: () => {
           this.errorMessage.set('Unable to generate questions right now. Please try again.');
@@ -274,9 +276,14 @@ export class MockInterviewComponent {
       return;
     }
     this.loading.set(true);
-    this.interviewService.sendForEvaluation(resultsWithAns).pipe(finalize(() => this.loading.set(false))).subscribe({
+    this.interviewService.sendForEvaluation(resultsWithAns).pipe(
+      finalize(() => this.loading.set(false)),
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe({
       next: (res) => {
-        this.authService.decrementAiCredits(evaluationCost).subscribe();
+        this.authService.decrementAiCredits(evaluationCost).pipe(
+          takeUntilDestroyed(this.destroyRef)
+        ).subscribe();
         this.endInterview();
       },
       error: (err) => {

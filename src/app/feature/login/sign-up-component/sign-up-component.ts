@@ -1,4 +1,5 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, DestroyRef } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
   FormBuilder,
   FormGroup,
@@ -38,6 +39,7 @@ export class SignUpComponent {
   private loginService = inject(LoginService);
   private router = inject(Router);
   private messageService = inject(MessageService);
+  private destroyRef = inject(DestroyRef);
   form: FormGroup;
   loading = signal(false);
   isRegistered = signal(false);
@@ -66,7 +68,10 @@ export class SignUpComponent {
 
     this.loginService
       .register({ name, emailId, password })
-      .pipe(finalize(() => this.loading.set(false)))
+      .pipe(
+        finalize(() => this.loading.set(false)),
+        takeUntilDestroyed(this.destroyRef)
+      )
       .subscribe(() => {
         this.isRegistered.set(true);
         // Now that we're on the OTP screen, only the OTP field is required for the next step.
@@ -94,7 +99,10 @@ export class SignUpComponent {
 
     this.loginService
       .loginWithOtp({ emailId, otp })
-      .pipe(finalize(() => this.loading.set(false)))
+      .pipe(
+        finalize(() => this.loading.set(false)),
+        takeUntilDestroyed(this.destroyRef)
+      )
       .subscribe(() => {
         this.router.navigate(['/dashboard']);
       });
@@ -102,7 +110,9 @@ export class SignUpComponent {
 
   sendOtp() {
     if(this.resendCooldown() > 0) return;
-    this.loginService.sendOtp(this.form.get('emailId')?.value).subscribe(() => {
+    this.loginService.sendOtp(this.form.get('emailId')?.value).pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(() => {
       this.otpSent.set(true)
       this.messageService.add({
         severity: 'success',

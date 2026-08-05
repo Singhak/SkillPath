@@ -258,7 +258,9 @@ export class InterviewComponent {
         this.voiceService.setStateIdle();
         if (result && Object.keys(result).length > 0) {
           this.voiceService.speak(result.feedback);
-          this.authService.decrementAiCredits(aiCreditCost).subscribe();
+          this.authService.decrementAiCredits(aiCreditCost).pipe(
+            takeUntilDestroyed(this.destroyRef)
+          ).subscribe();
         } else {
           this.messageService.add({
             severity: 'error',

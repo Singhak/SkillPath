@@ -1,5 +1,6 @@
 import { CommonModule } from '@angular/common';
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, inject, OnInit, signal, DestroyRef } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
   FormBuilder,
   FormGroup,
@@ -63,6 +64,7 @@ export class CreateInterviewComponent implements OnInit {
 
   questionCountOptions = [5, 10, 15, 20];
   aiApiService = inject(AiApiService);
+  private readonly destroyRef = inject(DestroyRef);
 
   mode = signal<UploadMode>('text');
 
@@ -131,6 +133,7 @@ export class CreateInterviewComponent implements OnInit {
           });
           return throwError(() => err);
         }),
+        takeUntilDestroyed(this.destroyRef)
       )
       .subscribe((result: any) => {
         const questions = result?.['questions'] ?? [];

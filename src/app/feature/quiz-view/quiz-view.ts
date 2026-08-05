@@ -1,4 +1,5 @@
-import { Component, computed, effect, inject, OnDestroy, OnInit, signal } from '@angular/core';
+import { Component, computed, effect, inject, OnDestroy, OnInit, signal, DestroyRef } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute } from '@angular/router';
 import { TagModule } from 'primeng/tag';
 import { ButtonModule } from 'primeng/button';
@@ -54,6 +55,7 @@ export class QuizView implements OnInit, OnDestroy {
   private readonly reportIssueService = inject(ReportIssueService);
   private readonly route = inject(ActivatedRoute);
   timer = inject(Timer);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly questionCountOptions = [5, 10, 15];
   readonly questionCount = signal<number>(15);
@@ -112,9 +114,9 @@ export class QuizView implements OnInit, OnDestroy {
 
   // region Data Loading and Setup
   private loadInitialData(): void {
-    this.categoryApiService.getCategory().subscribe((categories) => {
+    this.categoryApiService.getCategory().pipe(takeUntilDestroyed(this.destroyRef)).subscribe((categories) => {
       this.allCategories.set(categories);
-      this.route.queryParams.subscribe(params => {
+      this.route.queryParams.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(params => {
         const categoryQuery = params['category'];
         if (categoryQuery) {
           const matchedCategory = categories.find(c => c.category.toLowerCase() === categoryQuery.toLowerCase());
@@ -133,6 +135,7 @@ export class QuizView implements OnInit, OnDestroy {
     if (category) {
       this.questionApiService
         .getQuestions({ category, subCategory: subCategories, questionCount: this.questionCount() })
+        .pipe(takeUntilDestroyed(this.destroyRef))
         .subscribe((quize) => {
           this.quizStatsService.quizId.set(quize.quizId);
           this.quizes.set(quize?.questions ?? []);
@@ -296,6 +299,7 @@ export class QuizView implements OnInit, OnDestroy {
     if (userId) {
       this.userService
         .updateUser(userId, { coins: newTotalCoins, totalQuizAttempted: this.userAttempsCount() + 1 })
+        .pipe(takeUntilDestroyed(this.destroyRef))
         .subscribe({
           next: () => {
             this.authService.updateCoins(newTotalCoins);

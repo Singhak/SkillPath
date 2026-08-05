@@ -1,4 +1,5 @@
-import { computed, inject, Injectable, signal } from '@angular/core';
+import { computed, inject, Injectable, signal, DestroyRef } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Question, QuestionStats } from '../../shared/components/question/question.model';
 import { QuizStats } from '../quiz-view/quiz.model';
 import { QuizApiService } from '../../core/services/apis/quiz-api.service';
@@ -13,6 +14,7 @@ export class QuizStatsService {
   private quizApiService = inject(QuizApiService);
   private questionApiService = inject(QuestionApiService);
   private readonly reviewDeckService = inject(ReviewDeckService);
+  private readonly destroyRef = inject(DestroyRef);
   private readonly questionsStats = signal<QuestionStats[]>([]);
   private quizStats = signal<QuizStats | {}>({});
 
@@ -147,11 +149,15 @@ export class QuizStatsService {
     //   totalTimeTakenInSeconds: this.totalTimeTakenInSeconds(),
     // });
 
-    return this.quizApiService.updateQuizStats(this.quizId()).subscribe();
+    return this.quizApiService.updateQuizStats(this.quizId()).pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe();
   }
 
   createQuestionStats() {
-    return this.questionApiService.createQuestionStats(this.questionsStats()).subscribe();
+    return this.questionApiService.createQuestionStats(this.questionsStats()).pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe();
   }
 }
 

@@ -1,4 +1,5 @@
-import { Component, inject, signal, OnInit, OnDestroy } from '@angular/core';
+import { Component, inject, signal, OnInit, OnDestroy, DestroyRef } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -17,6 +18,7 @@ export class CopilotSessionComponent implements OnInit, OnDestroy {
   readonly copilotService = inject(InterviewerCopilotService);
   private readonly router = inject(Router);
   private readonly http = inject(HttpClient);
+  private readonly destroyRef = inject(DestroyRef);
 
   activeMatrix = this.copilotService.activeMatrix;
   currentIdx = this.copilotService.currentQuestionIndex;
@@ -77,7 +79,9 @@ export class CopilotSessionComponent implements OnInit, OnDestroy {
       const sessionId = this.activeMatrix()?.id;
       if (!sessionId) return;
 
-      this.http.get<any>(`${environment.apiUrl}/interviews/session/${sessionId}/sync`).subscribe({
+      this.http.get<any>(`${environment.apiUrl}/interviews/session/${sessionId}/sync`).pipe(
+        takeUntilDestroyed(this.destroyRef)
+      ).subscribe({
         next: (data) => {
           if (data && typeof data.candidateCode === 'string' && data.candidateCode.trim()) {
             this.candidateCodeSnippet.set(data.candidateCode);
@@ -223,7 +227,9 @@ export class CopilotSessionComponent implements OnInit, OnDestroy {
     const sessionId = this.activeMatrix()?.id;
     if (!sessionId) return;
 
-    this.http.post<any>(`${environment.apiUrl}/interviews/session/${sessionId}/unlock`, {}).subscribe({
+    this.http.post<any>(`${environment.apiUrl}/interviews/session/${sessionId}/unlock`, {}).pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe({
       next: () => {
         this.unlockedDeviceNotice = true;
         setTimeout(() => (this.unlockedDeviceNotice = false), 3500);

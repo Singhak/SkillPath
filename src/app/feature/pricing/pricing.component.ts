@@ -1,4 +1,5 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, DestroyRef } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../core/services/auth.service';
 import { UserResourceService } from '../../core/services/user-resource.service';
@@ -289,6 +290,7 @@ export class PricingComponent {
   userResourceService = inject(UserResourceService);
   paymentService = inject(PaymentService);
   router = inject(Router);
+  destroyRef = inject(DestroyRef);
 
   get isTrialActive(): boolean {
     return this.authService.currentUser()?.isTrialActive || false;
@@ -309,7 +311,9 @@ export class PricingComponent {
       return;
     }
 
-    this.userResourceService.startFreeTrial().subscribe({
+    this.userResourceService.startFreeTrial().pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe({
       next: (res) => {
         alert("14-Day Free Trial started successfully!");
         this.authService.updateUserProfile({
