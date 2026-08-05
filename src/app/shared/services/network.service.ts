@@ -1,5 +1,6 @@
-import { Injectable, signal, computed } from '@angular/core';
+import { Injectable, signal, computed, inject, DestroyRef } from '@angular/core';
 import { HttpBackend, HttpClient } from '@angular/common/http';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { environment } from '../../environments/environment';
 
 @Injectable({
@@ -11,6 +12,7 @@ export class NetworkService {
     private readonly HEALTH_URL = `${environment.apiUrl}/health`;
     // Writable signal
     readonly status = signal<boolean>(navigator.onLine);
+    private readonly destroyRef = inject(DestroyRef);
 
     // Computed signal
     readonly isOnline = computed(() => this.status());
@@ -35,7 +37,9 @@ export class NetworkService {
     }
 
     private checkConnection() {
-        this.http.head(this.HEALTH_URL).subscribe({
+        this.http.head(this.HEALTH_URL).pipe(
+            takeUntilDestroyed(this.destroyRef)
+        ).subscribe({
             next: () => this.status.set(true),
             error: () => this.status.set(false)
         });

@@ -1,4 +1,5 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, DestroyRef } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { SpeechAnalyticsService } from '../../../core/services/speech-analytics.service';
@@ -335,6 +336,7 @@ export class AiToolsWidgetComponent {
   public readonly authService = inject(AuthService);
   private readonly confirmationService = inject(ConfirmationService, { optional: true });
   private readonly router = inject(Router);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly activeTab = signal<'resume' | 'speech' | 'star'>('resume');
   readonly evaluationMode = signal<'instant' | 'ai_groq'>('instant');
@@ -380,6 +382,8 @@ export class AiToolsWidgetComponent {
       this.starCoachService.evaluateWithGroqAi(
         this.behavioralQuestion(),
         this.answerInput(),
+      ).pipe(
+        takeUntilDestroyed(this.destroyRef)
       ).subscribe();
     } else {
       this.starCoachService.evaluateInstant(

@@ -1,4 +1,5 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal, DestroyRef } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { GamificationService } from '../../../core/services/gamification.service';
 import { InterviewReportService } from '../../../core/services/interview-report.service';
@@ -310,6 +311,7 @@ export class GamificationPanelComponent {
   private readonly router = inject(Router);
   private readonly confirmationService = inject(ConfirmationService, { optional: true });
   private readonly messageService = inject(MessageService, { optional: true });
+  private readonly destroyRef = inject(DestroyRef);
   readonly isOnline = computed(() => this.gamificationService.networkService.status());
   readonly filterCategory = signal<string>('all');
   
@@ -395,7 +397,9 @@ export class GamificationPanelComponent {
       return;
     }
 
-    this.authService.buyAiCreditsWithCoins(credits).subscribe({
+    this.authService.buyAiCreditsWithCoins(credits).pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe({
       next: (res) => {
         if (this.messageService) {
           this.messageService.add({
