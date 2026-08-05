@@ -8,6 +8,8 @@ import { ButtonModule } from 'primeng/button';
 import { RippleModule } from 'primeng/ripple';
 import { HealthService } from './core/services/health.service';
 
+import { NativeAppService } from './core/services/native-app.service';
+
 @Component({
   selector: 'app-root',
   standalone: true,
@@ -26,6 +28,7 @@ import { HealthService } from './core/services/health.service';
 export class App {
   private authService = inject(AuthService);
   private healthService = inject(HealthService);
+  private nativeAppService = inject(NativeAppService);
   isWakingUp$ = this.healthService.isWakingUp$;
   isOnline = signal(typeof navigator !== 'undefined' ? navigator.onLine : true);
 
