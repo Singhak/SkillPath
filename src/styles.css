@@ -1301,3 +1301,75 @@ html[data-theme='dark'] .glass-section-card {
   border-color: rgba(255, 255, 255, 0.1);
   box-shadow: 0 12px 35px rgba(0, 0, 0, 0.25);
 }
+
+/* ==========================================================================
+   Common Help & Guide Card Utilities
+   ========================================================================== */
+.help-hero {
+  padding: 3rem 2rem;
+  border-radius: 24px;
+  background: var(--card-bg, #ffffff);
+  border: 1px solid var(--border-color, #e2e8f0);
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.04);
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+:root[class*='p-dark'] .help-hero,
+:root.dark .help-hero,
+html[data-theme='dark'] .help-hero {
+  background: linear-gradient(135deg, rgba(30, 27, 75, 0.7) 0%, rgba(15, 23, 42, 0.85) 100%);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.search-box {
+  position: relative;
+  width: 100%;
+  max-width: 680px;
+  margin: 0.5rem auto 0;
+}
+
+.search-input {
+  width: 100%;
+  padding: 1.1rem 3rem 1.1rem 3.25rem;
+  border-radius: 16px;
+  border: 1.5px solid var(--input-border, #cbd5e1);
+  background: var(--input-bg, #ffffff);
+  color: var(--input-text, #0f172a);
+  font-size: 1rem;
+  outline: none;
+  transition: all 0.3s ease;
+}
+
+.search-input:focus {
+  border-color: var(--primary-accent, #6366f1);
+  box-shadow: 0 0 24px var(--primary-accent-ring, rgba(99, 102, 241, 0.35));
+}
+
+.quick-nav-btn, .filter-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.5rem 1rem;
+  border-radius: 12px;
+  border: 1px solid var(--border-color, #e2e8f0);
+  background: var(--subtle-bg, #f8fafc);
+  color: var(--text-color, #475569);
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.quick-nav-btn:hover, .filter-pill:hover {
+  background: var(--primary-accent-light, rgba(99, 102, 241, 0.1));
+  color: var(--primary-accent, #6366f1);
+}
+
+.quick-nav-btn.active, .filter-pill.active {
+  background: var(--primary-accent-gradient, linear-gradient(135deg, #6366f1, #a855f7));
+  border-color: transparent;
+  color: #ffffff;
+  box-shadow: 0 4px 14px var(--primary-accent-ring, rgba(99, 102, 241, 0.35));
+}

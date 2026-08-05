@@ -43,6 +43,21 @@ export class SettingsComponent {
   readonly newPassword = signal<string>('');
   readonly confirmPassword = signal<string>('');
   readonly isUpdatingPassword = signal<boolean>(false);
+  readonly showCurrentPassword = signal<boolean>(false);
+  readonly showNewPassword = signal<boolean>(false);
+  readonly showConfirmPassword = signal<boolean>(false);
+
+  toggleCurrentPassword(): void {
+    this.showCurrentPassword.set(!this.showCurrentPassword());
+  }
+
+  toggleNewPassword(): void {
+    this.showNewPassword.set(!this.showNewPassword());
+  }
+
+  toggleConfirmPassword(): void {
+    this.showConfirmPassword.set(!this.showConfirmPassword());
+  }
 
   readonly userInitials = computed(() => {
     const user = this.currentUser();

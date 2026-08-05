@@ -7,28 +7,35 @@
     <div class="header-left">
       <div class="avatar-wrapper">
         <div class="user-avatar">{{ userInitials() }}</div>
-        <span class="status-indicator" title="Active Account"></span>
+        <span class="status-indicator-dot" title="Active Account"></span>
       </div>
       <div class="user-details">
         <div class="name-row">
           <h1 class="user-display-name">{{ name() || currentUser()?.name || 'User Settings' }}</h1>
           <span class="role-badge">{{ targetRole() || 'Member' }}</span>
         </div>
-        <p class="user-email-text">{{ email() || currentUser()?.email || 'Manage your preferences and profile details' }}</p>
+        <p class="user-email-text">
+          <i class="pi pi-envelope text-xs opacity-75"></i>
+          {{ email() || currentUser()?.email || 'Manage your preferences and profile details' }}
+        </p>
       </div>
     </div>
 
     <!-- Quick Stats Pills -->
     <div class="header-right">
       <div class="stat-pill">
-        <i class="pi pi-bolt text-amber"></i>
+        <div class="stat-pill-icon amber">
+          <i class="pi pi-bolt"></i>
+        </div>
         <div class="stat-meta">
           <span class="stat-value">{{ authService.freeCredits() }}</span>
-          <span class="stat-label">AI Free Credits</span>
+          <span class="stat-label">Free Credits</span>
         </div>
       </div>
       <div class="stat-pill">
-        <i class="pi pi-star-fill text-indigo"></i>
+        <div class="stat-pill-icon indigo">
+          <i class="pi pi-star-fill"></i>
+        </div>
         <div class="stat-meta">
           <span class="stat-value">{{ authService.userCoins() }}</span>
           <span class="stat-label">Total Coins</span>
@@ -82,7 +89,9 @@
     <section class="tab-content fade-in">
       <div class="section-card">
         <div class="section-title-box">
-          <i class="pi pi-desktop title-icon"></i>
+          <div class="title-icon">
+            <i class="pi pi-desktop"></i>
+          </div>
           <div>
             <h2>Theme Mode</h2>
             <p>Select your preferred color mode for the application layout.</p>
@@ -103,6 +112,8 @@
                 <div class="mode-radio">
                   @if (themeService.mode() === mode.key) {
                     <i class="pi pi-check-circle check-icon"></i>
+                  } @else {
+                    <span class="uncheck-ring"></span>
                   }
                 </div>
               </div>
@@ -116,7 +127,9 @@
       <!-- Accent Color Selection -->
       <div class="section-card">
         <div class="section-title-box">
-          <i class="pi pi-palette title-icon"></i>
+          <div class="title-icon">
+            <i class="pi pi-palette"></i>
+          </div>
           <div>
             <h2>Accent Color Palette</h2>
             <p>Customize primary highlights, buttons, and active indicators.</p>
@@ -144,7 +157,9 @@
       <!-- UI Density Option -->
       <div class="section-card">
         <div class="section-title-box">
-          <i class="pi pi-table title-icon"></i>
+          <div class="title-icon">
+            <i class="pi pi-table"></i>
+          </div>
           <div>
             <h2>Interface Density</h2>
             <p>Adjust padding, font sizes, and layout spacing for your workspace.</p>
@@ -158,7 +173,7 @@
             [class.selected]="themeService.density() === 'comfortable'"
             (click)="selectDensity('comfortable')"
           >
-            <i class="pi pi-th-large"></i>
+            <i class="pi pi-th-large density-icon"></i>
             <div class="density-meta">
               <strong>Comfortable</strong>
               <span>Generous spacing for optimal readability</span>
@@ -171,7 +186,7 @@
             [class.selected]="themeService.density() === 'compact'"
             (click)="selectDensity('compact')"
           >
-            <i class="pi pi-list"></i>
+            <i class="pi pi-list density-icon"></i>
             <div class="density-meta">
               <strong>Compact</strong>
               <span>Dense padding for high information density</span>
@@ -183,7 +198,9 @@
       <!-- Live Theme Preview -->
       <div class="section-card preview-card">
         <div class="section-title-box">
-          <i class="pi pi-eye title-icon"></i>
+          <div class="title-icon">
+            <i class="pi pi-eye"></i>
+          </div>
           <div>
             <h2>Live Theme Preview</h2>
             <p>See how your chosen theme mode and accent color look in real time.</p>
@@ -219,9 +236,12 @@
     <section class="tab-content fade-in">
       <!-- Profile Strength Progress Bar -->
       <div class="section-card profile-banner">
-        <div class="banner-info">
-          <h3>Profile Strength: {{ profileCompletion() }}%</h3>
-          <p>Complete your target role, bio, and skills to personalize AI interviews.</p>
+        <div class="banner-header">
+          <div class="banner-info">
+            <h3>Profile Completion: <strong>{{ profileCompletion() }}%</strong></h3>
+            <p>Complete your target role, bio, and tech stack to personalize AI mock interviews.</p>
+          </div>
+          <span class="completion-pill">{{ profileCompletion() === 100 ? 'Fully Complete' : 'In Progress' }}</span>
         </div>
         <div class="progress-bar-bg">
           <div class="progress-bar-fill" [style.width.%]="profileCompletion()"></div>
@@ -230,7 +250,9 @@
 
       <div class="section-card">
         <div class="section-title-box">
-          <i class="pi pi-id-card title-icon"></i>
+          <div class="title-icon">
+            <i class="pi pi-id-card"></i>
+          </div>
           <div>
             <h2>Personal Information</h2>
             <p>Update your public account profile details and bio.</p>
@@ -340,6 +362,7 @@
               <div class="skills-list">
                 @for (skill of skills(); track skill; let i = $index) {
                   <span class="skill-tag">
+                    <i class="pi pi-code text-xs"></i>
                     {{ skill }}
                     <button type="button" class="remove-skill-btn" (click)="removeSkill(i)">
                       <i class="pi pi-times"></i>
@@ -348,7 +371,7 @@
                 }
               </div>
               <div class="add-skill-row">
-                <div class="input-wrapper">
+                <div class="input-wrapper flex-1">
                   <i class="pi pi-tag input-icon"></i>
                   <input
                     type="text"
@@ -361,7 +384,7 @@
                   />
                 </div>
                 <button type="button" class="add-skill-btn" (click)="addSkill()">
-                  <i class="pi pi-plus"></i> Add
+                  <i class="pi pi-plus"></i> Add Skill
                 </button>
               </div>
             </div>
@@ -382,7 +405,9 @@
     <section class="tab-content fade-in">
       <div class="section-card">
         <div class="section-title-box">
-          <i class="pi pi-microchip-ai title-icon"></i>
+          <div class="title-icon">
+            <i class="pi pi-microchip-ai"></i>
+          </div>
           <div>
             <h2>AI Mock Interview Settings</h2>
             <p>Customize the AI coach difficulty and evaluation depth.</p>
@@ -398,6 +423,7 @@
               [class.active]="aiDifficulty() === 'beginner'"
               (click)="aiDifficulty.set('beginner')"
             >
+              <i class="pi pi-user text-xs"></i>
               Junior / Beginner
             </button>
             <button
@@ -406,6 +432,7 @@
               [class.active]="aiDifficulty() === 'intermediate'"
               (click)="aiDifficulty.set('intermediate')"
             >
+              <i class="pi pi-sliders-h text-xs"></i>
               Mid-Level / Standard
             </button>
             <button
@@ -414,6 +441,7 @@
               [class.active]="aiDifficulty() === 'advanced'"
               (click)="aiDifficulty.set('advanced')"
             >
+              <i class="pi pi-bolt text-xs"></i>
               Senior / Lead Engineer
             </button>
           </div>
@@ -428,6 +456,7 @@
               [class.active]="feedbackDetail() === 'concise'"
               (click)="feedbackDetail.set('concise')"
             >
+              <i class="pi pi-list text-xs"></i>
               Concise Bullet Points
             </button>
             <button
@@ -436,6 +465,7 @@
               [class.active]="feedbackDetail() === 'comprehensive'"
               (click)="feedbackDetail.set('comprehensive')"
             >
+              <i class="pi pi-file-edit text-xs"></i>
               Comprehensive Deep-Dive
             </button>
           </div>
@@ -445,7 +475,9 @@
       <!-- Notification Preferences -->
       <div class="section-card">
         <div class="section-title-box">
-          <i class="pi pi-bell title-icon"></i>
+          <div class="title-icon">
+            <i class="pi pi-bell"></i>
+          </div>
           <div>
             <h2>Notifications & Updates</h2>
             <p>Choose what alerts and digest emails you receive.</p>
@@ -499,57 +531,84 @@
       <!-- Account Overview Card -->
       <div class="section-card">
         <div class="section-title-box">
-          <i class="pi pi-wallet title-icon"></i>
+          <div class="title-icon">
+            <i class="pi pi-wallet"></i>
+          </div>
           <div>
             <h2>Account & Resources Breakdown</h2>
-            <p>View your credits, coins balance, and membership details.</p>
+            <p>View your credits, coin balance, and active subscription details.</p>
           </div>
         </div>
 
+        <!-- 3 Hero Resource Cards -->
         <div class="account-stats-grid">
-          <div class="stat-card">
+          <div class="stat-card stat-card-indigo">
             <div class="stat-icon-wrapper bg-indigo">
               <i class="pi pi-bolt"></i>
             </div>
             <div class="stat-card-meta">
-              <span class="stat-card-val">{{ authService.freeCredits() }}</span>
-              <span class="stat-card-lbl">Free AI Credits</span>
+              <div class="stat-card-val">{{ authService.freeCredits() }}</div>
+              <div class="stat-card-lbl">Free AI Credits</div>
             </div>
+            <span class="stat-card-badge">Daily Refresh</span>
           </div>
 
-          <div class="stat-card">
+          <div class="stat-card stat-card-emerald">
             <div class="stat-icon-wrapper bg-emerald">
               <i class="pi pi-sparkles"></i>
             </div>
             <div class="stat-card-meta">
-              <span class="stat-card-val">{{ authService.paidCredits() }}</span>
-              <span class="stat-card-lbl">Paid AI Credits</span>
+              <div class="stat-card-val">{{ authService.paidCredits() }}</div>
+              <div class="stat-card-lbl">Paid AI Credits</div>
             </div>
+            <span class="stat-card-badge pro">Pro Credits</span>
           </div>
 
-          <div class="stat-card">
+          <div class="stat-card stat-card-amber">
             <div class="stat-icon-wrapper bg-amber">
               <i class="pi pi-star-fill"></i>
             </div>
             <div class="stat-card-meta">
-              <span class="stat-card-val">{{ authService.userCoins() }}</span>
-              <span class="stat-card-lbl">Coins Balance</span>
+              <div class="stat-card-val">{{ authService.userCoins() }}</div>
+              <div class="stat-card-lbl">Coins Balance</div>
             </div>
+            <span class="stat-card-badge gold">Rewards</span>
           </div>
         </div>
 
-        <div class="account-info-list">
-          <div class="info-item">
-            <span class="info-label">User ID</span>
-            <span class="info-value font-mono">{{ currentUser()?.id || 'usr_892347' }}</span>
+        <!-- Account Info Items Grid -->
+        <div class="account-info-grid">
+          <div class="info-card">
+            <div class="info-card-icon">
+              <i class="pi pi-id-card"></i>
+            </div>
+            <div class="info-card-content">
+              <span class="info-label">User ID</span>
+              <span class="info-value font-mono">#{{ currentUser()?.id || '3' }}</span>
+            </div>
           </div>
-          <div class="info-item">
-            <span class="info-label">Member Tier</span>
-            <span class="info-value badge-tier">PRO Learner</span>
+
+          <div class="info-card">
+            <div class="info-card-icon">
+              <i class="pi pi-crown"></i>
+            </div>
+            <div class="info-card-content">
+              <span class="info-label">Member Tier</span>
+              <span class="info-value badge-tier">{{ authService.currentPlan() || 'PRO LEARNER' }}</span>
+            </div>
           </div>
-          <div class="info-item">
-            <span class="info-label">Account Status</span>
-            <span class="info-value text-emerald font-semibold">Active</span>
+
+          <div class="info-card">
+            <div class="info-card-icon">
+              <i class="pi pi-shield-check"></i>
+            </div>
+            <div class="info-card-content">
+              <span class="info-label">Account Status</span>
+              <span class="info-value status-active-badge">
+                <span class="pulse-dot"></span>
+                Active
+              </span>
+            </div>
           </div>
         </div>
       </div>
@@ -557,10 +616,12 @@
       <!-- Password Security Card -->
       <div class="section-card">
         <div class="section-title-box">
-          <i class="pi pi-lock title-icon"></i>
+          <div class="title-icon">
+            <i class="pi pi-lock"></i>
+          </div>
           <div>
             <h2>Security & Password</h2>
-            <p>Update your password to ensure account safety.</p>
+            <p>Update your password to ensure your account remains safe and protected.</p>
           </div>
         </div>
 
@@ -571,13 +632,16 @@
               <i class="pi pi-lock input-icon"></i>
               <input
                 id="currentPass"
-                type="password"
+                [type]="showCurrentPassword() ? 'text' : 'password'"
                 class="form-input"
                 [ngModel]="currentPassword()"
                 (ngModelChange)="currentPassword.set($event)"
                 name="currentPass"
                 placeholder="Enter current password"
               />
+              <button type="button" class="password-toggle-btn" (click)="toggleCurrentPassword()">
+                <i [class]="showCurrentPassword() ? 'pi pi-eye-slash' : 'pi pi-eye'"></i>
+              </button>
             </div>
           </div>
 
@@ -587,13 +651,16 @@
               <i class="pi pi-key input-icon"></i>
               <input
                 id="newPass"
-                type="password"
+                [type]="showNewPassword() ? 'text' : 'password'"
                 class="form-input"
                 [ngModel]="newPassword()"
                 (ngModelChange)="newPassword.set($event)"
                 name="newPass"
                 placeholder="At least 6 characters"
               />
+              <button type="button" class="password-toggle-btn" (click)="toggleNewPassword()">
+                <i [class]="showNewPassword() ? 'pi pi-eye-slash' : 'pi pi-eye'"></i>
+              </button>
             </div>
           </div>
 
@@ -603,13 +670,16 @@
               <i class="pi pi-check-square input-icon"></i>
               <input
                 id="confirmPass"
-                type="password"
+                [type]="showConfirmPassword() ? 'text' : 'password'"
                 class="form-input"
                 [ngModel]="confirmPassword()"
                 (ngModelChange)="confirmPassword.set($event)"
                 name="confirmPass"
                 placeholder="Re-enter new password"
               />
+              <button type="button" class="password-toggle-btn" (click)="toggleConfirmPassword()">
+                <i [class]="showConfirmPassword() ? 'pi pi-eye-slash' : 'pi pi-eye'"></i>
+              </button>
             </div>
           </div>
 
