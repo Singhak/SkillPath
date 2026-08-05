@@ -43,9 +43,8 @@ export class PaymentService {
           }
         };
 
-        if (order.id && order.id.startsWith("order_mock_")) {
+        if (!environment.production && order.id && order.id.startsWith("order_mock_")) {
            // Skip razorpay UI if it's a mock order (for dev without keys)
-           console.log("Mock Order Created, skipping Razorpay UI");
            this.verifyPayment('mock_payment_id', order.id, 'mock_signature', credits);
            return;
         }

@@ -200,7 +200,7 @@ export class QuizView implements OnInit, OnDestroy {
   }
 
   onSubmitClick() {
-    console.log(this.selectedAnswer());
+
     if (!this.selectedAnswer()?.trim()?.length) return;
     this.isSubmited.set(true);
     const quiz = this.currentQuiz();

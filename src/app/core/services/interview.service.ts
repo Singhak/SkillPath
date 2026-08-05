@@ -1,8 +1,6 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { catchError, finalize, of, tap, throwError } from 'rxjs';
 
-import { GroqService } from './groq.service';
-
 import { InterviewResult } from '../models/interview-result.model';
 import { InterviewStore } from '../models/interview-store.model';
 import { InterviewSession } from '../models/interview-session.model';

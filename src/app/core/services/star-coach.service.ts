@@ -1,7 +1,6 @@
 import { Injectable, signal, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, map, catchError, of } from 'rxjs';
-import { GroqService } from './groq.service';
 import { UserResourceService } from './user-resource.service';
 import { environment } from '../../environments/environment';
 
@@ -24,7 +23,6 @@ export interface StarEvaluationResult {
 })
 export class StarCoachService {
   private readonly http = inject(HttpClient);
-  private readonly groqService = inject(GroqService);
   private readonly userResourceService = inject(UserResourceService);
   private readonly apiUrl = `${environment.apiUrl}/ai-evaluations/star`;
 
