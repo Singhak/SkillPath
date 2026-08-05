@@ -5,6 +5,9 @@ import { inject } from '@angular/core';
 import { LoggingService } from '../services/logging.service';
 import { NetworkService } from '../../shared/services/network.service';
 
+const errorCache = new Map<string, number>();
+const THROTTLE_TIME_MS = 3000;
+
 export const globalErrorInterceptor: HttpInterceptorFn = (req, next) => {
   const toastr = inject(MessageService);
   const loggingService = inject(LoggingService);
@@ -12,8 +15,12 @@ export const globalErrorInterceptor: HttpInterceptorFn = (req, next) => {
 
   if (!networkService.status()) {
     const errorMessage = 'No internet connection. Please check your network and try again.';
-    toastr.clear();
-    toastr.add({ severity: 'error', summary: 'Error', detail: errorMessage, life: 3000 });
+    const now = Date.now();
+    const lastSeen = errorCache.get(errorMessage) || 0;
+    if (now - lastSeen > THROTTLE_TIME_MS) {
+      errorCache.set(errorMessage, now);
+      toastr.add({ severity: 'error', summary: 'Error', detail: errorMessage, life: 3000 });
+    }
     return throwError(() => new Error(errorMessage));
   }
 
@@ -54,9 +61,14 @@ export const globalErrorInterceptor: HttpInterceptorFn = (req, next) => {
 
       // Log the error globally to the console or an external tracking service
       loggingService.error('Global Error Handler:', errorMessage);
-      // errorMessage = error.error?.message || errorMessage;
-      toastr.clear();
-      toastr.add({ severity: 'error', summary: 'Error', detail: errorMessage, life: 3000 });
+      
+      const now = Date.now();
+      const lastSeen = errorCache.get(errorMessage) || 0;
+      
+      if (now - lastSeen > THROTTLE_TIME_MS) {
+        errorCache.set(errorMessage, now);
+        toastr.add({ severity: 'error', summary: 'Error', detail: errorMessage, life: 3000 });
+      }
 
       // Pass the error along to the component if it still needs to handle it locally
       return throwError(() => new Error(errorMessage));
