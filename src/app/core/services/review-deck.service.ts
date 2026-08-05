@@ -1,4 +1,5 @@
-import { Injectable, signal, computed, inject } from '@angular/core';
+import { Injectable, signal, computed, inject, DestroyRef } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { HttpClient } from '@angular/common/http';
 import { FlashcardQuestion } from '../models/competency.model';
 import { DEFAULT_FLASHCARDS } from '../../shared/constants';
@@ -10,6 +11,7 @@ import { environment } from '../../environments/environment';
 export class ReviewDeckService {
   private readonly http = inject(HttpClient);
   private readonly apiUrl = `${environment.apiUrl}/review-decks`;
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly flashcards = signal<FlashcardQuestion[]>(DEFAULT_FLASHCARDS);
   readonly selectedDomain = signal<string>('all');
@@ -42,7 +44,9 @@ export class ReviewDeckService {
   }
 
   fetchBackendCards(): void {
-    this.http.get<any[]>(this.apiUrl).subscribe({
+    this.http.get<any[]>(this.apiUrl).pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe({
       next: (cards) => {
         if (cards && cards.length > 0) {
           const mapped = cards.map((c) => ({
@@ -59,8 +63,7 @@ export class ReviewDeckService {
           }));
           this.flashcards.set(mapped);
         }
-      },
-      error: () => { }
+      }
     });
   }
 
@@ -119,7 +122,9 @@ export class ReviewDeckService {
     this.saveToStorage();
     this.nextCard();
 
-    this.http.post<any>(`${this.apiUrl}/${current.id}/recall`, { recallGrade: grade }).subscribe({ error: () => { } });
+    this.http.post<any>(`${this.apiUrl}/${current.id}/recall`, { recallGrade: grade }).pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe();
   }
 
   addFlashcard(cardData: Omit<FlashcardQuestion, 'id' | 'nextReviewDate' | 'intervalDays' | 'repetitionCount'>): void {
@@ -133,7 +138,9 @@ export class ReviewDeckService {
     this.flashcards.update((prev) => [newCard, ...prev]);
     this.saveToStorage();
 
-    this.http.post<any>(this.apiUrl, cardData).subscribe({ error: () => { } });
+    this.http.post<any>(this.apiUrl, cardData).pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe();
   }
 
   private loadFromStorage(): void {

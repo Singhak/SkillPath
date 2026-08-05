@@ -1,4 +1,5 @@
-import { Injectable, signal, inject } from '@angular/core';
+import { Injectable, signal, inject, DestroyRef } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { HttpClient } from '@angular/common/http';
 import { RatingApiService } from './apis/rating-api.service';
 import { environment } from '../../environments/environment';
@@ -34,6 +35,7 @@ export class ResumeParserService {
   private readonly http = inject(HttpClient);
   private readonly ratingApiService = inject(RatingApiService);
   private readonly apiUrl = `${environment.apiUrl}/resumes/parse`;
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly parsedResume = signal<ParsedResumeResult | null>(null);
   readonly isParsing = signal<boolean>(false);
@@ -66,7 +68,9 @@ export class ResumeParserService {
   }
 
   private sendToBackendApi(fileName: string, rawText: string, resolve: (res: ParsedResumeResult) => void): void {
-    this.http.post<ParsedResumeResult>(this.apiUrl, { fileName, rawText }).subscribe({
+    this.http.post<ParsedResumeResult>(this.apiUrl, { fileName, rawText }).pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe({
       next: (parsed) => {
         this.parsedResume.set(parsed);
         this.autoUpdateUserSkills(parsed.extractedSkills);
@@ -167,7 +171,8 @@ export class ResumeParserService {
           rating: 4,
           type: 'SELF',
         })
-        .subscribe({ error: () => { } });
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe();
     }
   }
 }

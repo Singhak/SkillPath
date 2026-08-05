@@ -1,4 +1,5 @@
-import { Injectable, inject } from '@angular/core';
+import { Injectable, inject, DestroyRef } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
@@ -13,10 +14,13 @@ export class PaymentService {
   private http = inject(HttpClient);
   private userResourceService = inject(UserResourceService);
   private apiUrl = `${environment.apiUrl}/payment`;
+  private destroyRef = inject(DestroyRef);
 
   public initiatePayment(amount: number, credits: number): void {
     // 1. Create Order on Backend
-    this.http.post<any>(`${this.apiUrl}/create-order`, { amount, credits }).subscribe({
+    this.http.post<any>(`${this.apiUrl}/create-order`, { amount, credits }).pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe({
       next: (order) => {
         // 2. Initialize Razorpay Checkout
         const options = {
@@ -65,7 +69,9 @@ export class PaymentService {
         razorpay_order_id: orderId,
         razorpay_signature: signature,
         credits: credits
-     }).subscribe({
+     }).pipe(
+        takeUntilDestroyed(this.destroyRef)
+     ).subscribe({
         next: (res: any) => {
            // Update user resource state
            this.userResourceService.updateUserCredits({ paidCredits: res.paidCredits });

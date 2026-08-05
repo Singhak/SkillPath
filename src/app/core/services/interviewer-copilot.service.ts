@@ -1,4 +1,5 @@
-import { Injectable, signal, computed, inject } from '@angular/core';
+import { Injectable, signal, computed, inject, DestroyRef } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../environments/environment';
 import {
@@ -16,6 +17,7 @@ import {
 })
 export class InterviewerCopilotService {
   private readonly http = inject(HttpClient);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly activeMatrix = signal<InterviewSessionMatrix | null>(null);
   readonly currentQuestionIndex = signal<number>(0);
@@ -180,7 +182,7 @@ export class InterviewerCopilotService {
         matrix,
         isSyncEnabled,
         isEnded,
-      }).subscribe({ error: () => {} });
+      }).pipe(takeUntilDestroyed(this.destroyRef)).subscribe();
     }
 
     if (typeof window !== 'undefined' && 'BroadcastChannel' in window) {
@@ -217,7 +219,9 @@ export class InterviewerCopilotService {
 
   private loadSavedTemplates(): void {
     // Fetch team templates from backend API
-    this.http.get<TeamTemplate[]>(`${environment.apiUrl}/interviews/templates`).subscribe({
+    this.http.get<TeamTemplate[]>(`${environment.apiUrl}/interviews/templates`).pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe({
       next: (serverTemplates) => {
         if (serverTemplates && serverTemplates.length > 0) {
           this.teamTemplates.set(serverTemplates);
@@ -247,7 +251,9 @@ export class InterviewerCopilotService {
       localStorage.setItem('skillpath_team_templates', JSON.stringify(customOnly));
     }
     // Async save to backend team template library
-    this.http.post(`${environment.apiUrl}/interviews/templates`, template).subscribe({ error: () => {} });
+    this.http.post(`${environment.apiUrl}/interviews/templates`, template).pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe();
   }
 
   // --- Dynamic Question Matrix Generator ---
@@ -535,7 +541,9 @@ export class InterviewerCopilotService {
     }
 
     // Save report asynchronously to backend API
-    this.http.post(`${environment.apiUrl}/interviews/reports`, report).subscribe({ error: () => {} });
+    this.http.post(`${environment.apiUrl}/interviews/reports`, report).pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe();
 
     return report;
   }
