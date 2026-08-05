@@ -18,13 +18,29 @@ import { Router } from '@angular/router';
       <div class="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-blue-600/20 blur-[120px] pointer-events-none"></div>
       <div class="absolute top-[40%] left-[50%] translate-x-[-50%] w-[30%] h-[30%] rounded-full bg-cyan-600/10 blur-[100px] pointer-events-none"></div>
 
-      <div class="text-center mb-16 relative z-10">
+      <div class="text-center mb-10 relative z-10">
         <h1 class="text-4xl md:text-6xl font-extrabold mb-6 tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600">
           Choose Your Journey
         </h1>
-        <p class="text-gray-400 text-lg max-w-2xl mx-auto">
+        <p class="text-gray-400 text-lg max-w-2xl mx-auto mb-8">
           Unlock the full potential of AI with our flexible pricing plans. Whether you're just starting out or scaling up, we have a plan for you.
         </p>
+
+        <!-- Currency Switcher Toggle -->
+        <div class="inline-flex items-center gap-2 bg-white/5 backdrop-blur-md p-1.5 rounded-full border border-white/10 shadow-inner">
+          <button 
+            (click)="setCurrency('INR')" 
+            [class]="selectedCurrency === 'INR' ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-lg shadow-cyan-500/20' : 'text-gray-400 hover:text-white'"
+            class="px-6 py-2 rounded-full text-sm font-semibold transition-all duration-300 flex items-center gap-2">
+            <span>🇮🇳</span> INR (₹)
+          </button>
+          <button 
+            (click)="setCurrency('USD')" 
+            [class]="selectedCurrency === 'USD' ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-lg shadow-cyan-500/20' : 'text-gray-400 hover:text-white'"
+            class="px-6 py-2 rounded-full text-sm font-semibold transition-all duration-300 flex items-center gap-2">
+            <span>🌐</span> USD ($)
+          </button>
+        </div>
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-7xl mx-auto relative z-10 w-full px-4">
@@ -40,7 +56,7 @@ import { Router } from '@angular/router';
             <span class="text-5xl font-extrabold text-white">Free</span>
           </div>
 
-          <button class="w-full py-3 px-6 rounded-full font-semibold bg-white/10 text-white hover:bg-white/20 transition-colors border border-white/20 mb-8">
+          <button (click)="getStarted()" class="w-full py-3 px-6 rounded-full font-semibold bg-white/10 text-white hover:bg-white/20 transition-colors border border-white/20 mb-8 cursor-pointer">
             Get Started
           </button>
 
@@ -75,11 +91,11 @@ import { Router } from '@angular/router';
           <p class="text-gray-400 text-sm mb-6 h-10">Enhanced features for regular users needing more power.</p>
           
           <div class="mb-8">
-            <span class="text-5xl font-extrabold text-white">₹20</span>
+            <span class="text-5xl font-extrabold text-white">{{ selectedCurrency === 'USD' ? '$0.99' : '₹20' }}</span>
             <span class="text-gray-400">/mo</span>
           </div>
 
-          <button class="w-full py-3 px-6 rounded-full font-semibold bg-gradient-to-r from-orange-500 to-red-500 text-white hover:opacity-90 transition-opacity mb-8 shadow-lg shadow-orange-500/20">
+          <button (click)="subscribePlan('Copper')" class="w-full py-3 px-6 rounded-full font-semibold bg-gradient-to-r from-orange-500 to-red-500 text-white hover:opacity-90 transition-opacity mb-8 shadow-lg shadow-orange-500/20 cursor-pointer">
             Subscribe Now
           </button>
 
@@ -124,17 +140,17 @@ import { Router } from '@angular/router';
           <p class="text-gray-300 text-sm mb-6 h-10">The ultimate experience for professionals and power users.</p>
           
           <div class="mb-8">
-            <span class="text-5xl font-extrabold text-white">₹50</span>
+            <span class="text-5xl font-extrabold text-white">{{ selectedCurrency === 'USD' ? '$2.99' : '₹50' }}</span>
             <span class="text-gray-400">/mo</span>
           </div>
 
           @if (!hasUsedTrial && !isTrialActive) {
-            <button (click)="startTrial()" class="w-full py-3 px-6 rounded-full font-bold bg-gradient-to-r from-green-400 to-emerald-500 text-white hover:from-green-500 hover:to-emerald-600 transition-colors mb-4 shadow-[0_0_20px_rgba(16,185,129,0.4)]">
+            <button (click)="startTrial()" class="w-full py-3 px-6 rounded-full font-bold bg-gradient-to-r from-green-400 to-emerald-500 text-white hover:from-green-500 hover:to-emerald-600 transition-colors mb-4 shadow-[0_0_20px_rgba(16,185,129,0.4)] cursor-pointer">
               Start 14-Day Free Trial
             </button>
           }
 
-          <button class="w-full py-3 px-6 rounded-full font-bold bg-white text-blue-900 hover:bg-gray-100 transition-colors mb-8 shadow-[0_0_20px_rgba(255,255,255,0.3)]">
+          <button (click)="subscribePlan('Gold')" class="w-full py-3 px-6 rounded-full font-bold bg-white text-blue-900 hover:bg-gray-100 transition-colors mb-8 shadow-[0_0_20px_rgba(255,255,255,0.3)] cursor-pointer">
             Go Gold
           </button>
 
@@ -189,8 +205,8 @@ import { Router } from '@angular/router';
                <span class="text-2xl font-bold text-blue-400">1</span>
              </div>
              <h4 class="text-xl font-semibold text-white mb-2">1 AI Credit</h4>
-             <div class="text-3xl font-bold text-white mb-4">₹5</div>
-             <button (click)="buyCredits(5, 1)" class="w-full py-2 rounded-full font-medium bg-white/10 hover:bg-blue-600 transition-colors">Buy Now</button>
+             <div class="text-3xl font-bold text-white mb-4">{{ selectedCurrency === 'USD' ? '$0.25' : '₹5' }}</div>
+             <button (click)="buyCredits(selectedCurrency === 'USD' ? 0.25 : 5, 1)" class="w-full py-2 rounded-full font-medium bg-white/10 hover:bg-blue-600 transition-colors">Buy Now</button>
           </div>
           
           <!-- 3 Credits -->
@@ -200,9 +216,9 @@ import { Router } from '@angular/router';
                <span class="text-2xl font-bold text-purple-400">3</span>
              </div>
              <h4 class="text-xl font-semibold text-white mb-2">3 AI Credits</h4>
-             <div class="text-3xl font-bold text-white mb-1">₹10</div>
-             <div class="text-sm text-purple-300 line-through mb-4">₹15</div>
-             <button (click)="buyCredits(10, 3)" class="w-full py-2 rounded-full font-medium bg-purple-600 hover:bg-purple-500 transition-colors shadow-lg shadow-purple-500/25">Buy Now</button>
+             <div class="text-3xl font-bold text-white mb-1">{{ selectedCurrency === 'USD' ? '$0.50' : '₹10' }}</div>
+             <div class="text-sm text-purple-300 line-through mb-4">{{ selectedCurrency === 'USD' ? '$0.75' : '₹15' }}</div>
+             <button (click)="buyCredits(selectedCurrency === 'USD' ? 0.50 : 10, 3)" class="w-full py-2 rounded-full font-medium bg-purple-600 hover:bg-purple-500 transition-colors shadow-lg shadow-purple-500/25">Buy Now</button>
           </div>
           
           <!-- 10 Credits -->
@@ -212,9 +228,9 @@ import { Router } from '@angular/router';
                <span class="text-2xl font-bold text-cyan-400">10</span>
              </div>
              <h4 class="text-xl font-semibold text-white mb-2">10 AI Credits</h4>
-             <div class="text-3xl font-bold text-white mb-1">₹25</div>
-             <div class="text-sm text-cyan-300 line-through mb-4">₹50</div>
-             <button (click)="buyCredits(25, 10)" class="w-full py-2 rounded-full font-medium bg-cyan-600 hover:bg-cyan-500 transition-colors shadow-lg shadow-cyan-500/25">Buy Now</button>
+             <div class="text-3xl font-bold text-white mb-1">{{ selectedCurrency === 'USD' ? '$1.00' : '₹25' }}</div>
+             <div class="text-sm text-cyan-300 line-through mb-4">{{ selectedCurrency === 'USD' ? '$2.50' : '₹50' }}</div>
+             <button (click)="buyCredits(selectedCurrency === 'USD' ? 1.00 : 25, 10)" class="w-full py-2 rounded-full font-medium bg-cyan-600 hover:bg-cyan-500 transition-colors shadow-lg shadow-cyan-500/25">Buy Now</button>
           </div>
         </div>
       </div>
@@ -232,8 +248,8 @@ import { Router } from '@angular/router';
               <tr>
                 <th scope="col" class="px-6 py-4">Features</th>
                 <th scope="col" class="px-6 py-4 text-center">Silver (Free)</th>
-                <th scope="col" class="px-6 py-4 text-center">Copper (₹20/mo)</th>
-                <th scope="col" class="px-6 py-4 text-center text-blue-400">Gold (₹50/mo)</th>
+                <th scope="col" class="px-6 py-4 text-center">Copper ({{ selectedCurrency === 'USD' ? '$0.99' : '₹20' }}/mo)</th>
+                <th scope="col" class="px-6 py-4 text-center text-blue-400">Gold ({{ selectedCurrency === 'USD' ? '$2.99' : '₹50' }}/mo)</th>
               </tr>
             </thead>
             <tbody>
@@ -294,6 +310,12 @@ export class PricingComponent {
   router = inject(Router);
   destroyRef = inject(DestroyRef);
 
+  selectedCurrency: 'INR' | 'USD' = 'INR';
+
+  setCurrency(currency: 'INR' | 'USD') {
+    this.selectedCurrency = currency;
+  }
+
   get isTrialActive(): boolean {
     return this.authService.currentUser()?.isTrialActive || false;
   }
@@ -331,11 +353,40 @@ export class PricingComponent {
     });
   }
 
+  getStarted() {
+    if (this.authService.isAuthenticated()) {
+      this.router.navigate(['/dashboard']);
+    } else {
+      this.router.navigate(['/login']);
+    }
+  }
+
+  subscribePlan(plan: 'Copper' | 'Gold') {
+    if (!this.authService.isAuthenticated()) {
+      this.router.navigate(['/login']);
+      return;
+    }
+
+    const isUsd = this.selectedCurrency === 'USD';
+    let amount = 0;
+    let credits = 0;
+
+    if (plan === 'Copper') {
+      amount = isUsd ? 0.99 : 20;
+      credits = 10;
+    } else if (plan === 'Gold') {
+      amount = isUsd ? 2.99 : 50;
+      credits = 20;
+    }
+
+    this.paymentService.initiatePayment(amount, credits, this.selectedCurrency, plan);
+  }
+
   buyCredits(amount: number, credits: number) {
     if (!this.authService.isAuthenticated()) {
       this.router.navigate(['/login']);
       return;
     }
-    this.paymentService.initiatePayment(amount, credits);
+    this.paymentService.initiatePayment(amount, credits, this.selectedCurrency);
   }
 }
