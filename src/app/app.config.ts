@@ -1,4 +1,4 @@
-import { ApplicationConfig, provideBrowserGlobalErrorListeners } from '@angular/core';
+import { ApplicationConfig, ErrorHandler, provideBrowserGlobalErrorListeners } from '@angular/core';
 import { provideRouter } from '@angular/router';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { providePrimeNG } from 'primeng/config';
@@ -9,6 +9,7 @@ import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { globalErrorInterceptor } from './core/interceptors/global-error-interceptor';
 import { authInterceptor } from './core/interceptors/auth.interceptor';
 import { provideHighlightOptions } from 'ngx-highlightjs';
+import { GlobalErrorHandlerService } from './core/services/global-error-handler.service';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -36,6 +37,7 @@ export const appConfig: ApplicationConfig = {
     provideHighlightOptions({
       fullLibraryLoader: () => import('highlight.js')
     }),
+    { provide: ErrorHandler, useClass: GlobalErrorHandlerService },
     MessageService
   ]
 };

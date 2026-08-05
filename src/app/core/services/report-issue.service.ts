@@ -4,6 +4,8 @@ import { MessageService } from 'primeng/api';
 import { finalize } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { ReportIssue } from '../../shared/components/report-issue/report-issue.model';
+import { LoggingService } from './logging.service';
+
 export interface ReportIssueConfig {
   title: string;
   issueTypes: string[];
@@ -16,13 +18,13 @@ export interface ReportIssueConfig {
 export class ReportIssueService {
   private http = inject(HttpClient);
   private messanger = inject(MessageService);
+  private loggingService = inject(LoggingService);
   private readonly apiUrl = `${environment.apiUrl}/report-issues`;
 
   displayDialog = signal(false);
   isReporting = signal(false);
   report = signal<Partial<ReportIssue>>({});
   config = signal<Partial<ReportIssueConfig>>({});
-
 
   showDialog(config: ReportIssueConfig) {
     this.config.set(config);
@@ -41,8 +43,18 @@ export class ReportIssueService {
 
   submitReport(report: ReportIssue) {
     this.isReporting.set(true);
+
+    // Attach recent diagnostic logs if available to help developers trace the root cause
+    const recentLogs = this.loggingService.getRecentErrors(10);
+    const enrichedReport = {
+      ...report,
+      description: recentLogs.length > 0 
+        ? `${report.description}\n\n--- Diagnostic Context (Client Logs) ---\n${JSON.stringify(recentLogs, null, 2)}`
+        : report.description,
+    };
+
     this.http
-      .post(this.apiUrl, report)
+      .post(this.apiUrl, enrichedReport)
       .pipe(finalize(() => this.isReporting.set(false)))
       .subscribe({
         next: () => {
@@ -54,6 +66,7 @@ export class ReportIssueService {
           });
         },
         error: (err) => {
+          this.loggingService.error('ReportIssueService', 'Failed to submit issue report', err);
           this.messanger.add({
             severity: 'error',
             summary: 'Error',

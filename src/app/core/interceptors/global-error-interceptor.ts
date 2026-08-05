@@ -27,6 +27,7 @@ export const globalErrorInterceptor: HttpInterceptorFn = (req, next) => {
   return next(req).pipe(
     catchError((error: HttpErrorResponse) => {
       let errorMessage = 'An unknown error occurred!';
+      const requestId = error.headers?.get('x-request-id') || error.error?.requestId || 'N/A';
 
       if (!networkService.status()) {
         errorMessage = 'No internet connection. Please check your network and try again.';
@@ -39,14 +40,14 @@ export const globalErrorInterceptor: HttpInterceptorFn = (req, next) => {
         // Server-side error
         switch (error.status) {
           case 401:
-            if (error.headers.get('x-otp-required')) {
+            if (error.headers?.get('x-otp-required')) {
               errorMessage = 'OTP required for authentication.';
               break;
             }
             errorMessage = 'Unauthorized! Please log in again.';
             break;
           case 403:
-            errorMessage = error.error?.message || 'Forbidden! You do not have permission.';
+            errorMessage = error.error?.message || error.error?.error || 'Forbidden! You do not have permission.';
             break;
           case 404:
             errorMessage = 'Resource not found.';
@@ -55,22 +56,33 @@ export const globalErrorInterceptor: HttpInterceptorFn = (req, next) => {
             errorMessage = 'Internal Server Error. Please try again later.';
             break;
           default:
-            errorMessage = `Server Error Code: ${error.status}\nMessage: ${error.message}`;
+            errorMessage = error.error?.error || error.error?.message || `Server Error Code: ${error.status}`;
         }
       }
 
-      // Log the error globally to the console or an external tracking service
-      loggingService.error('Global Error Handler:', errorMessage);
-      
+      // Log detailed error metrics to LoggingService with correlation request ID
+      loggingService.error('HttpInterceptor', `${req.method} ${req.url} failed (${error.status})`, {
+        url: req.url,
+        method: req.method,
+        status: error.status,
+        statusText: error.statusText,
+        requestId,
+        errorPayload: error.error,
+      });
+
       const now = Date.now();
       const lastSeen = errorCache.get(errorMessage) || 0;
-      
+
       if (now - lastSeen > THROTTLE_TIME_MS) {
         errorCache.set(errorMessage, now);
-        toastr.add({ severity: 'error', summary: 'Error', detail: errorMessage, life: 3000 });
+        toastr.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: requestId !== 'N/A' ? `${errorMessage} (Req ID: ${requestId})` : errorMessage,
+          life: 4000,
+        });
       }
 
-      // Pass the error along to the component if it still needs to handle it locally
       return throwError(() => new Error(errorMessage));
     }),
   );
