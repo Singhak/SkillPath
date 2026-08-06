@@ -24,7 +24,8 @@
           [options]="categories()"
           [(ngModel)]="selectedCategory"
           (onChange)="onCategoryChange()"
-          placeholder="Select a Category">
+          placeholder="Select a Category"
+          appendTo="body">
         </p-select>
       </div>
 
@@ -38,7 +39,8 @@
           [options]="subCategories()"
           [(ngModel)]="selectedSubCategories"
           placeholder="Select Sub-Categories"
-          [style]="{ width: '100%' }">
+          [style]="{ width: '100%' }"
+          appendTo="body">
         </p-multiSelect>
       </div>
 
@@ -50,7 +52,8 @@
           class="field-select"
           [ngModel]="questionCount()"
           (ngModelChange)="questionCount.set(+$event)"
-          [options]="questionCountOptions">
+          [options]="questionCountOptions"
+          appendTo="body">
         </p-select>
       </div>
     </div>

@@ -61,21 +61,21 @@
               <label class="field-label">Experience Level</label>
               <p-autoComplete [(ngModel)]="experienceLevel" [suggestions]="filteredExperienceLevels"
                 (completeMethod)="search($event, experienceLevels, 'experienceLevel')"
-                [dropdown]="true" placeholder="e.g. Senior" class="w-full">
+                [dropdown]="true" placeholder="e.g. Senior" class="w-full" appendTo="body">
               </p-autoComplete>
             </div>
             <div class="field-group">
               <label class="field-label">Your Role</label>
               <p-autoComplete [(ngModel)]="userRole" [suggestions]="filteredUserRoles"
                 (completeMethod)="search($event, userRoles, 'userRole')"
-                [dropdown]="true" placeholder="e.g. Frontend Dev" class="w-full">
+                [dropdown]="true" placeholder="e.g. Frontend Dev" class="w-full" appendTo="body">
               </p-autoComplete>
             </div>
             <div class="field-group">
               <label class="field-label">No. of Questions</label>
               <p-select class="w-full" [ngModel]="questionCount()"
                 (ngModelChange)="questionCount.set(+$event)"
-                [options]="questionCountOptions">
+                [options]="questionCountOptions" appendTo="body">
               </p-select>
             </div>
           </div>

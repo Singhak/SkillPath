@@ -78,18 +78,18 @@
           <label for="experience" class="font-semibold"> Experience Level </label>
           <p-autoComplete formControlName="experienceLevel" [suggestions]="filteredExperienceLevels"
             (completeMethod)="search($event, experienceLevels, 'experienceLevel')" [dropdown]="true"
-            placeholder="Experience Level" class="w-full"></p-autoComplete>
+            placeholder="Experience Level" class="w-full" appendTo="body"></p-autoComplete>
         </span>
         <span>
           <label for="userrole" class="font-semibold"> Role </label>
           <p-autoComplete formControlName="userRole" [suggestions]="filteredUserRoles"
             (completeMethod)="search($event, userRoles, 'userRole')" [dropdown]="true" placeholder="Role"
-            class="w-full"></p-autoComplete>
+            class="w-full" appendTo="body"></p-autoComplete>
         </span>
         <span>
           <label class="font-semibold">Number of questions</label>
           <p-select class="w-full" formControlName="questionCount"
-            [options]="questionCountOptions" />
+            [options]="questionCountOptions" appendTo="body" />
         </span>
       </div>
       <button pButton class="w-full h-14 text-lg font-semibold" label="Generate AI Questions" icon="pi pi-sparkles"
