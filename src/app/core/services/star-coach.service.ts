@@ -86,11 +86,11 @@ export class StarCoachService {
   evaluateWithGroqAi(question: string, answerText: string): Observable<StarEvaluationResult> {
     this.isEvaluatingWithAi.set(true);
 
-    // Deduct 1 AI credit from user balance
-    this.userResourceService.decrementAiCredits(1).subscribe({ error: () => { } });
-
     return this.http.post<any>(this.apiUrl, { question, answer: answerText }).pipe(
       map((res) => {
+        if (res && res.creditsDeducted) {
+          this.userResourceService.fetchCreditsAndCoins().subscribe({ error: () => {} });
+        }
         const result: StarEvaluationResult = {
           overallScore: res.overallScore || 85,
           situationScore: res.situationScore || 85,

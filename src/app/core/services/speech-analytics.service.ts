@@ -373,7 +373,7 @@ export class SpeechAnalyticsService {
         next: (res) => {
           if (res) {
             if (res.creditsDeducted) {
-              this.userResourceService.decrementAiCredits(res.creditsDeducted).subscribe({ error: () => {} });
+              this.userResourceService.fetchCreditsAndCoins().subscribe({ error: () => {} });
             }
             this.speechMetrics.set({
               ...metrics,

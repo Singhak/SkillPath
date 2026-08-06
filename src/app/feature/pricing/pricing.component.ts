@@ -50,7 +50,7 @@ import { Router } from '@angular/router';
           <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-gray-300 to-gray-500 rounded-t-3xl opacity-50"></div>
           
           <h3 class="text-2xl font-bold text-gray-200 mb-2">Silver</h3>
-          <p class="text-gray-400 text-sm mb-6 h-10">Perfect to get started and explore AI capabilities.</p>
+          <p class="text-gray-400 text-sm mb-6 h-10">Perfect to get started and explore basic learning capabilities.</p>
           
           <div class="mb-8">
             <span class="text-5xl font-extrabold text-white">Free</span>
@@ -81,6 +81,14 @@ import { Router } from '@angular/router';
                 <i class="pi pi-check-circle text-green-400 mt-1 mr-3 text-lg"></i>
                 <span>Basic Skill Mastery View</span>
               </li>
+              <li class="flex items-start text-gray-300">
+                <i class="pi pi-check-circle text-green-400 mt-1 mr-3 text-lg"></i>
+                <span>Standard Resume Parsing Cost</span>
+              </li>
+              <li class="flex items-start text-gray-500 line-through">
+                <i class="pi pi-times-circle mt-1 mr-3 text-lg"></i>
+                <span>AI Answer, STAR & Voice Evaluations</span>
+              </li>
               <li class="flex items-start text-gray-500 line-through">
                 <i class="pi pi-times-circle mt-1 mr-3 text-lg"></i>
                 <span>Performance Trends & Charts</span>
@@ -94,7 +102,7 @@ import { Router } from '@angular/router';
           <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-orange-400 to-red-500 rounded-t-3xl opacity-75"></div>
           
           <h3 class="text-2xl font-bold text-orange-400 mb-2">Copper</h3>
-          <p class="text-gray-400 text-sm mb-6 h-10">Enhanced features for regular users needing more power.</p>
+          <p class="text-gray-400 text-sm mb-6 h-10">Enhanced features, AI evaluations & analytics for active learners.</p>
           
           <div class="mb-8">
             <span class="text-5xl font-extrabold text-white">{{ selectedCurrency === 'USD' ? '$0.99' : '₹20' }}</span>
@@ -120,7 +128,15 @@ import { Router } from '@angular/router';
             <ul class="space-y-3">
               <li class="flex items-start text-gray-300">
                 <i class="pi pi-check-circle text-orange-400 mt-1 mr-3 text-lg"></i>
-                <span>5 Additional AI Credits</span>
+                <span>Daily 5 AI Credits</span>
+              </li>
+              <li class="flex items-start text-gray-300">
+                <i class="pi pi-check-circle text-orange-400 mt-1 mr-3 text-lg"></i>
+                <span>10 One-time Bonus AI Credits</span>
+              </li>
+              <li class="flex items-start text-gray-300">
+                <i class="pi pi-check-circle text-orange-400 mt-1 mr-3 text-lg"></i>
+                <span>25% Free AI Credit Rollover</span>
               </li>
               <li class="flex items-start text-gray-300">
                 <i class="pi pi-check-circle text-orange-400 mt-1 mr-3 text-lg"></i>
@@ -128,15 +144,19 @@ import { Router } from '@angular/router';
               </li>
               <li class="flex items-start text-gray-300">
                 <i class="pi pi-check-circle text-orange-400 mt-1 mr-3 text-lg"></i>
-                <span>Rollover 25% of free AI credit</span>
+                <span>AI Answer, STAR & Voice Evaluations</span>
               </li>
               <li class="flex items-start text-gray-300">
                 <i class="pi pi-check-circle text-orange-400 mt-1 mr-3 text-lg"></i>
-                <span>Performance Trends Chart</span>
+                <span>Resume Parsing Discount (1 Credit Off)</span>
               </li>
               <li class="flex items-start text-gray-300">
                 <i class="pi pi-check-circle text-orange-400 mt-1 mr-3 text-lg"></i>
-                <span>Category Distribution Analytics</span>
+                <span>Performance Trends & Analytics</span>
+              </li>
+              <li class="flex items-start text-gray-500 line-through">
+                <i class="pi pi-times-circle mt-1 mr-3 text-lg"></i>
+                <span>Spaced Repetition & Interview Studio</span>
               </li>
             </ul>
           </div>
@@ -153,7 +173,7 @@ import { Router } from '@angular/router';
           <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-400 to-cyan-300 rounded-t-3xl"></div>
           
           <h3 class="text-2xl font-bold text-blue-300 mb-2">Gold</h3>
-          <p class="text-gray-300 text-sm mb-6 h-10">The ultimate experience for professionals and power users.</p>
+          <p class="text-gray-300 text-sm mb-6 h-10">The ultimate experience with Interviewer Studio, Review Decks & Skill Gap Insights.</p>
           
           <div class="mb-8">
             <span class="text-5xl font-extrabold text-white">{{ selectedCurrency === 'USD' ? '$2.99' : '₹50' }}</span>
@@ -181,11 +201,19 @@ import { Router } from '@angular/router';
             <ul class="space-y-3">
               <li class="flex items-start text-white">
                 <i class="pi pi-star-fill text-yellow-400 mt-1 mr-3 text-lg"></i>
-                <span class="font-medium">Take Interview Session</span>
+                <span class="font-medium">Take Interview Session (Interviewer Studio)</span>
               </li>
               <li class="flex items-start text-white">
                 <i class="pi pi-check-circle text-blue-400 mt-1 mr-3 text-lg"></i>
-                <span>15 Additional AI Credits</span>
+                <span>Daily 5 AI Credits</span>
+              </li>
+              <li class="flex items-start text-white">
+                <i class="pi pi-check-circle text-blue-400 mt-1 mr-3 text-lg"></i>
+                <span>20 One-time Bonus AI Credits</span>
+              </li>
+              <li class="flex items-start text-white">
+                <i class="pi pi-check-circle text-blue-400 mt-1 mr-3 text-lg"></i>
+                <span>50% Free AI Credit Rollover (Maximum)</span>
               </li>
               <li class="flex items-start text-white">
                 <i class="pi pi-check-circle text-blue-400 mt-1 mr-3 text-lg"></i>
@@ -193,11 +221,7 @@ import { Router } from '@angular/router';
               </li>
               <li class="flex items-start text-white">
                 <i class="pi pi-check-circle text-blue-400 mt-1 mr-3 text-lg"></i>
-                <span>Rollover 50% of free AI credit</span>
-              </li>
-              <li class="flex items-start text-white">
-                <i class="pi pi-check-circle text-blue-400 mt-1 mr-3 text-lg"></i>
-                <span>PDF Evaluation Reports</span>
+                <span>Max Resume Parsing Discount (2 Credits Off)</span>
               </li>
               <li class="flex items-start text-white">
                 <i class="pi pi-check-circle text-blue-400 mt-1 mr-3 text-lg"></i>
@@ -205,7 +229,11 @@ import { Router } from '@angular/router';
               </li>
               <li class="flex items-start text-white">
                 <i class="pi pi-check-circle text-blue-400 mt-1 mr-3 text-lg"></i>
-                <span>Detailed Candidate Reports</span>
+                <span>Skill Gap Analysis & Target Role Insights</span>
+              </li>
+              <li class="flex items-start text-white">
+                <i class="pi pi-check-circle text-blue-400 mt-1 mr-3 text-lg"></i>
+                <span>PDF Evaluation & Detailed Candidate Reports</span>
               </li>
             </ul>
           </div>
@@ -270,22 +298,28 @@ import { Router } from '@angular/router';
               <tr>
                 <th scope="col" class="px-6 py-4">Features</th>
                 <th scope="col" class="px-6 py-4 text-center">Silver (Free)</th>
-                <th scope="col" class="px-6 py-4 text-center">Copper ({{ selectedCurrency === 'USD' ? '$0.99' : '₹20' }}/mo)</th>
+                <th scope="col" class="px-6 py-4 text-center text-orange-400">Copper ({{ selectedCurrency === 'USD' ? '$0.99' : '₹20' }}/mo)</th>
                 <th scope="col" class="px-6 py-4 text-center text-blue-400">Gold ({{ selectedCurrency === 'USD' ? '$2.99' : '₹50' }}/mo)</th>
               </tr>
             </thead>
             <tbody>
               <tr class="border-b border-white/5 hover:bg-white/5 transition-colors">
                 <th scope="row" class="px-6 py-4 font-medium text-gray-200">Daily AI Credits</th>
-                <td class="px-6 py-4 text-center">5</td>
-                <td class="px-6 py-4 text-center">10 (5 base + 5 extra)</td>
-                <td class="px-6 py-4 text-center">20 (5 base + 15 extra)</td>
+                <td class="px-6 py-4 text-center">5 Daily Credits</td>
+                <td class="px-6 py-4 text-center font-medium text-orange-400">5 Daily Credits</td>
+                <td class="px-6 py-4 text-center font-medium text-blue-400">5 Daily Credits</td>
+              </tr>
+              <tr class="border-b border-white/5 hover:bg-white/5 transition-colors">
+                <th scope="row" class="px-6 py-4 font-medium text-gray-200">One-Time Subscription Bonus</th>
+                <td class="px-6 py-4 text-center text-gray-600">-</td>
+                <td class="px-6 py-4 text-center font-medium text-orange-400">+10 Credits (One-Time)</td>
+                <td class="px-6 py-4 text-center font-medium text-blue-400">+20 Credits (One-Time)</td>
               </tr>
               <tr class="border-b border-white/5 hover:bg-white/5 transition-colors">
                 <th scope="row" class="px-6 py-4 font-medium text-gray-200">Credit Rollover</th>
                 <td class="px-6 py-4 text-center text-gray-600">-</td>
-                <td class="px-6 py-4 text-center">25%</td>
-                <td class="px-6 py-4 text-center">50%</td>
+                <td class="px-6 py-4 text-center font-medium text-orange-400">25% Rollover</td>
+                <td class="px-6 py-4 text-center font-medium text-blue-400">50% Rollover (Max)</td>
               </tr>
               <tr class="border-b border-white/5 hover:bg-white/5 transition-colors">
                 <th scope="row" class="px-6 py-4 font-medium text-gray-200">Coin to AI Credit Conversion</th>
@@ -294,10 +328,16 @@ import { Router } from '@angular/router';
                 <td class="px-6 py-4 text-center font-medium text-blue-400">30 Coins = 1 Credit</td>
               </tr>
               <tr class="border-b border-white/5 hover:bg-white/5 transition-colors">
-                <th scope="row" class="px-6 py-4 font-medium text-gray-200">Take Interview Session</th>
-                <td class="px-6 py-4 text-center text-gray-600">-</td>
+                <th scope="row" class="px-6 py-4 font-medium text-gray-200">AI Answer, STAR & Voice Evaluations</th>
                 <td class="px-6 py-4 text-center text-gray-600">-</td>
                 <td class="px-6 py-4 text-center"><i class="pi pi-check text-green-400"></i></td>
+                <td class="px-6 py-4 text-center"><i class="pi pi-check text-green-400"></i></td>
+              </tr>
+              <tr class="border-b border-white/5 hover:bg-white/5 transition-colors">
+                <th scope="row" class="px-6 py-4 font-medium text-gray-200">Resume Parsing Discount</th>
+                <td class="px-6 py-4 text-center">Standard Cost</td>
+                <td class="px-6 py-4 text-center font-medium text-orange-400">1 Credit Off</td>
+                <td class="px-6 py-4 text-center font-medium text-blue-400">2 Credits Off</td>
               </tr>
               <tr class="border-b border-white/5 hover:bg-white/5 transition-colors">
                 <th scope="row" class="px-6 py-4 font-medium text-gray-200">Performance Trends & Charts</th>
@@ -306,13 +346,25 @@ import { Router } from '@angular/router';
                 <td class="px-6 py-4 text-center"><i class="pi pi-check text-green-400"></i></td>
               </tr>
               <tr class="border-b border-white/5 hover:bg-white/5 transition-colors">
-                <th scope="row" class="px-6 py-4 font-medium text-gray-200">PDF Evaluation Reports</th>
+                <th scope="row" class="px-6 py-4 font-medium text-gray-200">Skill Gap Analysis & Target Role Insights</th>
+                <td class="px-6 py-4 text-center text-gray-600">-</td>
+                <td class="px-6 py-4 text-center text-gray-600">-</td>
+                <td class="px-6 py-4 text-center"><i class="pi pi-check text-green-400"></i></td>
+              </tr>
+              <tr class="border-b border-white/5 hover:bg-white/5 transition-colors">
+                <th scope="row" class="px-6 py-4 font-medium text-gray-200">Spaced Repetition Review Deck</th>
+                <td class="px-6 py-4 text-center text-gray-600">-</td>
+                <td class="px-6 py-4 text-center text-gray-600">-</td>
+                <td class="px-6 py-4 text-center"><i class="pi pi-check text-green-400"></i></td>
+              </tr>
+              <tr class="border-b border-white/5 hover:bg-white/5 transition-colors">
+                <th scope="row" class="px-6 py-4 font-medium text-gray-200">Take Interview Session (Interviewer Studio)</th>
                 <td class="px-6 py-4 text-center text-gray-600">-</td>
                 <td class="px-6 py-4 text-center text-gray-600">-</td>
                 <td class="px-6 py-4 text-center"><i class="pi pi-check text-green-400"></i></td>
               </tr>
               <tr class="hover:bg-white/5 transition-colors">
-                <th scope="row" class="px-6 py-4 font-medium text-gray-200">Spaced Repetition Review Deck</th>
+                <th scope="row" class="px-6 py-4 font-medium text-gray-200">PDF & Detailed Candidate Reports</th>
                 <td class="px-6 py-4 text-center text-gray-600">-</td>
                 <td class="px-6 py-4 text-center text-gray-600">-</td>
                 <td class="px-6 py-4 text-center"><i class="pi pi-check text-green-400"></i></td>

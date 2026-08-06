@@ -636,7 +636,7 @@ export class AiToolsWidgetComponent implements OnInit {
     if (input.files && input.files[0]) {
       const res = await this.resumeService.parseResumeFile(input.files[0]);
       if (res && res.creditsDeducted) {
-        this.userResourceService.decrementAiCredits(res.creditsDeducted).subscribe({ error: () => {} });
+        this.userResourceService.fetchCreditsAndCoins().subscribe({ error: () => {} });
       }
     }
   }
@@ -645,7 +645,7 @@ export class AiToolsWidgetComponent implements OnInit {
     if (this.resumeService.isParsing() || !this.pastedText || !this.pastedText.trim()) return;
     const res = await this.resumeService.parseRawText(this.pastedText.trim());
     if (res && res.creditsDeducted) {
-      this.userResourceService.decrementAiCredits(res.creditsDeducted).subscribe({ error: () => {} });
+      this.userResourceService.fetchCreditsAndCoins().subscribe({ error: () => {} });
     }
   }
 
