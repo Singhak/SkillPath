@@ -56,9 +56,15 @@ import { Router } from '@angular/router';
             <span class="text-5xl font-extrabold text-white">Free</span>
           </div>
 
-          <button (click)="getStarted()" class="w-full py-3 px-6 rounded-full font-semibold bg-white/10 text-white hover:bg-white/20 transition-colors border border-white/20 mb-8 cursor-pointer">
-            Get Started
-          </button>
+          @if (isCurrentPlan('Silver')) {
+            <button disabled class="w-full py-3 px-6 rounded-full font-semibold bg-white/10 text-emerald-400 border border-emerald-500/30 mb-8 cursor-not-allowed opacity-90 flex items-center justify-center gap-2">
+              <i class="pi pi-check-circle text-emerald-400"></i> Current Active Plan
+            </button>
+          } @else {
+            <button (click)="getStarted()" class="w-full py-3 px-6 rounded-full font-semibold bg-white/10 text-white hover:bg-white/20 transition-colors border border-white/20 mb-8 cursor-pointer">
+              Get Started
+            </button>
+          }
 
           <div class="space-y-4">
             <p class="font-semibold text-gray-300 uppercase tracking-wider text-xs mb-4">What's included</p>
@@ -95,9 +101,19 @@ import { Router } from '@angular/router';
             <span class="text-gray-400">/mo</span>
           </div>
 
-          <button (click)="subscribePlan('Copper')" class="w-full py-3 px-6 rounded-full font-semibold bg-gradient-to-r from-orange-500 to-red-500 text-white hover:opacity-90 transition-opacity mb-8 shadow-lg shadow-orange-500/20 cursor-pointer">
-            Subscribe Now
-          </button>
+          @if (isCurrentPlan('Copper')) {
+            <button disabled class="w-full py-3 px-6 rounded-full font-semibold bg-amber-500/20 text-amber-300 border border-amber-500/40 mb-8 cursor-not-allowed opacity-90 flex items-center justify-center gap-2">
+              <i class="pi pi-check-circle text-amber-400"></i> Current Active Plan
+            </button>
+          } @else if (isCurrentPlan('Gold')) {
+            <button disabled class="w-full py-3 px-6 rounded-full font-semibold bg-white/5 text-gray-400 border border-white/10 mb-8 cursor-not-allowed opacity-60 flex items-center justify-center gap-2">
+              Included in Gold Plan
+            </button>
+          } @else {
+            <button (click)="subscribePlan('Copper')" class="w-full py-3 px-6 rounded-full font-semibold bg-gradient-to-r from-orange-500 to-red-500 text-white hover:opacity-90 transition-opacity mb-8 shadow-lg shadow-orange-500/20 cursor-pointer">
+              Subscribe Now
+            </button>
+          }
 
           <div class="space-y-4">
             <p class="font-semibold text-gray-300 uppercase tracking-wider text-xs mb-4">Everything in Silver, plus:</p>
@@ -144,15 +160,21 @@ import { Router } from '@angular/router';
             <span class="text-gray-400">/mo</span>
           </div>
 
-          @if (!hasUsedTrial && !isTrialActive) {
-            <button (click)="startTrial()" class="w-full py-3 px-6 rounded-full font-bold bg-gradient-to-r from-green-400 to-emerald-500 text-white hover:from-green-500 hover:to-emerald-600 transition-colors mb-4 shadow-[0_0_20px_rgba(16,185,129,0.4)] cursor-pointer">
-              Start 14-Day Free Trial
+          @if (isCurrentPlan('Gold')) {
+            <button disabled class="w-full py-3 px-6 rounded-full font-bold bg-blue-500/20 text-blue-200 border border-blue-400/50 mb-8 cursor-not-allowed opacity-90 flex items-center justify-center gap-2">
+              <i class="pi pi-check-circle text-blue-400"></i> Current Active Plan {{ isTrialActive ? '(Free Trial)' : '' }}
+            </button>
+          } @else {
+            @if (!hasUsedTrial && !isTrialActive) {
+              <button (click)="startTrial()" class="w-full py-3 px-6 rounded-full font-bold bg-gradient-to-r from-green-400 to-emerald-500 text-white hover:from-green-500 hover:to-emerald-600 transition-colors mb-4 shadow-[0_0_20px_rgba(16,185,129,0.4)] cursor-pointer">
+                Start 14-Day Free Trial
+              </button>
+            }
+
+            <button (click)="subscribePlan('Gold')" class="w-full py-3 px-6 rounded-full font-bold bg-white text-blue-900 hover:bg-gray-100 transition-colors mb-8 shadow-[0_0_20px_rgba(255,255,255,0.3)] cursor-pointer">
+              Go Gold
             </button>
           }
-
-          <button (click)="subscribePlan('Gold')" class="w-full py-3 px-6 rounded-full font-bold bg-white text-blue-900 hover:bg-gray-100 transition-colors mb-8 shadow-[0_0_20px_rgba(255,255,255,0.3)] cursor-pointer">
-            Go Gold
-          </button>
 
           <div class="space-y-4">
             <p class="font-semibold text-blue-200 uppercase tracking-wider text-xs mb-4">Everything in Copper, plus:</p>
@@ -361,9 +383,27 @@ export class PricingComponent {
     }
   }
 
+  get currentPlan(): 'Silver' | 'Copper' | 'Gold' {
+    return (this.authService.currentPlan() || 'Silver') as 'Silver' | 'Copper' | 'Gold';
+  }
+
+  isCurrentPlan(plan: 'Silver' | 'Copper' | 'Gold'): boolean {
+    return this.currentPlan.toLowerCase() === plan.toLowerCase();
+  }
+
   subscribePlan(plan: 'Copper' | 'Gold') {
     if (!this.authService.isAuthenticated()) {
       this.router.navigate(['/login']);
+      return;
+    }
+
+    if (this.isCurrentPlan(plan)) {
+      alert(`You are already subscribed to the ${plan} Plan.`);
+      return;
+    }
+
+    if (this.isCurrentPlan('Gold') && plan === 'Copper') {
+      alert(`You already have active Gold membership which includes all Copper features.`);
       return;
     }
 
