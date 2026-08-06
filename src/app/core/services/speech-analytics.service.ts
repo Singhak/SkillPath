@@ -28,6 +28,7 @@ export class SpeechAnalyticsService {
 
   private recognition: any = null;
   private startTime: number = 0;
+  private finalizedText: string = '';
 
   constructor() {
     this.initWebSpeechAPI();
@@ -43,21 +44,39 @@ export class SpeechAnalyticsService {
         this.recognition.lang = 'en-US';
 
         this.recognition.onresult = (event: any) => {
-          let transcript = '';
-          for (let i = event.resultIndex; i < event.results.length; i++) {
-            transcript += event.results[i][0].transcript;
+          let currentSessionText = '';
+          for (let i = 0; i < event.results.length; i++) {
+            currentSessionText += event.results[i][0].transcript;
           }
-          this.liveTranscript.set(transcript);
+          const fullText = (this.finalizedText ? this.finalizedText + ' ' : '') + currentSessionText;
+          this.liveTranscript.set(fullText);
         };
 
-        this.recognition.onerror = () => {
-          this.isRecording.set(false);
+        this.recognition.onend = () => {
+          this.finalizedText = this.liveTranscript();
+          if (this.isRecording()) {
+            try {
+              this.recognition.start();
+            } catch {
+              // already running or stopped
+            }
+          }
+        };
+
+        this.recognition.onerror = (event: any) => {
+          if (event?.error === 'no-speech' && this.isRecording()) {
+            return;
+          }
+          if (event?.error !== 'no-speech') {
+            this.isRecording.set(false);
+          }
         };
       }
     }
   }
 
   startRecording(): void {
+    this.finalizedText = '';
     this.liveTranscript.set('');
     this.speechMetrics.set(null);
     this.startTime = Date.now();

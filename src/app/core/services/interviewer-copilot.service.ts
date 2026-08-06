@@ -80,6 +80,7 @@ export class InterviewerCopilotService {
 
   private syncChannel: BroadcastChannel | null = null;
   private speechRecognition: any = null;
+  private copilotFinalizedText: string = '';
 
   constructor() {
     this.initSyncChannel();
@@ -305,16 +306,33 @@ export class InterviewerCopilotService {
         this.speechRecognition.lang = 'en-US';
 
         this.speechRecognition.onresult = (event: any) => {
-          let transcript = '';
-          for (let i = event.resultIndex; i < event.results.length; i++) {
-            transcript += event.results[i][0].transcript;
+          let currentSessionText = '';
+          for (let i = 0; i < event.results.length; i++) {
+            currentSessionText += event.results[i][0].transcript;
           }
-          this.liveTranscript.set(transcript);
-          this.matchTranscriptWithActiveRubrics(transcript.toLowerCase());
+          const fullText = (this.copilotFinalizedText ? this.copilotFinalizedText + ' ' : '') + currentSessionText;
+          this.liveTranscript.set(fullText);
+          this.matchTranscriptWithActiveRubrics(fullText.toLowerCase());
         };
 
-        this.speechRecognition.onerror = () => {
-          this.speechAssistActive.set(false);
+        this.speechRecognition.onend = () => {
+          this.copilotFinalizedText = this.liveTranscript();
+          if (this.speechAssistActive()) {
+            try {
+              this.speechRecognition.start();
+            } catch {
+              // already active or stopped
+            }
+          }
+        };
+
+        this.speechRecognition.onerror = (event: any) => {
+          if (event?.error === 'no-speech' && this.speechAssistActive()) {
+            return;
+          }
+          if (event?.error !== 'no-speech') {
+            this.speechAssistActive.set(false);
+          }
         };
       }
     }
@@ -326,6 +344,7 @@ export class InterviewerCopilotService {
 
     if (newState && this.speechRecognition) {
       try {
+        this.copilotFinalizedText = '';
         this.liveTranscript.set('');
         this.speechRecognition.start();
       } catch {
