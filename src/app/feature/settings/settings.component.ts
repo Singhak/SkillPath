@@ -6,6 +6,7 @@ import { ToastModule } from 'primeng/toast';
 import { AuthService } from '../../core/services/auth.service';
 import { ThemeService, ThemeMode, AccentColor, UiDensity } from '../../core/services/theme.service';
 import { User } from '../../core/models/user.model';
+import { AI_CREDIT_COST } from '../../shared/constants';
 
 @Component({
   selector: 'app-settings',
@@ -20,6 +21,7 @@ export class SettingsComponent {
   private readonly messageService = inject(MessageService);
 
   readonly activeTab = signal<'appearance' | 'profile' | 'preferences' | 'account'>('appearance');
+  readonly creditCosts = AI_CREDIT_COST;
 
   // User Profile Signals
   readonly currentUser = this.authService.currentUser;

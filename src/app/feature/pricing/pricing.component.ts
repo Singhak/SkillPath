@@ -284,13 +284,94 @@ import { Router } from '@angular/router';
           </div>
         </div>
 
-        <!-- AI Credit Usage Rates Breakdown -->
-        <div class="mt-8 p-4 rounded-xl bg-white/5 border border-white/10 text-center">
-          <p class="text-xs font-semibold text-gray-300 uppercase tracking-wider mb-2">⚡ Simple Per-Unit AI Credit Rates</p>
-          <div class="flex flex-wrap justify-center gap-6 text-sm text-gray-400">
-            <span>🎯 <strong>Question Generation:</strong> 0.20 Credits / question</span>
-            <span>✍️ <strong>Answer / Voice Evaluation:</strong> 0.25 Credits / answer</span>
-            <span>📄 <strong>AI PDF Candidate Report:</strong> 1.00 Credit / report</span>
+        <!-- AI Credit Usage Rates Breakdown Matrix -->
+        <div class="mt-12 p-6 md:p-8 rounded-3xl backdrop-blur-xl bg-white/5 border border-white/10">
+          <div class="text-center mb-6">
+            <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20 mb-2 uppercase tracking-wider">
+              ⚡ Fee Schedule
+            </span>
+            <h3 class="text-2xl font-bold text-white">AI Credit Charge Matrix</h3>
+            <p class="text-gray-400 text-sm mt-1">Simple transparent per-action credit deductions across all AI services</p>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div class="p-4 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-between hover:border-cyan-500/30 transition-all">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-cyan-500/10 text-cyan-400 flex items-center justify-center font-bold">🎯</div>
+                <div>
+                  <div class="font-semibold text-sm text-gray-200">Question Generation</div>
+                  <div class="text-xs text-gray-400">Mock AI Interview</div>
+                </div>
+              </div>
+              <span class="px-2.5 py-1 rounded-full text-xs font-bold bg-amber-500/20 text-amber-300 border border-amber-400/30">
+                ⚡ 0.20 / Q
+              </span>
+            </div>
+
+            <div class="p-4 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-between hover:border-purple-500/30 transition-all">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-purple-500/10 text-purple-400 flex items-center justify-center font-bold">✍️</div>
+                <div>
+                  <div class="font-semibold text-sm text-gray-200">Answer Evaluation</div>
+                  <div class="text-xs text-gray-400">STAR & AI Feedback</div>
+                </div>
+              </div>
+              <span class="px-2.5 py-1 rounded-full text-xs font-bold bg-amber-500/20 text-amber-300 border border-amber-400/30">
+                ⚡ 0.25 / Ans
+              </span>
+            </div>
+
+            <div class="p-4 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-between hover:border-blue-500/30 transition-all">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-blue-500/10 text-blue-400 flex items-center justify-center font-bold">📄</div>
+                <div>
+                  <div class="font-semibold text-sm text-gray-200">AI PDF Report</div>
+                  <div class="text-xs text-gray-400">Candidate Evaluation Export</div>
+                </div>
+              </div>
+              <span class="px-2.5 py-1 rounded-full text-xs font-bold bg-amber-500/20 text-amber-300 border border-amber-400/30">
+                ⚡ 1.00 / Report
+              </span>
+            </div>
+
+            <div class="p-4 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-between hover:border-emerald-500/30 transition-all">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center font-bold">🔍</div>
+                <div>
+                  <div class="font-semibold text-sm text-gray-200">Job Profile Analysis</div>
+                  <div class="text-xs text-gray-400">Interview Studio & JD Match</div>
+                </div>
+              </div>
+              <span class="px-2.5 py-1 rounded-full text-xs font-bold bg-amber-500/20 text-amber-300 border border-amber-400/30">
+                ⚡ 2.00 / Job
+              </span>
+            </div>
+
+            <div class="p-4 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-between hover:border-cyan-500/30 transition-all">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-cyan-500/10 text-cyan-400 flex items-center justify-center font-bold">🎤</div>
+                <div>
+                  <div class="font-semibold text-sm text-gray-200">Speech Analytics</div>
+                  <div class="text-xs text-gray-400">Fluency & Tone Feedback</div>
+                </div>
+              </div>
+              <span class="px-2.5 py-1 rounded-full text-xs font-bold bg-amber-500/20 text-amber-300 border border-amber-400/30">
+                ⚡ 1.00 / Session
+              </span>
+            </div>
+
+            <div class="p-4 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-between hover:border-rose-500/30 transition-all">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-rose-500/10 text-rose-400 flex items-center justify-center font-bold">🤖</div>
+                <div>
+                  <div class="font-semibold text-sm text-gray-200">Resume Parsing</div>
+                  <div class="text-xs text-gray-400">ATS Skills Extraction</div>
+                </div>
+              </div>
+              <span class="px-2.5 py-1 rounded-full text-xs font-bold bg-amber-500/20 text-amber-300 border border-amber-400/30">
+                ⚡ 2 - 5 / File
+              </span>
+            </div>
           </div>
         </div>
       </div>

@@ -94,13 +94,22 @@
             (onSelect)="onFileSelect($event)" chooseLabel="Or Upload a .txt File" />
           }
 
-          <button pButton class="start-mock-btn" (click)="generateQuestions()" [disabled]="loading()">
+          <button pButton class="start-mock-btn flex items-center justify-center gap-2" (click)="generateQuestions()" [disabled]="loading()">
             @if (loading()) {
-            <i class="pi pi-spin pi-spinner"></i>
-            Generating Questions...
+              <i class="pi pi-spin pi-spinner"></i>
+              Generating Questions...
             } @else {
-            <i class="pi pi-play"></i>
-            Start Mock Interview
+              <i class="pi pi-play"></i>
+              <span>Start Mock Interview</span>
+              @if (source() === 'ai') {
+                <span class="ml-2 px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-400/20 text-amber-300 border border-amber-400/30">
+                  ⚡ {{ estimatedCreditCost() }} Credits
+                </span>
+              } @else {
+                <span class="ml-2 px-2 py-0.5 rounded-full text-xs font-bold bg-emerald-400/20 text-emerald-300 border border-emerald-400/30">
+                  Free
+                </span>
+              }
             }
           </button>
 

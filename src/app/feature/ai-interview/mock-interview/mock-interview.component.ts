@@ -95,6 +95,12 @@ export class MockInterviewComponent {
   readonly successMessage = signal('');
   readonly loading = signal(false);
 
+  readonly creditCostConst = AI_CREDIT_COST;
+  readonly estimatedCreditCost = computed(() => {
+    if (this.source() === 'upload') return 0;
+    return Number((this.questionCount() * AI_CREDIT_COST.QUESTION_GENERATION).toFixed(2));
+  });
+
   constructor() {
 
     this.voiceState$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((state) => {

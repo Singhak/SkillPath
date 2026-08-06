@@ -58,13 +58,16 @@
           </div>
         </div>
 
-        <button pButton class="start-btn" (click)="startInterview()" [disabled]="!topic().trim() || loading()">
+        <button pButton class="start-btn flex items-center justify-center gap-2" (click)="startInterview()" [disabled]="!topic().trim() || loading()">
           @if (loading()) {
-          <i class="pi pi-spin pi-spinner"></i>
-          <span>Generating Questions...</span>
+            <i class="pi pi-spin pi-spinner"></i>
+            <span>Generating Questions...</span>
           } @else {
-          <i class="pi pi-play"></i>
-          <span>Start AI Interview</span>
+            <i class="pi pi-play"></i>
+            <span>Start AI Interview</span>
+            <span class="ml-2 px-2 py-0.5 rounded-full text-xs font-bold bg-amber-400/20 text-amber-300 border border-amber-400/30">
+              ⚡ {{ (questionCount() * 0.20).toFixed(2) }} Credits
+            </span>
           }
         </button>
 
@@ -142,7 +145,7 @@
         } @else {
         <p-button label="Start Speaking" icon="pi pi-microphone" (click)="startRecording()"
           [disabled]="evaluating()" />
-        <p-button label="Evaluate Answer" icon="pi pi-check-circle" severity="warn"
+        <p-button label="Evaluate Answer (⚡ 0.25 Credits)" icon="pi pi-check-circle" severity="warn"
           (click)="stopRecordingAndEvaluate()"
           [disabled]="evaluating() || !userAnswer().trim()" />
         }

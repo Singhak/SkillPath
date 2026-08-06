@@ -250,5 +250,6 @@ export class InterviewReportService {
     printWindow.document.open();
     printWindow.document.write(htmlContent);
     printWindow.document.close();
+    return true;
   }
 }
