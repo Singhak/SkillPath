@@ -106,6 +106,7 @@ export const routes: Routes = [
           ),
       },
     ],
+    canActivate: [authGuard],
   },
   {
     path: 'candidate-view',

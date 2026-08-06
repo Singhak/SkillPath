@@ -45,4 +45,12 @@ export class UserApiService {
   startFreeTrial(): Observable<{ message: string, user: User }> {
     return this.http.post<{ message: string, user: User }>(`${this.apiUrl}/start-trial`, {});
   }
+
+  getCreditHistory(limit = 50, offset = 0): Observable<{ count: number; rows: any[] }> {
+    return this.http.get<{ count: number; rows: any[] }>(`${this.apiUrl}/credit-history?limit=${limit}&offset=${offset}`);
+  }
+
+  getPurchaseHistory(limit = 50, offset = 0): Observable<{ count: number; rows: any[] }> {
+    return this.http.get<{ count: number; rows: any[] }>(`${this.apiUrl}/purchase-history?limit=${limit}&offset=${offset}`);
+  }
 }
