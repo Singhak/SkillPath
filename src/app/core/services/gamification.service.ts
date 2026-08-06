@@ -155,6 +155,7 @@ export class GamificationService {
           if (s.longestStreak != null && s.longestStreak > this.longestStreak()) this.longestStreak.set(s.longestStreak);
         }
 
+        this.userResourceService.fetchCreditsAndCoins().subscribe({ error: () => {} });
         this.lastSyncedAt.set(new Date().toLocaleTimeString());
         this.isSyncing.set(false);
 
@@ -251,9 +252,14 @@ export class GamificationService {
     // Award bonus coins on level up
     if (this.level() > previousLevel) {
       const bonusCoins = (this.level() - previousLevel) * 20;
-      this.userResourceService.updateUserCredits({
-        coins: this.userResourceService.userCoins() + bonusCoins,
-      });
+      const newTotal = this.userResourceService.userCoins() + bonusCoins;
+      const userStr = localStorage.getItem('currentUser');
+      const userId = userStr ? JSON.parse(userStr).id : null;
+      if (userId) {
+        this.userResourceService.updateCoins(userId, newTotal).subscribe({ error: () => {} });
+      } else {
+        this.userResourceService.updateUserCredits({ coins: newTotal });
+      }
     }
   }
 

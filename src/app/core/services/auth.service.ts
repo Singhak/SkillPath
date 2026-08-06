@@ -69,7 +69,20 @@ export class AuthService {
   }
 
   updateCoins(newCoinTotal: number): void {
-    this.userResourceService.updateUserCredits({ coins: newCoinTotal });
+    const user = this._currentUser();
+    if (user && user.id) {
+      this.userResourceService.updateCoins(user.id, newCoinTotal).subscribe({
+        error: () => {
+          this.userResourceService.updateUserCredits({ coins: newCoinTotal });
+        }
+      });
+    } else {
+      this.userResourceService.updateUserCredits({ coins: newCoinTotal });
+    }
+  }
+
+  refreshCreditsAndCoins(): Observable<any> {
+    return this.userResourceService.fetchCreditsAndCoins();
   }
 
   decrementAiCredits(amount: number): Observable<{ message: string, freeCredits: string, paidCredits: string }> {
@@ -78,7 +91,6 @@ export class AuthService {
         const user = this._currentUser();
         if (user) {
           this._currentUser.set(user);
-          this.userResourceService.updateUserCredits({ freeCredits: updatedUser.freeCredits, paidCredits: updatedUser.paidCredits });
         }
       }),
     );
