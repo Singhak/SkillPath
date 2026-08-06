@@ -32,6 +32,8 @@ import { InterviewQuestion } from '../../../core/models/interview-question.model
 import { InputTextModule } from 'primeng/inputtext';
 import { SelectModule } from 'primeng/select';
 
+import { UserResourceService } from '../../../core/services/user-resource.service';
+
 type UploadMode = 'text' | 'upload';
 
 @Component({
@@ -58,6 +60,7 @@ type UploadMode = 'text' | 'upload';
 export class CreateInterviewComponent implements OnInit {
   messageService = inject(MessageService);
   private readonly router = inject(Router);
+  private readonly userResourceService = inject(UserResourceService);
   readonly userRoles = USER_ROLES;
   readonly experienceLevels = EXPERIENCE_LEVELS;
   readonly stepstoFollow = INTERVIEW_STEPS;
@@ -129,7 +132,7 @@ export class CreateInterviewComponent implements OnInit {
           this.messageService.add({
             severity: 'error',
             summary: 'Error',
-            detail: 'Failed to generate questions. Please try again.',
+            detail: err.error?.message || err.error?.error || 'Failed to generate questions. Please try again.',
           });
           return throwError(() => err);
         }),
@@ -140,6 +143,7 @@ export class CreateInterviewComponent implements OnInit {
         this.technicalQuestions = questions.filter((q: any) => q.type === 'technical');
         this.behaviouralQuestions = questions.filter((q: any) => q.type === 'behavioral');
         this.scenarioQuestions = questions.filter((q: any) => q.type === 'scenario');
+        this.userResourceService.fetchCreditsAndCoins().subscribe({ error: () => {} });
         this.messageService.add({
           severity: 'success',
           summary: 'Success',
@@ -171,6 +175,15 @@ export class CreateInterviewComponent implements OnInit {
     }
     if (category == 'experienceLevel') this.filteredExperienceLevels = filtered;
     else if (category == 'userRole') this.filteredUserRoles = filtered;
+  }
+
+  getSeverity(level: string): 'success' | 'warn' | 'danger' | 'info' {
+    if (!level) return 'info';
+    const l = level.toLowerCase();
+    if (l.includes('easy') || l.includes('basic') || l.includes('beginner')) return 'success';
+    if (l.includes('medium') || l.includes('intermediate')) return 'warn';
+    if (l.includes('hard') || l.includes('advanced') || l.includes('expert')) return 'danger';
+    return 'info';
   }
 
   practiceGeneratedQuestions() {

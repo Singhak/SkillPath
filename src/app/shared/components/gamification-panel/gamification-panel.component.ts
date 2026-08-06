@@ -112,7 +112,7 @@ import { FormsModule } from '@angular/forms';
             (click)="generateAndDownloadReport()"
             class="px-3.5 py-2 rounded-xl bg-indigo-600/30 hover:bg-indigo-600/50 border border-indigo-400/30 text-indigo-200 hover:text-white font-medium text-xs flex items-center space-x-2 transition-all shadow-md active:scale-95 relative"
           >
-            @if (authService.currentPlan() !== 'Gold') {
+            @if (authService.currentPlan() !== 'Copper') {
               <span class="absolute -top-2 -right-2 bg-rose-500 rounded-full w-5 h-5 flex items-center justify-center border border-white text-[10px]">
                 <i class="pi pi-lock"></i>
               </span>
@@ -338,10 +338,10 @@ export class GamificationPanelComponent {
   }
 
   generateAndDownloadReport(): void {
-    if (this.authService.currentPlan() !== 'Gold') {
+    if (this.authService.currentPlan() !== 'Copper') {
       if (this.confirmationService) {
         this.confirmationService.confirm({
-          message: 'PDF Evaluation Reports require the Gold plan. Would you like to upgrade your plan?',
+          message: 'PDF Evaluation Reports require the Copper plan. Would you like to upgrade your plan?',
           header: 'Upgrade Required',
           icon: 'pi pi-lock',
           acceptLabel: 'View Plans',

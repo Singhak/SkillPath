@@ -327,9 +327,9 @@ import { Router } from '@angular/router';
                 <td class="px-6 py-4 text-center font-medium text-orange-400">50 Coins = 1 Credit</td>
                 <td class="px-6 py-4 text-center font-medium text-blue-400">30 Coins = 1 Credit</td>
               </tr>
-              <tr class="border-b border-white/5 hover:bg-white/5 transition-colors">
-                <th scope="row" class="px-6 py-4 font-medium text-gray-200">AI Answer, STAR & Voice Evaluations</th>
-                <td class="px-6 py-4 text-center text-gray-600">-</td>
+              <tr class="border-b border-white/5 hover:bg-white/5 transition-colors bg-orange-500/10">
+                <th scope="row" class="px-6 py-4 font-medium text-amber-300">Job Profile & AI Evaluations (STAR, Voice & Answer)</th>
+                <td class="px-6 py-4 text-center text-gray-400 font-medium">Requires Copper or Gold</td>
                 <td class="px-6 py-4 text-center"><i class="pi pi-check text-green-400"></i></td>
                 <td class="px-6 py-4 text-center"><i class="pi pi-check text-green-400"></i></td>
               </tr>
@@ -341,32 +341,32 @@ import { Router } from '@angular/router';
               </tr>
               <tr class="border-b border-white/5 hover:bg-white/5 transition-colors">
                 <th scope="row" class="px-6 py-4 font-medium text-gray-200">Performance Trends & Charts</th>
-                <td class="px-6 py-4 text-center text-gray-600">-</td>
+                <td class="px-6 py-4 text-center"><i class="pi pi-check text-green-400"></i></td>
                 <td class="px-6 py-4 text-center"><i class="pi pi-check text-green-400"></i></td>
                 <td class="px-6 py-4 text-center"><i class="pi pi-check text-green-400"></i></td>
               </tr>
               <tr class="border-b border-white/5 hover:bg-white/5 transition-colors">
                 <th scope="row" class="px-6 py-4 font-medium text-gray-200">Skill Gap Analysis & Target Role Insights</th>
-                <td class="px-6 py-4 text-center text-gray-600">-</td>
-                <td class="px-6 py-4 text-center text-gray-600">-</td>
+                <td class="px-6 py-4 text-center"><i class="pi pi-check text-green-400"></i></td>
+                <td class="px-6 py-4 text-center"><i class="pi pi-check text-green-400"></i></td>
                 <td class="px-6 py-4 text-center"><i class="pi pi-check text-green-400"></i></td>
               </tr>
               <tr class="border-b border-white/5 hover:bg-white/5 transition-colors">
                 <th scope="row" class="px-6 py-4 font-medium text-gray-200">Spaced Repetition Review Deck</th>
-                <td class="px-6 py-4 text-center text-gray-600">-</td>
-                <td class="px-6 py-4 text-center text-gray-600">-</td>
+                <td class="px-6 py-4 text-center"><i class="pi pi-check text-green-400"></i></td>
+                <td class="px-6 py-4 text-center"><i class="pi pi-check text-green-400"></i></td>
                 <td class="px-6 py-4 text-center"><i class="pi pi-check text-green-400"></i></td>
               </tr>
               <tr class="border-b border-white/5 hover:bg-white/5 transition-colors">
                 <th scope="row" class="px-6 py-4 font-medium text-gray-200">Take Interview Session (Interviewer Studio)</th>
-                <td class="px-6 py-4 text-center text-gray-600">-</td>
-                <td class="px-6 py-4 text-center text-gray-600">-</td>
+                <td class="px-6 py-4 text-center"><i class="pi pi-check text-green-400"></i></td>
+                <td class="px-6 py-4 text-center"><i class="pi pi-check text-green-400"></i></td>
                 <td class="px-6 py-4 text-center"><i class="pi pi-check text-green-400"></i></td>
               </tr>
               <tr class="hover:bg-white/5 transition-colors">
                 <th scope="row" class="px-6 py-4 font-medium text-gray-200">PDF & Detailed Candidate Reports</th>
-                <td class="px-6 py-4 text-center text-gray-600">-</td>
-                <td class="px-6 py-4 text-center text-gray-600">-</td>
+                <td class="px-6 py-4 text-center"><i class="pi pi-check text-green-400"></i></td>
+                <td class="px-6 py-4 text-center"><i class="pi pi-check text-green-400"></i></td>
                 <td class="px-6 py-4 text-center"><i class="pi pi-check text-green-400"></i></td>
               </tr>
             </tbody>
