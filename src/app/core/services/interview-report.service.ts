@@ -2,12 +2,17 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { InterviewReportData } from '../models/achievement.model';
 import { environment } from '../../environments/environment';
+import { UserResourceService } from './user-resource.service';
+import { AuthService } from './auth.service';
+import { AI_CREDIT_COST } from '../../shared/constants';
 
 @Injectable({
   providedIn: 'root',
 })
 export class InterviewReportService {
   private readonly http = inject(HttpClient);
+  private readonly userResourceService = inject(UserResourceService);
+  private readonly authService = inject(AuthService);
   private readonly apiUrl = `${environment.apiUrl}/interviews/reports`;
 
   /**
@@ -69,10 +74,22 @@ export class InterviewReportService {
 
   /**
    * Triggers client-side print/PDF download using standard browser print engine
+   * Checks and deducts AI credit cost (1.00 AI Credit per PDF evaluation report)
    */
-  downloadPdfReport(report: InterviewReportData): void {
+  downloadPdfReport(report: InterviewReportData): boolean {
+    const requiredCredits = AI_CREDIT_COST.AI_PDF_REPORT_GENERATION;
+    const availableCredits = (this.userResourceService.freeCredits() || 0) + (this.userResourceService.paidCredits() || 0);
+
+    if (availableCredits < requiredCredits) {
+      alert(`Insufficient AI Credits. Generating an AI PDF Evaluation Report requires ${requiredCredits} AI Credit(s). Available: ${availableCredits}`);
+      return false;
+    }
+
+    // Deduct AI Credit for report generation
+    this.authService.decrementAiCredits(requiredCredits).subscribe();
+
     const printWindow = window.open('', '_blank');
-    if (!printWindow) return;
+    if (!printWindow) return false;
 
     const htmlContent = `
       <!DOCTYPE html>

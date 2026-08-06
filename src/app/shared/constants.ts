@@ -69,9 +69,10 @@ export function levelToWeight(level: string) {
 }
 
 export const AI_CREDIT_COST = {
-  QUESTION_GENERATION: .20,
-  QUESTION_EVALUATION: .25,
-  JOB_PROFILE_ANALYSIS: 2
+  QUESTION_GENERATION: 0.20,
+  QUESTION_EVALUATION: 0.25,
+  AI_PDF_REPORT_GENERATION: 1.00,
+  JOB_PROFILE_ANALYSIS: 2.00
 };
 
 export const INITIAL_ACHIEVEMENTS: Achievement[] = [

@@ -283,6 +283,16 @@ import { Router } from '@angular/router';
              <button (click)="buyCredits(selectedCurrency === 'USD' ? 1.00 : 25, 10)" class="w-full py-2 rounded-full font-medium bg-cyan-600 hover:bg-cyan-500 transition-colors shadow-lg shadow-cyan-500/25">Buy Now</button>
           </div>
         </div>
+
+        <!-- AI Credit Usage Rates Breakdown -->
+        <div class="mt-8 p-4 rounded-xl bg-white/5 border border-white/10 text-center">
+          <p class="text-xs font-semibold text-gray-300 uppercase tracking-wider mb-2">⚡ Simple Per-Unit AI Credit Rates</p>
+          <div class="flex flex-wrap justify-center gap-6 text-sm text-gray-400">
+            <span>🎯 <strong>Question Generation:</strong> 0.20 Credits / question</span>
+            <span>✍️ <strong>Answer / Voice Evaluation:</strong> 0.25 Credits / answer</span>
+            <span>📄 <strong>AI PDF Candidate Report:</strong> 1.00 Credit / report</span>
+          </div>
+        </div>
       </div>
 
       <!-- Detailed Comparison Table -->
@@ -359,15 +369,15 @@ import { Router } from '@angular/router';
               </tr>
               <tr class="border-b border-white/5 hover:bg-white/5 transition-colors">
                 <th scope="row" class="px-6 py-4 font-medium text-gray-200">Take Interview Session (Interviewer Studio)</th>
-                <td class="px-6 py-4 text-center"><i class="pi pi-check text-green-400"></i></td>
-                <td class="px-6 py-4 text-center"><i class="pi pi-check text-green-400"></i></td>
-                <td class="px-6 py-4 text-center"><i class="pi pi-check text-green-400"></i></td>
+                <td class="px-6 py-4 text-center text-gray-600">-</td>
+                <td class="px-6 py-4 text-center text-gray-600">-</td>
+                <td class="px-6 py-4 text-center font-medium text-blue-400"><i class="pi pi-check text-green-400"></i></td>
               </tr>
               <tr class="hover:bg-white/5 transition-colors">
                 <th scope="row" class="px-6 py-4 font-medium text-gray-200">PDF & Detailed Candidate Reports</th>
-                <td class="px-6 py-4 text-center"><i class="pi pi-check text-green-400"></i></td>
-                <td class="px-6 py-4 text-center"><i class="pi pi-check text-green-400"></i></td>
-                <td class="px-6 py-4 text-center"><i class="pi pi-check text-green-400"></i></td>
+                <td class="px-6 py-4 text-center text-gray-600">-</td>
+                <td class="px-6 py-4 text-center text-gray-600">-</td>
+                <td class="px-6 py-4 text-center font-medium text-blue-400"><i class="pi pi-check text-green-400"></i></td>
               </tr>
             </tbody>
           </table>
