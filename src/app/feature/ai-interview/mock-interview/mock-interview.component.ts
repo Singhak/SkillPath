@@ -165,7 +165,15 @@ export class MockInterviewComponent {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (response) => {
-          const generatedQuestions = (response || []).slice(0, count).map((question, index) => ({
+          const rawQuestions = Array.isArray(response)
+            ? response
+            : (response as any)?.questions && Array.isArray((response as any).questions)
+            ? (response as any).questions
+            : response && typeof response === 'object' && (response as any).question
+            ? [response]
+            : [];
+
+          const generatedQuestions = rawQuestions.slice(0, count).map((question: any, index: number) => ({
             ...question,
             id: question.id ?? index + 1,
           }));

@@ -88,9 +88,16 @@ export class InterviewService {
 
     return this.aiAPiService.genrateFromTopic(topic, userRole, experienceLevel, count).pipe(
       tap((response) => {
+        const questions = Array.isArray(response)
+          ? response
+          : (response as any)?.questions && Array.isArray((response as any).questions)
+          ? (response as any).questions
+          : response && typeof response === 'object' && (response as any).question
+          ? [response]
+          : [];
         const session: InterviewSession = {
           topic,
-          questions: response,
+          questions,
           currentQuestionIndex: 0,
           startedAt: new Date(),
         };
