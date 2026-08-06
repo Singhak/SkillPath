@@ -340,7 +340,43 @@ import { Router } from '@angular/router';
 
       <!-- TAB 2: Speech & Tone Analytics -->
       @if (activeTab() === 'speech') {
-        <div class="animate-fadeIn">
+        <div class="animate-fadeIn space-y-4">
+
+          <!-- Dual Mode Evaluation Selector -->
+          <div class="bg-slate-800/60 p-3 rounded-xl border border-slate-700/60 flex items-center justify-between">
+            <div>
+              <span class="text-xs font-bold text-white block">Evaluation Engine Mode</span>
+              <span class="text-[11px] text-slate-400">Choose between instant rule engine or AI</span>
+            </div>
+
+            <div class="flex space-x-1 bg-slate-900 p-1 rounded-lg border border-slate-800 text-xs">
+              <button
+                (click)="speechEvaluationMode.set('instant')"
+                [class.bg-indigo-600]="speechEvaluationMode() === 'instant'"
+                [class.text-white]="speechEvaluationMode() === 'instant'"
+                [class.text-slate-400]="speechEvaluationMode() !== 'instant'"
+                class="px-2.5 py-1.5 rounded-md font-semibold transition-all"
+              >
+                ⚡ Fast (Free)
+              </button>
+              <button
+                (click)="selectSpeechAiMode()"
+                class="relative px-2.5 py-1.5 rounded-md font-semibold transition-all flex items-center space-x-1"
+                [class.bg-indigo-600]="speechEvaluationMode() === 'ai_groq'"
+                [class.text-white]="speechEvaluationMode() === 'ai_groq'"
+                [class.text-slate-400]="speechEvaluationMode() !== 'ai_groq'"
+              >
+                @if (authService.currentPlan() === 'Silver') {
+                  <span class="absolute -top-2 -right-2 bg-rose-500 rounded-full w-4 h-4 flex items-center justify-center border border-white text-[8px]">
+                    <i class="pi pi-lock"></i>
+                  </span>
+                }
+                <span>🤖 AI</span>
+                <span class="text-[10px] px-1 bg-amber-500/30 text-amber-300 rounded font-bold">1 Cr</span>
+              </button>
+            </div>
+          </div>
+
           <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
             <!-- Voice Tester Box -->
@@ -351,7 +387,18 @@ import { Router } from '@angular/router';
 
                 <div class="bg-slate-900 p-4 rounded-xl border border-slate-800 min-h-[100px] mb-4 text-xs font-mono text-slate-300">
                   @if (speechService.isRecording()) {
-                    <span class="text-rose-400 animate-pulse font-bold block mb-1">🔴 Recording live audio...</span>
+                    <div class="space-y-1.5 mb-2 pb-2 border-b border-slate-800">
+                      <div class="flex flex-wrap items-center justify-between gap-1 text-rose-400 text-[11px] font-bold">
+                        <span class="animate-pulse flex items-center space-x-1"><span>🔴</span> <span>Live Audio Stream</span></span>
+                        <span class="text-amber-400 font-mono text-[10px]">Silence: {{ speechService.liveSilenceSeconds() }}s | Pauses: {{ speechService.livePauseCount() }} | Fillers: {{ speechService.liveVocalFillerCount() }}</span>
+                      </div>
+                      <div class="w-full bg-slate-950 h-1.5 rounded-full overflow-hidden flex items-center">
+                        <div 
+                          class="h-full rounded-full transition-all duration-75 bg-gradient-to-r from-emerald-500 via-amber-400 to-rose-500"
+                          [style.width.%]="speechService.liveVolumeLevel()"
+                        ></div>
+                      </div>
+                    </div>
                   }
                   <p>{{ speechService.liveTranscript() || 'Click "Start Speech Test" and speak an interview response...' }}</p>
                 </div>
@@ -360,17 +407,17 @@ import { Router } from '@angular/router';
               <div class="space-y-2">
                 @if (!speechService.isRecording()) {
                   <button
-                    (click)="speechService.startRecording()"
+                    (click)="startSpeechRecording()"
                     class="w-full py-3 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs flex items-center justify-center space-x-2 shadow-lg shadow-rose-600/20 transition-all active:scale-95"
                   >
                     <span>🎙️</span> <span>Start Speech Test</span>
                   </button>
                 } @else {
                   <button
-                    (click)="speechService.stopRecording()"
+                    (click)="stopSpeechRecording()"
                     class="w-full py-3 rounded-xl bg-slate-700 hover:bg-slate-600 text-white font-bold text-xs flex items-center justify-center space-x-2 transition-all active:scale-95"
                   >
-                    <span>⏹ Stop & Analyze Speech</span>
+                    <span>⏹ Stop & Analyze Speech ({{ speechEvaluationMode() === 'ai_groq' ? 'AI - 1 Credit' : 'Instant - Free' }})</span>
                   </button>
                 }
               </div>
@@ -381,22 +428,28 @@ import { Router } from '@angular/router';
               @if (speechService.speechMetrics(); as m) {
                 <div class="space-y-4 animate-fadeIn">
                   <!-- Score Cards Grid -->
-                  <div class="grid grid-cols-3 gap-4">
-                    <div class="bg-slate-800/50 p-4 rounded-xl border border-slate-700/50 text-center">
+                  <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    <div class="bg-slate-800/50 p-3 rounded-xl border border-slate-700/50 text-center">
                       <div class="text-[11px] text-slate-400">Speaking Speed</div>
-                      <div class="text-2xl font-black text-indigo-400 mt-1">{{ m.wpm }} <span class="text-xs font-normal">WPM</span></div>
-                      <div class="text-[10px] text-slate-400">Optimal: 130-160</div>
+                      <div class="text-xl font-black text-indigo-400 mt-1">{{ m.wpm }} <span class="text-xs font-normal">WPM</span></div>
+                      <div class="text-[10px] text-slate-400">Net: {{ m.netWpm || m.wpm }} WPM</div>
                     </div>
 
-                    <div class="bg-slate-800/50 p-4 rounded-xl border border-slate-700/50 text-center">
-                      <div class="text-[11px] text-slate-400">Filler Words</div>
-                      <div class="text-2xl font-black text-rose-400 mt-1">{{ m.fillerWordsCount }}</div>
-                      <div class="text-[10px] text-slate-400">Um / Like / Basically</div>
+                    <div class="bg-slate-800/50 p-3 rounded-xl border border-slate-700/50 text-center">
+                      <div class="text-[11px] text-slate-400">Filler Sounds</div>
+                      <div class="text-xl font-black text-rose-400 mt-1">{{ m.fillerWordsCount }}</div>
+                      <div class="text-[10px] text-slate-400">Um / Uh / Like</div>
                     </div>
 
-                    <div class="bg-slate-800/50 p-4 rounded-xl border border-slate-700/50 text-center">
+                    <div class="bg-slate-800/50 p-3 rounded-xl border border-slate-700/50 text-center">
+                      <div class="text-[11px] text-slate-400">Pauses & Silence</div>
+                      <div class="text-xl font-black text-amber-400 mt-1">{{ m.pausesCount || 0 }} <span class="text-xs font-normal">pauses</span></div>
+                      <div class="text-[10px] text-slate-400">{{ m.silenceSeconds || 0 }}s silent ({{ m.silencePercentage || 0 }}%)</div>
+                    </div>
+
+                    <div class="bg-slate-800/50 p-3 rounded-xl border border-slate-700/50 text-center">
                       <div class="text-[11px] text-slate-400">Tone Confidence</div>
-                      <div class="text-2xl font-black text-emerald-400 mt-1">{{ m.confidenceScore }}%</div>
+                      <div class="text-xl font-black text-emerald-400 mt-1">{{ m.confidenceScore }}%</div>
                       <div class="text-[10px] text-slate-400">Clarity: {{ m.clarityScore }}%</div>
                     </div>
                   </div>
@@ -594,6 +647,46 @@ export class AiToolsWidgetComponent implements OnInit {
     if (res && res.creditsDeducted) {
       this.userResourceService.decrementAiCredits(res.creditsDeducted).subscribe({ error: () => {} });
     }
+  }
+
+  readonly speechEvaluationMode = signal<'instant' | 'ai_groq'>('instant');
+
+  selectSpeechAiMode(): void {
+    if (this.authService.currentPlan() === 'Silver') {
+      if (this.confirmationService) {
+        this.confirmationService.confirm({
+          message: 'AI Speech Analysis requires at least the Copper plan. Would you like to upgrade your plan?',
+          header: 'Upgrade Required',
+          icon: 'pi pi-lock',
+          acceptLabel: 'View Plans',
+          rejectLabel: 'Cancel',
+          accept: () => {
+            this.router.navigate(['/pricing']);
+          }
+        });
+      } else {
+        this.router.navigate(['/pricing']);
+      }
+      return;
+    }
+    this.speechEvaluationMode.set('ai_groq');
+  }
+
+  startSpeechRecording(): void {
+    if (this.speechEvaluationMode() === 'ai_groq' && this.authService.currentPlan() === 'Silver') {
+      this.selectSpeechAiMode();
+      return;
+    }
+    this.speechService.startRecording();
+  }
+
+  stopSpeechRecording(): void {
+    const useAi = this.speechEvaluationMode() === 'ai_groq';
+    if (useAi && this.authService.currentPlan() === 'Silver') {
+      this.selectSpeechAiMode();
+      return;
+    }
+    this.speechService.stopRecording(useAi);
   }
 
   selectGroqAiMode(): void {
