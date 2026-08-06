@@ -58,9 +58,14 @@
           </div>
         </div>
 
-        <button pButton class="start-btn" (click)="startInterview()" [disabled]="!topic().trim()">
+        <button pButton class="start-btn" (click)="startInterview()" [disabled]="!topic().trim() || loading()">
+          @if (loading()) {
+          <i class="pi pi-spin pi-spinner"></i>
+          <span>Generating Questions...</span>
+          } @else {
           <i class="pi pi-play"></i>
-          Start AI Interview
+          <span>Start AI Interview</span>
+          }
         </button>
 
         <!-- Feature Pills -->
@@ -123,6 +128,7 @@
         <label class="field-label">Your Answer</label>
         <textarea pInputTextarea rows="6" class="answer-textarea"
           [value]="userAnswer()" [readonly]="!isEditingAnswer()"
+          (input)="onUserAnswerInput($any($event.target).value)"
           placeholder="Your spoken answer will appear here…">
         </textarea>
       </div>

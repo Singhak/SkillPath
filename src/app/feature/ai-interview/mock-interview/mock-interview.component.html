@@ -94,9 +94,14 @@
             (onSelect)="onFileSelect($event)" chooseLabel="Or Upload a .txt File" />
           }
 
-          <button pButton class="start-mock-btn" (click)="generateQuestions()">
+          <button pButton class="start-mock-btn" (click)="generateQuestions()" [disabled]="loading()">
+            @if (loading()) {
+            <i class="pi pi-spin pi-spinner"></i>
+            Generating Questions...
+            } @else {
             <i class="pi pi-play"></i>
             Start Mock Interview
+            }
           </button>
 
           <!-- Messages -->

@@ -85,6 +85,8 @@ export class InterviewComponent {
   userRole = signal('');
   experienceLevel = signal('');
 
+  readonly loading = signal(false);
+
   // ------------------------------------------------
   // UI State
   // ------------------------------------------------
@@ -158,17 +160,53 @@ export class InterviewComponent {
     const topic = this.topic().trim();
 
     if (!topic) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Topic Required',
+        detail: 'Please enter an interview topic before starting.',
+      });
       return;
     }
 
     const count = Number(this.questionCount()) || 5;
+    const requiredCredits = count * AI_CREDIT_COST.QUESTION_GENERATION;
+    const availableCredits = this.freeCredits() + this.paidCredits();
+
+    if (availableCredits < requiredCredits) {
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Insufficient Credits',
+        detail: `Generating ${count} question(s) requires ${requiredCredits} AI credit(s). You have ${availableCredits} credit(s).`,
+        life: 5000,
+      });
+      return;
+    }
+
+    this.loading.set(true);
     this.interviewService
       .startInterview(topic, this.userRole(), this.experienceLevel(), count)
       .pipe(
         takeUntilDestroyed(this.destroyRef),
-        finalize(() => this.speakQuestion()),
+        finalize(() => {
+          this.loading.set(false);
+          this.speakQuestion();
+        }),
       )
-      .subscribe();
+      .subscribe({
+        next: () => {
+          const actualCost = (this.session()?.questions.length || count) * AI_CREDIT_COST.QUESTION_GENERATION;
+          this.authService.decrementAiCredits(actualCost).pipe(
+            takeUntilDestroyed(this.destroyRef)
+          ).subscribe();
+        },
+        error: (err) => {
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: err?.error?.message || 'Failed to generate interview questions. Please try again.',
+          });
+        }
+      });
   }
 
   startInterviewWithQuestions(questions: InterviewQuestion[], topic: string): void {

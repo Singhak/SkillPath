@@ -149,20 +149,28 @@ export class MockInterviewComponent {
 
     const role = this.userRole().trim() || 'Software Engineer';
     const experience = this.experienceLevel().trim() || 'Intermediate';
+    const count = Number(this.questionCount()) || 5;
 
-    if (!this.freeCredits() && !this.paidCredits) {
+    const requiredCredits = count * AI_CREDIT_COST.QUESTION_GENERATION;
+    const availableCredits = this.freeCredits() + this.paidCredits();
+
+    if (availableCredits < requiredCredits) {
       this.messageService.add({
         severity: 'error',
         summary: 'Error',
-        detail: 'Insufficient AI Credits',
+        detail: `Insufficient AI Credits. Generating ${count} question(s) requires ${requiredCredits} AI credit(s).`,
         life: 5000,
       });
       return;
     }
-    const count = Number(this.questionCount()) || 5;
+
+    this.loading.set(true);
     this.aiApiService
       .genrateFromTopic(topic, role, experience, count)
-      .pipe(takeUntilDestroyed(this.destroyRef))
+      .pipe(
+        finalize(() => this.loading.set(false)),
+        takeUntilDestroyed(this.destroyRef)
+      )
       .subscribe({
         next: (response) => {
           const rawQuestions = Array.isArray(response)
@@ -182,11 +190,12 @@ export class MockInterviewComponent {
             this.errorMessage.set('No questions were generated. Please try another topic.');
             return;
           }
+          const actualCost = generatedQuestions.length * AI_CREDIT_COST.QUESTION_GENERATION;
           this.startInterviewWithQuestions(generatedQuestions, topic);
           this.speakQuestion(generatedQuestions[0].question);
-          this.authService.decrementAiCredits(1).pipe(
+          this.authService.decrementAiCredits(actualCost).pipe(
             takeUntilDestroyed(this.destroyRef)
-          ).subscribe()
+          ).subscribe();
         },
         error: () => {
           this.errorMessage.set('Unable to generate questions right now. Please try again.');
