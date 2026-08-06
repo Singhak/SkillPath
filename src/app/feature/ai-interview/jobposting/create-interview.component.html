@@ -92,9 +92,28 @@
             [options]="questionCountOptions" appendTo="body" />
         </span>
       </div>
-      <button pButton class="w-full h-14 text-lg font-semibold" label="Generate AI Questions (⚡ 2.00 Credits)" icon="pi pi-sparkles"
-        iconPos="right" (click)="generateQuestions()" [disabled]="form.invalid || loading()"
-        [loading]="loading()"></button>
+      @if (authService.currentPlan() === 'Silver') {
+        <div class="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+          <div class="flex items-center space-x-3">
+            <div class="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center font-bold shrink-0">
+              <i class="pi pi-lock text-lg"></i>
+            </div>
+            <div>
+              <div class="font-bold text-amber-600 dark:text-amber-300 text-sm">Copper Plan Required</div>
+              <div class="text-xs text-slate-600 dark:text-slate-400">Job Profile Analysis & Question Generation requires at least the Copper plan.</div>
+            </div>
+          </div>
+          <button pButton label="Upgrade Plan" icon="pi pi-arrow-up-right" class="p-button-warning p-button-sm text-xs font-semibold shrink-0" (click)="navigateToPricing()"></button>
+        </div>
+      }
+      <button pButton class="w-full h-14 text-lg font-semibold"
+        [label]="authService.currentPlan() === 'Silver' ? 'Upgrade to Copper Plan to Generate AI Questions' : ('Generate AI Questions (⚡ ' + estimatedCredits + ' Credits)')"
+        [icon]="authService.currentPlan() === 'Silver' ? 'pi pi-lock' : 'pi pi-sparkles'"
+        iconPos="right"
+        (click)="generateQuestions()"
+        [disabled]="(mode() === 'text' && form.invalid) || loading()"
+        [loading]="loading()">
+      </button>
       <div class="grid grid-cols-2 gap-4">
         <div class="rounded-2xl bg-slate-50 p-5">
           <div class="text-3xl font-bold text-indigo-600">10+</div>

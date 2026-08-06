@@ -7,11 +7,12 @@ import { AuthService } from '../../core/services/auth.service';
 import { ThemeService, ThemeMode, AccentColor, UiDensity } from '../../core/services/theme.service';
 import { User } from '../../core/models/user.model';
 import { AI_CREDIT_COST } from '../../shared/constants';
+import { BillingHistoryModalComponent } from '../../shared/components/billing-history-modal/billing-history-modal.component';
 
 @Component({
   selector: 'app-settings',
   standalone: true,
-  imports: [CommonModule, FormsModule, ToastModule],
+  imports: [CommonModule, FormsModule, ToastModule, BillingHistoryModalComponent],
   templateUrl: './settings.component.html',
   styleUrl: './settings.component.css',
 })
@@ -22,6 +23,7 @@ export class SettingsComponent {
 
   readonly activeTab = signal<'appearance' | 'profile' | 'preferences' | 'account'>('appearance');
   readonly creditCosts = AI_CREDIT_COST;
+  readonly isBillingModalOpen = signal<boolean>(false);
 
   // User Profile Signals
   readonly currentUser = this.authService.currentUser;

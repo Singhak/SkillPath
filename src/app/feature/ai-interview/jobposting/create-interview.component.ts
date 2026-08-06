@@ -33,6 +33,7 @@ import { InputTextModule } from 'primeng/inputtext';
 import { SelectModule } from 'primeng/select';
 
 import { UserResourceService } from '../../../core/services/user-resource.service';
+import { AuthService } from '../../../core/services/auth.service';
 
 type UploadMode = 'text' | 'upload';
 
@@ -59,8 +60,9 @@ type UploadMode = 'text' | 'upload';
 })
 export class CreateInterviewComponent implements OnInit {
   messageService = inject(MessageService);
-  private readonly router = inject(Router);
+  readonly router = inject(Router);
   private readonly userResourceService = inject(UserResourceService);
+  readonly authService = inject(AuthService);
   readonly userRoles = USER_ROLES;
   readonly experienceLevels = EXPERIENCE_LEVELS;
   readonly stepstoFollow = INTERVIEW_STEPS;
@@ -96,6 +98,15 @@ export class CreateInterviewComponent implements OnInit {
 
   ngOnInit(): void { }
 
+  get estimatedCredits(): string {
+    const count = parseInt(this.form.get('questionCount')?.value, 10) || 5;
+    return ((count * 0.20) + 1).toFixed(2);
+  }
+
+  navigateToPricing(): void {
+    this.router.navigate(['/pricing']);
+  }
+
   changeMode(mode: UploadMode) {
     this.mode.set(mode);
   }
@@ -113,6 +124,16 @@ export class CreateInterviewComponent implements OnInit {
   }
 
   generateQuestions() {
+    if (this.authService.currentPlan() === 'Silver') {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Upgrade Required',
+        detail: 'Job Profile Evaluation requires at least the Copper plan. Please upgrade your plan to access this feature.',
+      });
+      this.navigateToPricing();
+      return;
+    }
+
     if (this.mode() === 'text' && this.form.invalid) {
       this.form.markAllAsTouched();
       return;

@@ -91,6 +91,20 @@
   transform: translateY(-1px);
 }
 
+.widget-action-btn.secondary-action {
+  background: rgba(99, 102, 241, 0.12);
+  color: #6366f1;
+  border-color: rgba(99, 102, 241, 0.25);
+}
+
+.widget-action-btn.secondary-action:hover {
+  background: #6366f1;
+  border-color: #6366f1;
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25);
+  transform: translateY(-1px);
+}
+
 .category-selector-wrapper {
   min-width: 170px;
 }

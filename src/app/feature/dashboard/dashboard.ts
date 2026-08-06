@@ -20,6 +20,7 @@ import { GamificationPanelComponent } from '../../shared/components/gamification
 import { SkillGapPanelComponent } from '../../shared/components/skill-gap-panel/skill-gap-panel.component';
 import { AiToolsWidgetComponent } from '../../shared/components/ai-tools-widget/ai-tools-widget.component';
 import { JobCompetencyService } from '../../core/services/job-competency.service';
+import { BillingHistoryModalComponent } from '../../shared/components/billing-history-modal/billing-history-modal.component';
 
 @Component({
   selector: 'app-dashboard',
@@ -37,6 +38,7 @@ import { JobCompetencyService } from '../../core/services/job-competency.service
     SkillGapPanelComponent,
     AiToolsWidgetComponent,
     ConfirmDialogModule,
+    BillingHistoryModalComponent,
   ],
   providers: [ConfirmationService],
   templateUrl: './dashboard.html',
@@ -58,6 +60,7 @@ export class Dashboard implements OnInit {
   readonly lineData = signal<any>(null);
   readonly pieData = signal<any>(null);
   readonly tableSearchQuery = signal<string>('');
+  readonly isBillingModalOpen = signal<boolean>(false);
 
   readonly userName = computed(() => this.authService.currentUser()?.name || 'Learner');
 
@@ -341,6 +344,10 @@ export class Dashboard implements OnInit {
 
   onBuyCredits(): void {
     this.router.navigate(['/pricing']);
+  }
+
+  onViewBillingHistory(): void {
+    this.isBillingModalOpen.set(true);
   }
 
   onConvertCoins(): void {

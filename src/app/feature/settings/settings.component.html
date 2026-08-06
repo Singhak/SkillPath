@@ -576,6 +576,13 @@
           </div>
         </div>
 
+        <div class="mt-4 flex justify-end">
+          <button (click)="isBillingModalOpen.set(true)" type="button" class="btn-billing-history">
+            <i class="pi pi-history"></i>
+            <span>View Billing & Credit Usage History</span>
+          </button>
+        </div>
+
         <!-- Account Info Items Grid -->
         <div class="account-info-grid">
           <div class="info-card">
@@ -801,4 +808,6 @@
       </div>
     </section>
   }
+  <!-- Billing & Credit Usage History Modal -->
+  <app-billing-history-modal [isOpen]="isBillingModalOpen()" (close)="isBillingModalOpen.set(false)" />
 </div>

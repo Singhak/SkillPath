@@ -34,10 +34,16 @@
               <strong class="widget-val">{{ totalAiCredits() }}</strong>
             </div>
           </div>
-          <button class="widget-action-btn credit-action" type="button" (click)="onBuyCredits()">
-            <i class="pi pi-plus"></i>
-            <span>Buy Credit</span>
-          </button>
+          <div class="flex gap-1.5 mt-2 w-full">
+            <button class="widget-action-btn credit-action flex-1" type="button" (click)="onBuyCredits()">
+              <i class="pi pi-plus"></i>
+              <span>Buy Credit</span>
+            </button>
+            <button class="widget-action-btn secondary-action flex-1" type="button" (click)="onViewBillingHistory()">
+              <i class="pi pi-history"></i>
+              <span>History</span>
+            </button>
+          </div>
         </div>
         <div class="glass-widget">
           <div class="widget-main">
@@ -267,3 +273,6 @@
 
 <!-- Global Confirm Dialog for Locked Features -->
 <p-confirmDialog [style]="{width: '450px'}" styleClass="custom-confirm-dialog"></p-confirmDialog>
+
+<!-- Billing & Credit Usage History Modal -->
+<app-billing-history-modal [isOpen]="isBillingModalOpen()" (close)="isBillingModalOpen.set(false)" />

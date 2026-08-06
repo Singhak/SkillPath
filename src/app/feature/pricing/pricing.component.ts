@@ -5,11 +5,12 @@ import { AuthService } from '../../core/services/auth.service';
 import { UserResourceService } from '../../core/services/user-resource.service';
 import { PaymentService } from '../../core/services/payment.service';
 import { Router } from '@angular/router';
+import { BillingHistoryModalComponent } from '../../shared/components/billing-history-modal/billing-history-modal.component';
 
 @Component({
   selector: 'app-pricing',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, BillingHistoryModalComponent],
   template: `
     <div class="min-h-screen bg-gray-950 text-white py-20 px-4 relative overflow-hidden flex flex-col items-center justify-center">
       
@@ -26,19 +27,30 @@ import { Router } from '@angular/router';
           Unlock the full potential of AI with our flexible pricing plans. Whether you're just starting out or scaling up, we have a plan for you.
         </p>
 
-        <!-- Currency Switcher Toggle -->
-        <div class="inline-flex items-center gap-2 bg-white/5 backdrop-blur-md p-1.5 rounded-full border border-white/10 shadow-inner">
+        <!-- Currency Switcher Toggle & History Button -->
+        <div class="flex flex-wrap items-center justify-center gap-4">
+          <div class="inline-flex items-center gap-2 bg-white/5 backdrop-blur-md p-1.5 rounded-full border border-white/10 shadow-inner">
+            <button 
+              (click)="setCurrency('INR')" 
+              [class]="selectedCurrency === 'INR' ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-lg shadow-cyan-500/20' : 'text-gray-400 hover:text-white'"
+              class="px-6 py-2 rounded-full text-sm font-semibold transition-all duration-300 flex items-center gap-2">
+              <span>🇮🇳</span> INR (₹)
+            </button>
+            <button 
+              (click)="setCurrency('USD')" 
+              [class]="selectedCurrency === 'USD' ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-lg shadow-cyan-500/20' : 'text-gray-400 hover:text-white'"
+              class="px-6 py-2 rounded-full text-sm font-semibold transition-all duration-300 flex items-center gap-2">
+              <span>🌐</span> USD ($)
+            </button>
+          </div>
+
           <button 
-            (click)="setCurrency('INR')" 
-            [class]="selectedCurrency === 'INR' ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-lg shadow-cyan-500/20' : 'text-gray-400 hover:text-white'"
-            class="px-6 py-2 rounded-full text-sm font-semibold transition-all duration-300 flex items-center gap-2">
-            <span>🇮🇳</span> INR (₹)
-          </button>
-          <button 
-            (click)="setCurrency('USD')" 
-            [class]="selectedCurrency === 'USD' ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-lg shadow-cyan-500/20' : 'text-gray-400 hover:text-white'"
-            class="px-6 py-2 rounded-full text-sm font-semibold transition-all duration-300 flex items-center gap-2">
-            <span>🌐</span> USD ($)
+            (click)="isBillingModalOpen = true"
+            class="px-5 py-2 rounded-full bg-slate-800/90 hover:bg-slate-700/90 border border-slate-700 text-cyan-400 text-sm font-medium transition-all shadow-md flex items-center gap-2 cursor-pointer">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 012-2h2a2 2 0 012-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+            </svg>
+            Billing & Credit History
           </button>
         </div>
       </div>
@@ -465,6 +477,7 @@ import { Router } from '@angular/router';
         </div>
       </div>
 
+      <app-billing-history-modal [isOpen]="isBillingModalOpen" (close)="isBillingModalOpen = false" />
     </div>
   `
 })
@@ -476,6 +489,7 @@ export class PricingComponent {
   destroyRef = inject(DestroyRef);
 
   selectedCurrency: 'INR' | 'USD' = 'INR';
+  isBillingModalOpen = false;
 
   setCurrency(currency: 'INR' | 'USD') {
     this.selectedCurrency = currency;
