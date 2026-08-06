@@ -104,7 +104,7 @@ import { FormsModule } from '@angular/forms';
             title="Sync offline badges, XP, and progress with cloud backend"
           >
             <span [class.animate-spin]="gamificationService.isSyncing()">🔄</span>
-            <span>{{ gamificationService.isSyncing() ? 'Syncing...' : 'Sync Progress' }}</span>
+            <span>{{ gamificationService.isSyncing() ? 'Syncing...' : 'Sync Now' }}</span>
           </button>
 
           <!-- Report PDF -->
