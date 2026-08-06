@@ -1,4 +1,4 @@
-import { Component, inject, signal, DestroyRef } from '@angular/core';
+import { Component, inject, signal, DestroyRef, OnInit } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -64,72 +64,272 @@ import { Router } from '@angular/router';
       <!-- TAB 1: AI Resume Parser -->
       @if (activeTab() === 'resume') {
         <div class="animate-fadeIn">
+          <!-- Input Mode Switcher: Upload File vs Paste Raw Text -->
+          <div class="flex items-center space-x-2 mb-4 bg-slate-800/60 p-1 rounded-xl w-fit border border-slate-700/60">
+            <button
+              (click)="resumeInputMode.set('upload')"
+              [class.bg-indigo-600]="resumeInputMode() === 'upload'"
+              [class.text-white]="resumeInputMode() === 'upload'"
+              [class.text-slate-400]="resumeInputMode() !== 'upload'"
+              class="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center space-x-1.5"
+            >
+              <span>📁 Upload File (PDF/DOCX/TXT)</span>
+            </button>
+
+            <button
+              (click)="resumeInputMode.set('paste')"
+              [class.bg-indigo-600]="resumeInputMode() === 'paste'"
+              [class.text-white]="resumeInputMode() === 'paste'"
+              [class.text-slate-400]="resumeInputMode() !== 'paste'"
+              class="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center space-x-1.5"
+            >
+              <span>✍️ Paste Resume Text</span>
+            </button>
+          </div>
+
           <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
-            <!-- Upload Dropzone -->
-            <div class="border-2 border-dashed border-indigo-500/30 hover:border-indigo-500/60 bg-slate-850/50 rounded-2xl p-8 text-center flex flex-col items-center justify-center transition-all cursor-pointer relative group">
-              <input
-                type="file"
-                accept=".pdf,.docx,.txt"
-                (change)="onFileSelected($event)"
-                class="absolute inset-0 opacity-0 cursor-pointer w-full h-full z-10"
-              />
-              <div class="w-14 h-14 rounded-2xl bg-indigo-500/20 text-indigo-400 flex items-center justify-center text-2xl mb-3 group-hover:scale-110 transition-transform">
-                📄
+            <!-- Input Area: File Dropzone or Raw Textarea -->
+            @if (resumeInputMode() === 'upload') {
+              <div
+                [class.pointer-events-none]="resumeService.isParsing()"
+                [class.opacity-60]="resumeService.isParsing()"
+                class="border-2 border-dashed border-indigo-500/30 hover:border-indigo-500/60 bg-slate-850/50 rounded-2xl p-8 text-center flex flex-col items-center justify-center transition-all cursor-pointer relative group min-h-[260px]"
+              >
+                <input
+                  type="file"
+                  accept=".pdf,.docx,.doc,.txt"
+                  [disabled]="resumeService.isParsing()"
+                  (change)="onFileSelected($event)"
+                  class="absolute inset-0 opacity-0 cursor-pointer w-full h-full z-10 disabled:cursor-not-allowed disabled:pointer-events-none"
+                />
+                <div class="w-14 h-14 rounded-2xl bg-indigo-500/20 text-indigo-400 flex items-center justify-center text-2xl mb-3 group-hover:scale-110 transition-transform">
+                  @if (resumeService.isParsing()) {
+                    <span class="inline-block animate-spin text-2xl">⏳</span>
+                  } @else {
+                    <span>📄</span>
+                  }
+                </div>
+                <h4 class="font-bold text-white text-base mb-1">Upload Full Resume (PDF, DOCX, TXT)</h4>
+                <div class="inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full bg-indigo-500/10 border border-indigo-500/30 text-indigo-300 text-[10px] font-semibold mb-2">
+                  <span>⚡ Size-Based Cost: 2 - 5 AI Credits</span>
+                </div>
+                <p class="text-xs text-slate-400 mb-4 max-w-xs">Full text is extracted client-side (PDF.js / XML) and sent to AI for deep ATS analysis.</p>
+
+                <button
+                  [disabled]="resumeService.isParsing()"
+                  class="px-4 py-2 rounded-xl bg-indigo-600 text-white font-bold text-xs pointer-events-none shadow-md flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  @if (resumeService.isParsing()) {
+                    <span class="inline-block animate-spin text-sm">🔄</span>
+                    <span>AI Parsing in Progress...</span>
+                  } @else {
+                    <span>Choose File</span>
+                  }
+                </button>
               </div>
-              <h4 class="font-bold text-white text-base mb-1">Upload Resume (PDF, DOCX, TXT)</h4>
-              <p class="text-xs text-slate-400 mb-4">AI will automatically parse skills, experience, and update your skill ratings.</p>
+            } @else {
+              <div class="bg-slate-800/40 border border-slate-700/50 rounded-2xl p-5 flex flex-col justify-between min-h-[260px]">
+                <div>
+                  <div class="flex items-center justify-between mb-2">
+                    <label class="text-xs font-bold text-slate-300">Paste Full Resume Text:</label>
+                    <span class="text-[10px] text-indigo-300 font-semibold bg-indigo-500/10 px-2.5 py-0.5 rounded-full border border-indigo-500/30">
+                      ⚡ Est. Cost: {{ resumeService.calculateEstimatedCredits(pastedText, authService.currentPlan()) }} Credits
+                    </span>
+                  </div>
+                  <textarea
+                    [(ngModel)]="pastedText"
+                    [disabled]="resumeService.isParsing()"
+                    rows="8"
+                    placeholder="Paste the complete contents of your resume here (experience, skills, contact info, projects)..."
+                    class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-xs text-slate-200 focus:outline-none focus:border-indigo-500 font-mono resize-none disabled:opacity-50"
+                  ></textarea>
+                </div>
+                <button
+                  (click)="parsePastedResumeText()"
+                  [disabled]="resumeService.isParsing() || !pastedText.trim()"
+                  class="mt-3 w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold text-xs transition-all shadow-md flex items-center justify-center space-x-2"
+                >
+                  @if (resumeService.isParsing()) {
+                    <span class="inline-block animate-spin text-sm">🔄</span>
+                    <span>AI Parsing in Progress...</span>
+                  } @else {
+                    <span>🤖 Parse Resume Content ({{ resumeService.calculateEstimatedCredits(pastedText, authService.currentPlan()) }} Credits)</span>
+                  }
+                </button>
+              </div>
+            }
 
-              <button class="px-4 py-2 rounded-xl bg-indigo-600 text-white font-bold text-xs pointer-events-none shadow-md">
-                {{ resumeService.isParsing() ? 'Parsing Resume with AI...' : 'Select File' }}
-              </button>
-            </div>
-
-            <!-- Parsed Results Output -->
+            <!-- Parsed Results & ATS Score Card -->
             <div class="bg-slate-800/40 border border-slate-700/50 rounded-2xl p-5">
               <div class="text-xs font-bold text-indigo-400 uppercase tracking-wider mb-3 flex items-center justify-between">
-                <span>Extracted Skill Profile</span>
+                <span>Extracted Profile & ATS Score</span>
                 @if (resumeService.parsedResume()) {
-                  <span class="text-emerald-400 font-semibold">✓ Auto-Synced to Profile</span>
+                  <span class="text-emerald-400 font-semibold flex items-center space-x-1.5 text-xs">
+                    @if (resumeService.parsedResume()?.creditsDeducted) {
+                      <span class="bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 px-2 py-0.5 rounded-full text-[10px]">
+                        ⚡ {{ resumeService.parsedResume()?.creditsDeducted }} Credits Charged
+                      </span>
+                    }
+                    <span>✓ {{ resumeService.parsedResume()?.parsedBy === 'AI' ? 'AI Deep Analysis' : 'Pattern Parsed' }}</span>
+                  </span>
                 }
               </div>
 
               @if (resumeService.parsedResume(); as res) {
                 <div class="space-y-4 animate-fadeIn">
-                  <div>
-                    <span class="text-xs text-slate-400">File Name:</span>
-                    <div class="font-bold text-white text-sm">{{ res.fileName }} ({{ res.experienceYears }}+ Years Experience)</div>
+                  <!-- Name & ATS Rating Badge -->
+                  <div class="flex items-center justify-between bg-slate-900/80 p-3 rounded-xl border border-slate-700/60">
+                    <div>
+                      <div class="font-bold text-white text-sm">{{ res.candidateName || res.fileName }}</div>
+                      <div class="text-xs text-slate-400">{{ res.experienceLevel || 'Candidate' }} • {{ res.experienceYears }}+ Years Experience</div>
+                    </div>
+                    @if (res.atsScore !== undefined) {
+                      <div class="text-right">
+                        <div class="text-xl font-extrabold" [ngClass]="{
+                          'text-emerald-400': res.atsScore >= 80,
+                          'text-amber-400': res.atsScore >= 60 && res.atsScore < 80,
+                          'text-rose-400': res.atsScore < 60
+                        }">
+                          {{ res.atsScore }}<span class="text-xs text-slate-400 font-normal">/100</span>
+                        </div>
+                        <div class="text-[10px] uppercase font-bold text-slate-400">ATS Rating</div>
+                      </div>
+                    }
                   </div>
 
+                  <!-- ATS Category Breakdown Bars -->
+                  @if (res.atsBreakdown) {
+                    <div class="grid grid-cols-2 gap-2 text-xs bg-slate-900/40 p-2.5 rounded-xl border border-slate-800">
+                      <div>
+                        <div class="flex justify-between text-[11px] text-slate-400 mb-1">
+                          <span>Formatting</span>
+                          <span class="font-bold text-white">{{ res.atsBreakdown.formatting }}%</span>
+                        </div>
+                        <div class="h-1.5 w-full bg-slate-800 rounded-full overflow-hidden">
+                          <div class="h-full bg-indigo-500 rounded-full" [style.width.%]="res.atsBreakdown.formatting"></div>
+                        </div>
+                      </div>
+
+                      <div>
+                        <div class="flex justify-between text-[11px] text-slate-400 mb-1">
+                          <span>Impact</span>
+                          <span class="font-bold text-white">{{ res.atsBreakdown.impact }}%</span>
+                        </div>
+                        <div class="h-1.5 w-full bg-slate-800 rounded-full overflow-hidden">
+                          <div class="h-full bg-purple-500 rounded-full" [style.width.%]="res.atsBreakdown.impact"></div>
+                        </div>
+                      </div>
+
+                      <div>
+                        <div class="flex justify-between text-[11px] text-slate-400 mb-1">
+                          <span>Skill Match</span>
+                          <span class="font-bold text-white">{{ res.atsBreakdown.skillsRelevance }}%</span>
+                        </div>
+                        <div class="h-1.5 w-full bg-slate-800 rounded-full overflow-hidden">
+                          <div class="h-full bg-emerald-500 rounded-full" [style.width.%]="res.atsBreakdown.skillsRelevance"></div>
+                        </div>
+                      </div>
+
+                      <div>
+                        <div class="flex justify-between text-[11px] text-slate-400 mb-1">
+                          <span>Completeness</span>
+                          <span class="font-bold text-white">{{ res.atsBreakdown.completeness }}%</span>
+                        </div>
+                        <div class="h-1.5 w-full bg-slate-800 rounded-full overflow-hidden">
+                          <div class="h-full bg-sky-500 rounded-full" [style.width.%]="res.atsBreakdown.completeness"></div>
+                        </div>
+                      </div>
+                    </div>
+                  }
+
+                  <!-- Extracted Skills -->
                   <div>
-                    <span class="text-xs text-slate-400 block mb-2">Extracted Key Skills:</span>
-                    <div class="flex flex-wrap gap-1.5">
+                    <span class="text-xs text-slate-400 block mb-1.5">Extracted Skills:</span>
+                    <div class="flex flex-wrap gap-1.5 max-h-24 overflow-y-auto pr-1">
                       @for (s of res.extractedSkills; track s) {
-                        <span
-                          class="px-2.5 py-1 rounded-lg bg-indigo-500/20 text-indigo-200 border border-indigo-500/30 text-xs font-semibold"
-                        >
+                        <span class="px-2 py-0.5 rounded-lg bg-indigo-500/20 text-indigo-200 border border-indigo-500/30 text-xs font-semibold">
                           ⚡ {{ s }}
                         </span>
                       }
                     </div>
                   </div>
 
+                  <!-- Suggested Profiles -->
                   <div>
-                    <span class="text-xs text-slate-400 block mb-2">Suggested Job Profiles:</span>
+                    <span class="text-xs text-slate-400 block mb-1.5">Suggested Roles:</span>
                     <div class="flex flex-wrap gap-1.5">
                       @for (role of res.suggestedRoles; track role) {
-                        <span
-                          class="px-2.5 py-1 rounded-lg bg-purple-500/20 text-purple-200 border border-purple-500/30 text-xs font-semibold"
-                        >
+                        <span class="px-2 py-0.5 rounded-lg bg-purple-500/20 text-purple-200 border border-purple-500/30 text-xs font-semibold">
                           🎯 {{ role }}
                         </span>
                       }
                     </div>
                   </div>
+
+                  <!-- ATS Feedback Tips -->
+                  @if (res.atsFeedback && res.atsFeedback.length > 0) {
+                    <div class="bg-amber-500/10 border border-amber-500/30 rounded-xl p-3 text-xs">
+                      <div class="font-bold text-amber-300 mb-1 flex items-center space-x-1">
+                        <span>💡 ATS Improvement Recommendations:</span>
+                      </div>
+                      <ul class="list-disc list-inside text-slate-300 space-y-1 text-[11px]">
+                        @for (tip of res.atsFeedback; track tip) {
+                          <li>{{ tip }}</li>
+                        }
+                      </ul>
+                    </div>
+                  }
+
                 </div>
               } @else {
-                <div class="py-12 text-center text-slate-500 text-xs">
-                  Upload a resume file on the left to extract detected skills & target roles.
+                <div class="py-4 space-y-4 animate-fadeIn text-left">
+                  <div class="bg-indigo-950/40 border border-indigo-500/30 rounded-xl p-3.5">
+                    <div class="font-bold text-indigo-300 text-xs mb-1 flex items-center space-x-1.5">
+                      <span>🚀</span> <span>Why Parse Your Resume with SkillPath AI?</span>
+                    </div>
+                    <p class="text-[11px] text-slate-300 leading-relaxed">
+                      Transform your raw resume into a personalized career launcher with automated profile sync and ATS optimization.
+                    </p>
+                  </div>
+
+                  <div class="grid grid-cols-1 gap-2.5 text-xs">
+                    <div class="bg-slate-900/70 p-3 rounded-xl border border-slate-800 flex items-start space-x-3">
+                      <div class="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold text-sm shrink-0">
+                        ⚡
+                      </div>
+                      <div>
+                        <div class="font-bold text-white text-xs mb-0.5">1. Auto-Populate Skill Profile</div>
+                        <div class="text-[11px] text-slate-400">Instantly extracts technical skills, tools, and experience level—saving you manual data entry.</div>
+                      </div>
+                    </div>
+
+                    <div class="bg-slate-900/70 p-3 rounded-xl border border-slate-800 flex items-start space-x-3">
+                      <div class="w-8 h-8 rounded-lg bg-indigo-500/20 text-indigo-400 flex items-center justify-center font-bold text-sm shrink-0">
+                        📊
+                      </div>
+                      <div>
+                        <div class="font-bold text-white text-xs mb-0.5">2. Enterprise ATS Rating (0-100)</div>
+                        <div class="text-[11px] text-slate-400">Evaluates formatting, keyword density, and actionable recommendations to pass HR screening.</div>
+                      </div>
+                    </div>
+
+                    <div class="bg-slate-900/70 p-3 rounded-xl border border-slate-800 flex items-start space-x-3">
+                      <div class="w-8 h-8 rounded-lg bg-purple-500/20 text-purple-400 flex items-center justify-center font-bold text-sm shrink-0">
+                        🎯
+                      </div>
+                      <div>
+                        <div class="font-bold text-white text-xs mb-0.5">3. Tailored AI Mock Interviews</div>
+                        <div class="text-[11px] text-slate-400">Generates custom interview questions based on suggested target roles for your actual background.</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="text-center pt-2">
+                    <span class="text-[11px] text-slate-400 font-medium">
+                      👈 Select a PDF/DOCX file or paste text on the left to analyze now
+                    </span>
+                  </div>
                 </div>
               }
 
@@ -353,7 +553,7 @@ import { Router } from '@angular/router';
     </div>
   `,
 })
-export class AiToolsWidgetComponent {
+export class AiToolsWidgetComponent implements OnInit {
   readonly speechService = inject(SpeechAnalyticsService);
   readonly resumeService = inject(ResumeParserService);
   readonly starCoachService = inject(StarCoachService);
@@ -363,16 +563,36 @@ export class AiToolsWidgetComponent {
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
 
+  ngOnInit(): void {
+    if (!this.resumeService.parsedResume()) {
+      this.resumeService.loadSavedResume();
+    }
+  }
+
   readonly activeTab = signal<'resume' | 'speech' | 'star'>('resume');
+  readonly resumeInputMode = signal<'upload' | 'paste'>('upload');
+  pastedText = '';
   readonly evaluationMode = signal<'instant' | 'ai_groq'>('instant');
 
   readonly behavioralQuestion = signal<string>('Describe a complex technical problem you solved under pressure.');
   readonly answerInput = signal<string>('When working on an enterprise Angular project, we faced severe bundle budget bloat. My task was to optimize the initial page load time. I implemented lazy loading for routes, optimized RxJS observables, and enabled esbuild tree-shaking. As a result, initial load dropped by 45%.');
 
-  onFileSelected(event: Event): void {
+  async onFileSelected(event: Event): Promise<void> {
+    if (this.resumeService.isParsing()) return;
     const input = event.target as HTMLInputElement;
     if (input.files && input.files[0]) {
-      this.resumeService.parseResumeFile(input.files[0]);
+      const res = await this.resumeService.parseResumeFile(input.files[0]);
+      if (res && res.creditsDeducted) {
+        this.userResourceService.decrementAiCredits(res.creditsDeducted).subscribe({ error: () => {} });
+      }
+    }
+  }
+
+  async parsePastedResumeText(): Promise<void> {
+    if (this.resumeService.isParsing() || !this.pastedText || !this.pastedText.trim()) return;
+    const res = await this.resumeService.parseRawText(this.pastedText.trim());
+    if (res && res.creditsDeducted) {
+      this.userResourceService.decrementAiCredits(res.creditsDeducted).subscribe({ error: () => {} });
     }
   }
 

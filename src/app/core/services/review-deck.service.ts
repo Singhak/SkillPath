@@ -1,9 +1,10 @@
-import { Injectable, signal, computed, inject, DestroyRef } from '@angular/core';
+import { Injectable, signal, computed, inject, DestroyRef, effect } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { HttpClient } from '@angular/common/http';
 import { FlashcardQuestion } from '../models/competency.model';
 import { DEFAULT_FLASHCARDS } from '../../shared/constants';
 import { environment } from '../../environments/environment';
+import { AuthService } from './auth.service';
 
 @Injectable({
   providedIn: 'root',
@@ -12,6 +13,7 @@ export class ReviewDeckService {
   private readonly http = inject(HttpClient);
   private readonly apiUrl = `${environment.apiUrl}/review-decks`;
   private readonly destroyRef = inject(DestroyRef);
+  private readonly authService = inject(AuthService);
 
   readonly flashcards = signal<FlashcardQuestion[]>(DEFAULT_FLASHCARDS);
   readonly selectedDomain = signal<string>('all');
@@ -40,10 +42,26 @@ export class ReviewDeckService {
 
   constructor() {
     this.loadFromStorage();
-    this.fetchBackendCards();
+
+    effect(() => {
+      if (this.isPlanFit()) {
+        this.fetchBackendCards();
+      }
+    });
+  }
+
+  /**
+   * Check if user is authenticated and on 'Gold' plan required by /api/review-decks.
+   */
+  private isPlanFit(): boolean {
+    return this.authService.isAuthenticated() && this.authService.currentPlan() === 'Gold';
   }
 
   fetchBackendCards(): void {
+    if (!this.isPlanFit()) {
+      return;
+    }
+
     this.http.get<any[]>(this.apiUrl).pipe(
       takeUntilDestroyed(this.destroyRef)
     ).subscribe({
@@ -63,7 +81,8 @@ export class ReviewDeckService {
           }));
           this.flashcards.set(mapped);
         }
-      }
+      },
+      error: () => {}
     });
   }
 
@@ -122,9 +141,11 @@ export class ReviewDeckService {
     this.saveToStorage();
     this.nextCard();
 
-    this.http.post<any>(`${this.apiUrl}/${current.id}/recall`, { recallGrade: grade }).pipe(
-      takeUntilDestroyed(this.destroyRef)
-    ).subscribe();
+    if (this.isPlanFit()) {
+      this.http.post<any>(`${this.apiUrl}/${current.id}/recall`, { recallGrade: grade }).pipe(
+        takeUntilDestroyed(this.destroyRef)
+      ).subscribe({ error: () => {} });
+    }
   }
 
   addFlashcard(cardData: Omit<FlashcardQuestion, 'id' | 'nextReviewDate' | 'intervalDays' | 'repetitionCount'>): void {
@@ -138,9 +159,11 @@ export class ReviewDeckService {
     this.flashcards.update((prev) => [newCard, ...prev]);
     this.saveToStorage();
 
-    this.http.post<any>(this.apiUrl, cardData).pipe(
-      takeUntilDestroyed(this.destroyRef)
-    ).subscribe();
+    if (this.isPlanFit()) {
+      this.http.post<any>(this.apiUrl, cardData).pipe(
+        takeUntilDestroyed(this.destroyRef)
+      ).subscribe({ error: () => {} });
+    }
   }
 
   private loadFromStorage(): void {
