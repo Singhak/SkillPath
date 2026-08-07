@@ -61,9 +61,23 @@ export class AuthService {
   }
 
   logout(): void {
+    if (isPlatformBrowser(this.platformId)) {
+      // 1. Save UI preferences to preserve across sessions (e.g. Theme settings)
+      const themeMode = localStorage.getItem('app_theme_mode');
+      const themeAccent = localStorage.getItem('app_theme_accent');
+      const themeDensity = localStorage.getItem('app_theme_density');
+
+      // 2. Clear all local storage & session storage
+      localStorage.clear();
+      sessionStorage.clear();
+
+      // 3. Restore preserved UI preferences
+      if (themeMode) localStorage.setItem('app_theme_mode', themeMode);
+      if (themeAccent) localStorage.setItem('app_theme_accent', themeAccent);
+      if (themeDensity) localStorage.setItem('app_theme_density', themeDensity);
+    }
+
     this._currentUser.set(null);
-    localStorage.removeItem(this.authTokenKey);
-    localStorage.removeItem(this.refreshTokenKey);
     this.userResourceService.clear();
     this.router.navigate(['/login']);
   }
