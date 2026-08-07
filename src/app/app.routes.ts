@@ -78,6 +78,10 @@ export const routes: Routes = [
     loadComponent: () => import('./feature/help/help.component').then((m) => m.HelpComponent),
   },
   {
+    path: 'about',
+    loadComponent: () => import('./feature/about/about.component').then((m) => m.AboutComponent),
+  },
+  {
     path: 'interviewer-studio',
     loadComponent: () =>
       import('./feature/interviewer-studio/interviewer-studio-layout').then(

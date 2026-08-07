@@ -1,0 +1,171 @@
+<div class="about-container">
+  <!-- Hero Section -->
+  <section class="hero-section">
+    <div class="hero-bg-glow"></div>
+    <div class="hero-grid">
+      <!-- Left: Sketch Image Artwork -->
+      <div class="hero-sketch-card">
+        <div class="hero-sketch-glow"></div>
+        <div class="sketch-badge">
+          <i class="pi pi-sun"></i>
+          <span>Dawn of Opportunity</span>
+        </div>
+        <div class="hero-sketch-wrapper">
+          <img src="assests/boy_on_bench_sketch.png"
+            alt="Boy sitting on bench at beach side seeing toward the sun sketch" class="hero-sketch-image" />
+        </div>
+        <div class="sketch-caption">
+          "Sitting on the bench, looking forward to bright new horizons."
+        </div>
+      </div>
+
+      <!-- Right: Hero Content -->
+      <div class="hero-content">
+        <div class="brand-hero-logo-container">
+          <div class="brand-logo-glow"></div>
+          <img src="assests/logo_with_test.png" alt="ImOnBench with AI Logo" class="about-brand-horizontal-logo" />
+        </div>
+        <div class="brand-pill">
+          <i class="pi pi-sparkles"></i>
+          <span>THE IMONBENCH STORY</span>
+        </div>
+        <h1 class="hero-title">
+          From Bench to <span class="gradient-text">Hired</span>.
+        </h1>
+        <p class="hero-tagline">
+          "On the Bench? Turn Downtime into Job Offers."
+        </p>
+        <p class="hero-subtitle">
+          ImOnBench was born out of a simple, relatable reality: being on the corporate bench shouldn't be passive
+          waiting.
+          It is your ultimate window to upskill, master AI interviews, sharpen your ATS resume, and take command of your
+          tech career.
+        </p>
+        <div class="hero-cta-group">
+          <a routerLink="/aiinterview" class="btn-primary">
+            <i class="pi pi-microchip-ai"></i>
+            <span>Launch AI Interview Studio</span>
+          </a>
+          <a routerLink="/quiz" class="btn-secondary">
+            <i class="pi pi-play"></i>
+            <span>Take a Skill Assessment</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Impact Stats Banner -->
+  <section class="stats-section">
+    <div class="stats-grid">
+      @for (stat of stats; track stat.label) {
+      <div class="stat-card">
+        <div class="stat-value">{{ stat.value }}</div>
+        <div class="stat-label">{{ stat.label }}</div>
+      </div>
+      }
+    </div>
+  </section>
+
+  <!-- The Origin Story -->
+  <section class="story-section">
+    <div class="section-header text-center">
+      <h2 class="section-title">Why <span class="gradient-text">ImOnBench</span> Exists</h2>
+      <p class="section-subtitle">How a period of corporate downtime inspired a career-shifting AI platform.</p>
+    </div>
+
+    <div class="story-cards-grid">
+      <div class="story-card">
+        <div class="story-badge">01</div>
+        <div class="story-icon">
+          <i class="pi pi-hourglass"></i>
+        </div>
+        <h3>The Bench Dilemma</h3>
+        <p>
+          Every developer and tech consultant knows the feeling of being between projects.
+          Without structured guidance, bench period can feel uncertain and repetitive. We knew there had to be a better
+          way to harness that time.
+        </p>
+      </div>
+
+      <div class="story-card active-story">
+        <div class="story-badge">02</div>
+        <div class="story-icon">
+          <i class="pi pi-bolt"></i>
+        </div>
+        <h3>The Spark of ImOnBench</h3>
+        <p>
+          We asked ourselves: <i>"What if bench time became your biggest competitive advantage?"</i>
+          What if an engineer could sit down with an AI interviewer 24/7, practice real scenario questions, get instant
+          STAR feedback, and fix resume gaps before speaking to real recruiters?
+        </p>
+      </div>
+
+      <div class="story-card">
+        <div class="story-badge">03</div>
+        <div class="story-icon">
+          <i class="pi pi-rocket"></i>
+        </div>
+        <h3>The Launchpad</h3>
+        <p>
+          ImOnBench evolved into an intelligent career simulator. From ATS resume evaluation to real-time voice & text
+          interview coaching,
+          we turn passive waiting into active, offer-winning readiness.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features Grid -->
+  <section class="features-section">
+    <div class="section-header">
+      <h2 class="section-title">Built for Modern Tech Professionals</h2>
+      <p class="section-subtitle">Everything you need to turn downtime into offer letters.</p>
+    </div>
+
+    <div class="features-grid">
+      @for (feature of features; track feature.title) {
+      <div class="feature-card">
+        <div class="feature-icon-wrapper">
+          <i class="pi" [ngClass]="feature.icon"></i>
+        </div>
+        <h3 class="feature-title">{{ feature.title }}</h3>
+        <p class="feature-desc">{{ feature.description }}</p>
+      </div>
+      }
+    </div>
+  </section>
+
+  <!-- Manifesto / Mission Statement -->
+  <section class="manifesto-section">
+    <div class="manifesto-card">
+      <div class="manifesto-content">
+        <i class="pi pi-quote-left manifesto-quote-icon"></i>
+        <h2 class="manifesto-title">Our Promise</h2>
+        <p class="manifesto-text">
+          "Being on the bench isn't the end of a project—it's the beginning of your next big elevation.
+          With <strong>ImOnBench</strong>, you are never alone, never unprepared, and always one practice session away
+          from your dream role."
+        </p>
+        <div class="manifesto-author">
+          <strong>The ImOnBench Team</strong>
+          <span>Built by developers, for developers.</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Call to Action Banner -->
+  <section class="cta-banner">
+    <div class="cta-inner">
+      <h2>Ready to Get Off the Bench & Get Hired?</h2>
+      <p>Start practicing with AI today. Benchmark your skills, polish your resume, and ace your next interview.</p>
+      <div class="cta-buttons">
+        <a routerLink="/aiinterview" class="btn-cta">
+          <span>Get Started Free</span>
+          <i class="pi pi-arrow-right"></i>
+        </a>
+      </div>
+    </div>
+  </section>
+</div>
