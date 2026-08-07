@@ -54,7 +54,11 @@ export class Dashboard implements OnInit {
   private readonly confirmationService = inject(ConfirmationService);
   private readonly destroyRef = inject(DestroyRef);
 
+  readonly batchSize = 10;
   readonly quizAttempts = signal<QuizStats[]>([]);
+  readonly hasMoreAttempts = signal<boolean>(true);
+  readonly isLoadingAttempts = signal<boolean>(false);
+  readonly isLoadingMore = signal<boolean>(false);
   readonly selectChartCategory = signal('angular');
   readonly categoryList = signal<string[]>([]);
   readonly lineData = signal<any>(null);
@@ -257,17 +261,83 @@ export class Dashboard implements OnInit {
 
   ngOnInit(): void {
     this.jobCompetencyService.refreshUserRatings();
-    this.quizApiService.getQuizAttempts().pipe(
-      takeUntilDestroyed(this.destroyRef)
-    ).subscribe((attempts: QuizStats[]) => {
-      this.quizAttempts.set(attempts);
-      const categories = [...new Set(attempts.map((item: any) => item.category))] as string[];
-      this.categoryList.set(categories);
-      if (categories.length) {
-        this.selectChartCategory.set(categories[0]);
-      }
-      this.buildPieData();
-    });
+    this.fetchInitialQuizAttempts();
+  }
+
+  fetchInitialQuizAttempts(): void {
+    this.isLoadingAttempts.set(true);
+    this.quizApiService
+      .getQuizAttempts(this.batchSize, 0)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (attempts: QuizStats[]) => {
+          this.quizAttempts.set(attempts);
+          if (!attempts || attempts.length < this.batchSize) {
+            this.hasMoreAttempts.set(false);
+          } else {
+            this.hasMoreAttempts.set(true);
+            // Pre-fetch next page so paginator next button is enabled immediately
+            this.loadMoreQuizAttempts();
+          }
+          const categories = [...new Set(attempts.map((item: any) => item.category))] as string[];
+          this.categoryList.set(categories);
+          if (categories.length) {
+            this.selectChartCategory.set(categories[0]);
+          }
+          this.buildPieData();
+          this.isLoadingAttempts.set(false);
+        },
+        error: (err) => {
+          console.error('Error loading initial quiz attempts', err);
+          this.isLoadingAttempts.set(false);
+        },
+      });
+  }
+
+  onTablePage(event: any): void {
+    const first = event.first ?? 0;
+    const rows = event.rows ?? 10;
+    const totalLoaded = this.quizAttempts().length;
+
+    if (first + rows >= totalLoaded && this.hasMoreAttempts() && !this.isLoadingMore()) {
+      this.loadMoreQuizAttempts();
+    }
+  }
+
+  loadMoreQuizAttempts(): void {
+    if (this.isLoadingMore() || !this.hasMoreAttempts()) return;
+
+    this.isLoadingMore.set(true);
+    const currentOffset = this.quizAttempts().length;
+
+    this.quizApiService
+      .getQuizAttempts(this.batchSize, currentOffset)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (newAttempts: QuizStats[]) => {
+          if (!newAttempts || newAttempts.length === 0) {
+            this.hasMoreAttempts.set(false);
+          } else {
+            this.quizAttempts.update((existing) => [...existing, ...newAttempts]);
+            if (newAttempts.length < this.batchSize) {
+              this.hasMoreAttempts.set(false);
+            }
+
+            const allAttempts = this.quizAttempts();
+            const categories = [...new Set(allAttempts.map((item: any) => item.category))] as string[];
+            this.categoryList.set(categories);
+            if (categories.length && !this.selectChartCategory()) {
+              this.selectChartCategory.set(categories[0]);
+            }
+            this.buildPieData();
+          }
+          this.isLoadingMore.set(false);
+        },
+        error: (err) => {
+          console.error('Error loading more quiz attempts', err);
+          this.isLoadingMore.set(false);
+        },
+      });
   }
 
   private categoryLineChart(category: string): void {

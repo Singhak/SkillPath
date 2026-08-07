@@ -199,7 +199,12 @@
             <i class="pi pi-history"></i>
             <span>Activity Log</span>
           </div>
-          <h3 class="card-title">Recent Quiz Attempts</h3>
+          <h3 class="card-title">
+            Recent Quiz Attempts
+            @if (quizAttempts().length > 0) {
+            <span class="attempt-count-badge">({{ quizAttempts().length }} loaded)</span>
+            }
+          </h3>
         </div>
         <div class="table-search-box">
           <i class="pi pi-search search-icon"></i>
@@ -215,7 +220,8 @@
 
       <div class="table-responsive">
         <p-table [value]="filteredQuizAttempts()" [tableStyle]="{ 'min-width': '100%' }" [rows]="5"
-          [paginator]="filteredQuizAttempts().length > 5" class="p-datatable-sm custom-table">
+          [paginator]="filteredQuizAttempts().length > 5" [rowsPerPageOptions]="[5, 10, 15, 20]"
+          (onPage)="onTablePage($event)" class="p-datatable-sm custom-table">
           <ng-template pTemplate="header">
             <tr>
               <th>Category</th>
@@ -235,7 +241,7 @@
                 <span class="category-pill">{{ row.category || 'General' }}</span>
               </td>
               <td class="date-cell">
-                {{ row.attemptedDate | date:'mediumDate' : '—' }}
+                {{ row.attemptedDate || row.attempedDate | date:'mediumDate' : '—' }}
               </td>
               <td><strong>{{ row.totalQuestions }}</strong></td>
               <td>
@@ -246,8 +252,7 @@
               </td>
               <td>{{ row.skippedCount || 0 }}</td>
               <td>
-                <span class="time-badge"><i class="pi pi-clock"></i> {{ formattedTime(row.totalTimeTakenInSeconds)
-                  }}</span>
+                <span class="time-badge"><i class="pi pi-clock"></i> {{ formattedTime(row.totalTimeTakenInSeconds) }}</span>
               </td>
               <td>
                 <span class="score-badge"><i class="pi pi-star-fill"></i> {{ row.totalScore }}</span>
@@ -259,10 +264,15 @@
             <tr>
               <td colspan="8" class="empty-table-state">
                 <div class="empty-box">
+                  @if (isLoadingAttempts()) {
+                  <i class="pi pi-spin pi-spinner empty-icon"></i>
+                  <p>Loading recent quiz attempts...</p>
+                  } @else {
                   <i class="pi pi-inbox empty-icon"></i>
                   <p>No quiz attempts found matching your query.</p>
                   @if (!quizAttempts().length) {
                   <button class="action-btn primary-btn btn-sm" (click)="onNewQuiz()">Start First Quiz</button>
+                  }
                   }
                 </div>
               </td>

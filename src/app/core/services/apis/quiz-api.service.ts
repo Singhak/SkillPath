@@ -13,7 +13,14 @@ export class QuizApiService {
     return this.http.put<void>(`${environment.apiUrl}/quizzes/${quizId}/complete`, {});
   }
 
-  getQuizAttempts(): Observable<QuizStats[]> {
-    return this.http.get<QuizStats[]>(`${environment.apiUrl}/quizzes`);
+  getQuizAttempts(limit?: number, offset?: number): Observable<QuizStats[]> {
+    let params: any = {};
+    if (limit !== undefined && limit !== null) {
+      params.limit = limit;
+    }
+    if (offset !== undefined && offset !== null) {
+      params.offset = offset;
+    }
+    return this.http.get<QuizStats[]>(`${environment.apiUrl}/quizzes`, { params });
   }
 }
