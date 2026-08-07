@@ -130,8 +130,13 @@ import { BillingHistoryModalComponent } from '../../shared/components/billing-hi
               Included in Gold Plan
             </button>
           } @else {
-            <button (click)="subscribePlan('Copper')" class="w-full py-3 px-6 rounded-full font-semibold bg-gradient-to-r from-orange-500 to-red-500 text-white hover:opacity-90 transition-opacity mb-8 shadow-lg shadow-orange-500/20 cursor-pointer">
-              Subscribe Now
+            <button [disabled]="paymentService.isProcessingPayment()" (click)="subscribePlan('Copper')" class="w-full py-3 px-6 rounded-full font-semibold bg-gradient-to-r from-orange-500 to-red-500 text-white hover:opacity-90 transition-opacity mb-8 shadow-lg shadow-orange-500/20 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+              @if (paymentService.isProcessingPayment()) {
+                <i class="pi pi-spin pi-spinner text-lg"></i>
+                <span>Processing...</span>
+              } @else {
+                <span>Subscribe Now</span>
+              }
             </button>
           }
 
@@ -203,8 +208,13 @@ import { BillingHistoryModalComponent } from '../../shared/components/billing-hi
               </button>
             }
 
-            <button (click)="subscribePlan('Gold')" class="w-full py-3 px-6 rounded-full font-bold bg-white text-blue-900 hover:bg-gray-100 transition-colors mb-8 shadow-[0_0_20px_rgba(255,255,255,0.3)] cursor-pointer">
-              Go Gold
+            <button [disabled]="paymentService.isProcessingPayment()" (click)="subscribePlan('Gold')" class="w-full py-3 px-6 rounded-full font-bold bg-white text-blue-900 hover:bg-gray-100 transition-colors mb-8 shadow-[0_0_20px_rgba(255,255,255,0.3)] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+              @if (paymentService.isProcessingPayment()) {
+                <i class="pi pi-spin pi-spinner text-lg"></i>
+                <span>Processing...</span>
+              } @else {
+                <span>Go Gold</span>
+              }
             </button>
           }
 
@@ -268,7 +278,14 @@ import { BillingHistoryModalComponent } from '../../shared/components/billing-hi
              </div>
              <h4 class="text-xl font-semibold text-white mb-2">1 AI Credit</h4>
              <div class="text-3xl font-bold text-white mb-4">{{ selectedCurrency === 'USD' ? '$0.25' : '₹5' }}</div>
-             <button (click)="buyCredits(selectedCurrency === 'USD' ? 0.25 : 5, 1)" class="w-full py-2 rounded-full font-medium bg-white/10 hover:bg-blue-600 transition-colors">Buy Now</button>
+             <button [disabled]="paymentService.isProcessingPayment()" (click)="buyCredits(selectedCurrency === 'USD' ? 0.25 : 5, 1)" class="w-full py-2 rounded-full font-medium bg-white/10 hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+               @if (paymentService.isProcessingPayment()) {
+                 <i class="pi pi-spin pi-spinner"></i>
+                 <span>Processing...</span>
+               } @else {
+                 <span>Buy Now</span>
+               }
+             </button>
           </div>
           
           <!-- 3 Credits -->
@@ -280,7 +297,14 @@ import { BillingHistoryModalComponent } from '../../shared/components/billing-hi
              <h4 class="text-xl font-semibold text-white mb-2">3 AI Credits</h4>
              <div class="text-3xl font-bold text-white mb-1">{{ selectedCurrency === 'USD' ? '$0.50' : '₹10' }}</div>
              <div class="text-sm text-purple-300 line-through mb-4">{{ selectedCurrency === 'USD' ? '$0.75' : '₹15' }}</div>
-             <button (click)="buyCredits(selectedCurrency === 'USD' ? 0.50 : 10, 3)" class="w-full py-2 rounded-full font-medium bg-purple-600 hover:bg-purple-500 transition-colors shadow-lg shadow-purple-500/25">Buy Now</button>
+             <button [disabled]="paymentService.isProcessingPayment()" (click)="buyCredits(selectedCurrency === 'USD' ? 0.50 : 10, 3)" class="w-full py-2 rounded-full font-medium bg-purple-600 hover:bg-purple-500 transition-colors shadow-lg shadow-purple-500/25 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+               @if (paymentService.isProcessingPayment()) {
+                 <i class="pi pi-spin pi-spinner"></i>
+                 <span>Processing...</span>
+               } @else {
+                 <span>Buy Now</span>
+               }
+             </button>
           </div>
           
           <!-- 10 Credits -->
@@ -292,9 +316,17 @@ import { BillingHistoryModalComponent } from '../../shared/components/billing-hi
              <h4 class="text-xl font-semibold text-white mb-2">10 AI Credits</h4>
              <div class="text-3xl font-bold text-white mb-1">{{ selectedCurrency === 'USD' ? '$1.00' : '₹25' }}</div>
              <div class="text-sm text-cyan-300 line-through mb-4">{{ selectedCurrency === 'USD' ? '$2.50' : '₹50' }}</div>
-             <button (click)="buyCredits(selectedCurrency === 'USD' ? 1.00 : 25, 10)" class="w-full py-2 rounded-full font-medium bg-cyan-600 hover:bg-cyan-500 transition-colors shadow-lg shadow-cyan-500/25">Buy Now</button>
+             <button [disabled]="paymentService.isProcessingPayment()" (click)="buyCredits(selectedCurrency === 'USD' ? 1.00 : 25, 10)" class="w-full py-2 rounded-full font-medium bg-cyan-600 hover:bg-cyan-500 transition-colors shadow-lg shadow-purple-500/25 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+               @if (paymentService.isProcessingPayment()) {
+                 <i class="pi pi-spin pi-spinner"></i>
+                 <span>Processing...</span>
+               } @else {
+                 <span>Buy Now</span>
+               }
+             </button>
           </div>
         </div>
+      </div>
 
         <!-- AI Credit Usage Rates Breakdown Matrix -->
         <div class="mt-12 p-6 md:p-8 rounded-3xl backdrop-blur-xl bg-white/5 border border-white/10">
@@ -386,7 +418,6 @@ import { BillingHistoryModalComponent } from '../../shared/components/billing-hi
             </div>
           </div>
         </div>
-      </div>
 
       <!-- Detailed Comparison Table -->
       <div class="max-w-5xl mx-auto w-full mt-24 relative z-10 px-4">

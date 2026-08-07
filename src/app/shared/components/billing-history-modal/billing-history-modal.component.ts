@@ -278,7 +278,7 @@ export interface PurchaseHistoryItem {
                               <span [class]="isDark ? 'bg-slate-800 border-slate-700 text-slate-300' : 'bg-slate-100 border-slate-300 text-slate-700'" class="px-2 py-0.5 rounded border font-mono font-bold">{{ p.provider }}</span>
                             </td>
                             <td [class]="isDark ? 'text-emerald-400' : 'text-emerald-600'" class="px-4 py-3.5 text-right font-mono font-extrabold text-sm">
-                              {{ p.currency === 'USD' ? '$' : '₹' }}{{ p.amount | number:'1.2-2' }}
+                              {{ p.currency === 'USD' ? '$' : '₹' }}{{ getAmount(p) | number:'1.2-2' }}
                             </td>
                             <td [class]="isDark ? 'text-cyan-400' : 'text-cyan-600'" class="px-4 py-3.5 text-center font-mono font-bold">
                               +{{ p.creditsAdded }}
@@ -381,6 +381,21 @@ export class BillingHistoryModalComponent implements OnInit {
         this.isLoading = false;
       }
     });
+  }
+
+  getAmount(p: PurchaseHistoryItem): number {
+    let amt = parseFloat(p.amount as any) || 0;
+    if (amt === 0) {
+      const isUsd = (p.currency || '').toUpperCase() === 'USD';
+      const name = (p.itemName || '').toLowerCase();
+      if (name.includes('gold')) return isUsd ? 2.99 : 50;
+      if (name.includes('copper')) return isUsd ? 0.99 : 20;
+      if (p.creditsAdded === 1 || name.includes('1 ai credit')) return isUsd ? 0.25 : 5;
+      if (p.creditsAdded === 3 || name.includes('3 ai credit')) return isUsd ? 0.50 : 10;
+      if (p.creditsAdded === 10 || name.includes('10 ai credit')) return isUsd ? 1.00 : 25;
+      if (p.creditsAdded > 0) return isUsd ? p.creditsAdded * 0.25 : p.creditsAdded * 5;
+    }
+    return amt;
   }
 
   closeModal(): void {

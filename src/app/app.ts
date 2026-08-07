@@ -3,6 +3,7 @@ import { Router, RouterOutlet, RouterLink, RouterLinkActive } from '@angular/rou
 import { MessageService } from 'primeng/api';
 import { ToastModule } from 'primeng/toast';
 import { AuthService } from './core/services/auth.service';
+import { PaymentService } from './core/services/payment.service';
 import { CommonModule } from '@angular/common';
 import { ButtonModule } from 'primeng/button';
 import { RippleModule } from 'primeng/ripple';
@@ -26,6 +27,7 @@ import { HealthService } from './core/services/health.service';
 export class App {
   private authService = inject(AuthService);
   private healthService = inject(HealthService);
+  protected paymentService = inject(PaymentService);
   isWakingUp$ = this.healthService.isWakingUp$;
   isOnline = signal(typeof navigator !== 'undefined' ? navigator.onLine : true);
 

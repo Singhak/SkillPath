@@ -149,4 +149,34 @@
       <router-outlet />
     </div>
   </div>
+
+  <!-- Global Payment Processing Modal Overlay -->
+  @if (paymentService.isProcessingPayment()) {
+    <div class="fixed inset-0 z-[99999] flex flex-col items-center justify-center bg-slate-950/85 backdrop-blur-md transition-all duration-300 pointer-events-auto">
+      <div class="bg-slate-900/95 border border-cyan-500/30 rounded-3xl p-8 max-w-md w-full mx-4 shadow-[0_0_50px_rgba(6,182,212,0.2)] flex flex-col items-center text-center relative overflow-hidden">
+        <!-- Glow background effects -->
+        <div class="absolute -top-12 -left-12 w-36 h-36 bg-cyan-500/20 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="absolute -bottom-12 -right-12 w-36 h-36 bg-blue-500/20 rounded-full blur-3xl pointer-events-none"></div>
+        
+        <div class="relative mb-6">
+          <div class="w-20 h-20 rounded-2xl bg-gradient-to-tr from-cyan-500 via-blue-600 to-purple-600 flex items-center justify-center shadow-lg shadow-cyan-500/30 animate-pulse">
+            <i class="pi pi-credit-card text-4xl text-white"></i>
+          </div>
+          <div class="absolute -bottom-2 -right-2 w-8 h-8 rounded-full bg-slate-900 border border-slate-700 flex items-center justify-center shadow">
+            <i class="pi pi-spin pi-spinner text-cyan-400 text-base"></i>
+          </div>
+        </div>
+
+        <h3 class="text-2xl font-extrabold text-white mb-2 tracking-tight">Processing Payment</h3>
+        <p class="text-sm text-slate-300 mb-6 leading-relaxed">
+          Connecting to secure payment gateway. Please complete your payment transaction...
+        </p>
+        
+        <div class="flex items-center gap-2.5 px-4 py-2.5 rounded-full bg-cyan-500/10 border border-cyan-500/25 text-cyan-400 text-xs font-semibold shadow-inner">
+          <i class="pi pi-shield text-sm"></i>
+          <span>Secure checkout in progress. Do not refresh or navigate away.</span>
+        </div>
+      </div>
+    </div>
+  }
 </main>
