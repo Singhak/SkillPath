@@ -237,6 +237,39 @@ export class PaymentService {
     });
   }
 
+  /**
+   * Restore purchase for recovery of unfulfilled orders due to glitches
+   */
+  public restorePurchase(payload?: { orderId?: string; paymentId?: string; provider?: string }): Observable<any> {
+    return new Observable((observer) => {
+      this.http.post<any>(`${this.apiUrl}/restore`, payload || {}).subscribe({
+        next: (res: any) => {
+          if (res.restored) {
+            if (res.paidCredits !== undefined) {
+              this.userResourceService.updateUserCredits({ paidCredits: res.paidCredits, refetch: true });
+            }
+            if (res.plan) {
+              this.authService.updateUserProfile({ plan: res.plan });
+            }
+            this.userResourceService.fetchCreditsAndCoins().subscribe();
+            this.notifySuccess('Purchase Restored!', res.message || 'Your purchase has been restored successfully.');
+          } else if (res.alreadyFulfilled) {
+            this.notifyInfo('Purchase Active', res.message || 'This purchase is already active on your account.');
+          } else {
+            this.notifyInfo('Restore Info', res.message || 'No restorable purchases found.');
+          }
+          observer.next(res);
+          observer.complete();
+        },
+        error: (err: any) => {
+          console.error('Restore purchase error', err);
+          this.notifyError('Restore Failed', err.error?.message || 'Could not restore purchase. Please check your order details or contact support.');
+          observer.error(err);
+        }
+      });
+    });
+  }
+
   private notifySuccess(summary: string, detail: string): void {
     if (this.messageService) {
       this.messageService.add({ severity: 'success', summary, detail });

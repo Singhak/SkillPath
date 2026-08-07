@@ -52,6 +52,15 @@ import { BillingHistoryModalComponent } from '../../shared/components/billing-hi
             </svg>
             Billing & Credit History
           </button>
+
+          <button 
+            (click)="isBillingModalOpen = true"
+            class="px-5 py-2 rounded-full bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 text-amber-300 text-sm font-semibold transition-all shadow-md flex items-center gap-2 cursor-pointer">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+            Restore Purchase
+          </button>
         </div>
       </div>
 

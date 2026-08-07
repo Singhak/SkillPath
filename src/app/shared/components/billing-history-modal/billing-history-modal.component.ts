@@ -1,8 +1,12 @@
-import { Component, EventEmitter, Input, Output, OnInit, inject } from '@angular/core';
+import { Component, EventEmitter, Input, Output, OnInit, OnChanges, SimpleChanges, ChangeDetectorRef, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { forkJoin, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 import { UserApiService } from '../../../core/services/apis/user-api.service';
 import { UserResourceService } from '../../../core/services/user-resource.service';
 import { ThemeService } from '../../../core/services/theme.service';
+import { PaymentService } from '../../../core/services/payment.service';
 
 export interface CreditLedgerItem {
   id: number;
@@ -33,7 +37,7 @@ export interface PurchaseHistoryItem {
 @Component({
   selector: 'app-billing-history-modal',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   template: `
     @if (isOpen) {
       <div 
@@ -62,15 +66,84 @@ export interface PurchaseHistoryItem {
               </div>
             </div>
             
-            <button 
-              (click)="closeModal()"
-              [class]="isDark ? 'text-slate-400 hover:text-white hover:bg-slate-800' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-100'"
-              class="p-2 rounded-lg transition-colors cursor-pointer">
-              <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
+            <div class="flex items-center gap-2">
+              <button 
+                (click)="showRestorePanel = !showRestorePanel"
+                [class]="showRestorePanel ? 'bg-amber-500 text-white shadow-lg shadow-amber-500/20' : (isDark ? 'bg-slate-800 text-amber-400 hover:bg-slate-700 border-slate-700' : 'bg-amber-50 text-amber-700 hover:bg-amber-100 border-amber-200')"
+                class="px-3.5 py-2 rounded-xl text-xs font-bold border transition-all flex items-center gap-1.5 cursor-pointer">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+                <span>Restore Purchase</span>
+              </button>
+
+              <button 
+                (click)="closeModal()"
+                [class]="isDark ? 'text-slate-400 hover:text-white hover:bg-slate-800' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-100'"
+                class="p-2 rounded-lg transition-colors cursor-pointer">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
           </div>
+
+          <!-- Restore Purchase Banner / Panel -->
+          @if (showRestorePanel) {
+            <div 
+              [class]="isDark ? 'bg-amber-950/40 border-amber-500/30 text-amber-200' : 'bg-amber-50 border-amber-200 text-amber-900'"
+              class="px-6 py-4 border-b space-y-3 transition-all animate-fadeIn">
+              <div class="flex items-start justify-between">
+                <div>
+                  <div class="flex items-center gap-2 font-bold text-sm">
+                    <span class="px-2 py-0.5 rounded text-[10px] uppercase font-extrabold bg-amber-500 text-black">Technical Glitch Recovery</span>
+                    <span>Restore Missing Purchase</span>
+                  </div>
+                  <p class="text-xs opacity-90 mt-1">If money was deducted or a transaction got stuck during payment, click <strong>Auto-Scan</strong> or enter your <strong>Order ID / Payment ID</strong> below.</p>
+                </div>
+              </div>
+
+              <div class="flex flex-wrap items-center gap-3">
+                <button 
+                  [disabled]="isRestoring"
+                  (click)="triggerAutoRestore()"
+                  class="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-black text-xs font-bold transition-all shadow-md flex items-center gap-2 cursor-pointer disabled:opacity-50">
+                  @if (isRestoring) {
+                    <div class="w-3.5 h-3.5 border-2 border-black border-t-transparent rounded-full animate-spin"></div>
+                    <span>Scanning Payment Gateways...</span>
+                  } @else {
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
+                    <span>Auto-Scan & Restore</span>
+                  }
+                </button>
+
+                <div class="flex items-center gap-2 flex-1 min-w-[260px]">
+                  <input 
+                    type="text" 
+                    [(ngModel)]="manualOrderId"
+                    placeholder="Enter Order ID (e.g. order_xxx) or Payment ID (e.g. pay_xxx)"
+                    [class]="isDark ? 'bg-slate-900 border-slate-700 text-white placeholder-slate-500' : 'bg-white border-slate-300 text-slate-900 placeholder-slate-400'"
+                    class="px-3.5 py-2 rounded-xl border text-xs flex-1 outline-none focus:ring-2 focus:ring-amber-500/50 font-mono" />
+                  
+                  <button 
+                    [disabled]="isRestoring || !manualOrderId.trim()"
+                    (click)="triggerManualRestore()"
+                    class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-400 border border-slate-700 text-xs font-bold transition-all cursor-pointer disabled:opacity-50">
+                    Verify & Restore
+                  </button>
+                </div>
+              </div>
+
+              @if (restoreMessage) {
+                <div [class]="isDark ? 'bg-slate-900/90 border-slate-700 text-cyan-300' : 'bg-white border-slate-200 text-slate-800'" class="p-3 rounded-xl border text-xs font-medium flex items-center justify-between">
+                  <span>{{ restoreMessage }}</span>
+                  <span class="text-[10px] text-amber-400 font-mono">⚡ Protected against double-accounting</span>
+                </div>
+              }
+            </div>
+          }
 
           <!-- Current Balance Stats Banner -->
           <div 
@@ -107,39 +180,50 @@ export interface PurchaseHistoryItem {
                 <p [class]="isDark ? 'text-purple-400' : 'text-purple-600'" class="text-xs font-bold">Total Credits Available</p>
                 <p [class]="isDark ? 'text-white' : 'text-slate-900'" class="text-xl font-extrabold mt-0.5">{{ (userResources.freeCredits() + userResources.paidCredits()) | number:'1.1-2' }}</p>
               </div>
-              <span [class]="isDark ? 'bg-purple-500/10 text-purple-400 border-purple-500/20' : 'bg-purple-100 text-purple-800 border-purple-300'" class="px-2.5 py-1 text-[11px] font-bold rounded-full border">Combined Balance</span>
+              <span [class]="isDark ? 'bg-purple-500/10 text-purple-400 border-purple-500/20' : 'bg-purple-100 text-purple-800 border-purple-300'" class="px-2.5 py-1 text-[11px] font-bold rounded-full border">Free + Paid</span>
             </div>
           </div>
 
           <!-- Navigation Tabs -->
           <div 
             [class]="isDark ? 'border-slate-800 bg-slate-950/30' : 'border-slate-200 bg-slate-100/50'"
-            class="px-6 border-b flex items-center gap-4 transition-colors">
+            class="px-6 border-b flex items-center justify-between transition-colors">
             
-            <button 
-              (click)="activeTab = 'credits'"
-              [class]="activeTab === 'credits' 
-                ? (isDark ? 'border-cyan-400 text-cyan-400 font-semibold' : 'border-cyan-600 text-cyan-700 font-extrabold') 
-                : (isDark ? 'border-transparent text-slate-400 hover:text-slate-200' : 'border-transparent text-slate-600 hover:text-slate-900')"
-              class="py-3 px-1 border-b-2 text-sm transition-all flex items-center gap-2 cursor-pointer">
-              <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-              </svg>
-              Credit Usage Ledger
-              <span [class]="isDark ? 'bg-slate-800 text-slate-300' : 'bg-slate-200 text-slate-700'" class="ml-1 px-2 py-0.5 text-[11px] font-bold rounded-full">{{ creditItems.length }}</span>
-            </button>
+            <div class="flex items-center gap-4">
+              <button 
+                (click)="switchTab('credits')"
+                [class]="activeTab === 'credits' 
+                  ? (isDark ? 'border-cyan-400 text-cyan-400 font-semibold' : 'border-cyan-600 text-cyan-700 font-extrabold') 
+                  : (isDark ? 'border-transparent text-slate-400 hover:text-slate-200' : 'border-transparent text-slate-600 hover:text-slate-900')"
+                class="py-3 px-1 border-b-2 text-sm transition-all flex items-center gap-2 cursor-pointer">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 012-2h2a2 2 0 012-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                </svg>
+                Credit Usage Ledger
+                <span [class]="isDark ? 'bg-slate-800 text-slate-300' : 'bg-slate-200 text-slate-700'" class="ml-1 px-2 py-0.5 text-[11px] font-bold rounded-full">{{ creditTotal }}</span>
+              </button>
+
+              <button 
+                (click)="switchTab('purchases')"
+                [class]="activeTab === 'purchases' 
+                  ? (isDark ? 'border-cyan-400 text-cyan-400 font-semibold' : 'border-cyan-600 text-cyan-700 font-extrabold') 
+                  : (isDark ? 'border-transparent text-slate-400 hover:text-slate-200' : 'border-transparent text-slate-600 hover:text-slate-900')"
+                class="py-3 px-1 border-b-2 text-sm transition-all flex items-center gap-2 cursor-pointer">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                </svg>
+                Purchase History
+                <span [class]="isDark ? 'bg-slate-800 text-slate-300' : 'bg-slate-200 text-slate-700'" class="ml-1 px-2 py-0.5 text-[11px] font-bold rounded-full">{{ purchaseTotal }}</span>
+              </button>
+            </div>
 
             <button 
-              (click)="activeTab = 'purchases'"
-              [class]="activeTab === 'purchases' 
-                ? (isDark ? 'border-cyan-400 text-cyan-400 font-semibold' : 'border-cyan-600 text-cyan-700 font-extrabold') 
-                : (isDark ? 'border-transparent text-slate-400 hover:text-slate-200' : 'border-transparent text-slate-600 hover:text-slate-900')"
-              class="py-3 px-1 border-b-2 text-sm transition-all flex items-center gap-2 cursor-pointer">
-              <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+              (click)="showRestorePanel = !showRestorePanel"
+              class="text-xs text-amber-400 hover:underline flex items-center gap-1 font-semibold cursor-pointer">
+              <span>Need help restoring a glitch?</span>
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
               </svg>
-              Purchase History
-              <span [class]="isDark ? 'bg-slate-800 text-slate-300' : 'bg-slate-200 text-slate-700'" class="ml-1 px-2 py-0.5 text-[11px] font-bold rounded-full">{{ purchaseItems.length }}</span>
             </button>
           </div>
 
@@ -168,7 +252,14 @@ export interface PurchaseHistoryItem {
                 } @else {
                   <div 
                     [class]="isDark ? 'border-slate-800 bg-slate-950/40' : 'border-slate-200 bg-white shadow-sm'"
-                    class="overflow-x-auto rounded-xl border">
+                    class="relative overflow-x-auto rounded-xl border flex flex-col">
+                    
+                    @if (creditLoading) {
+                      <div class="absolute inset-0 z-10 bg-black/30 backdrop-blur-[1px] flex items-center justify-center">
+                        <div class="w-6 h-6 border-2 border-cyan-400 border-t-transparent rounded-full animate-spin"></div>
+                      </div>
+                    }
+
                     <table class="w-full text-left text-xs">
                       <thead 
                         [class]="isDark ? 'bg-slate-900/80 text-slate-400 border-slate-800' : 'bg-slate-100 text-slate-700 border-slate-200'"
@@ -177,12 +268,12 @@ export interface PurchaseHistoryItem {
                           <th class="px-4 py-3">Date & Time</th>
                           <th class="px-4 py-3">Feature / Description</th>
                           <th class="px-4 py-3 text-right">Amount</th>
-                          <th class="px-4 py-3 text-center">Segregation (Free vs Paid)</th>
+                          <th class="px-4 py-3 text-center">Usage Breakdown (Free vs Paid)</th>
                           <th class="px-4 py-3 text-right">Remaining Balances</th>
                         </tr>
                       </thead>
                       <tbody [class]="isDark ? 'divide-slate-800/60' : 'divide-slate-200'" class="divide-y">
-                        @for (item of creditItems; track item.id) {
+                        @for (item of creditItems; track item.id || $index) {
                           <tr [class]="isDark ? 'hover:bg-slate-800/40' : 'hover:bg-slate-50'" class="transition-colors">
                             <!-- Date & Time -->
                             <td [class]="isDark ? 'text-slate-400' : 'text-slate-500'" class="px-4 py-3.5 whitespace-nowrap font-mono text-[11px]">
@@ -232,6 +323,84 @@ export interface PurchaseHistoryItem {
                         }
                       </tbody>
                     </table>
+
+                    <!-- Pagination Controls -->
+                    <div 
+                      [class]="isDark ? 'border-slate-800 bg-slate-900/90 text-slate-300' : 'border-slate-200 bg-slate-50 text-slate-700'"
+                      class="px-4 py-3 border-t flex flex-wrap items-center justify-between gap-3 text-xs">
+                      
+                      <div class="flex items-center gap-4">
+                        <div class="flex items-center gap-2">
+                          <span [class]="isDark ? 'text-slate-400' : 'text-slate-500'" class="font-medium">Per page:</span>
+                          <select 
+                            [ngModel]="creditLimit" 
+                            (ngModelChange)="onCreditLimitChange($event)"
+                            [class]="isDark ? 'bg-slate-800 border-slate-700 text-white' : 'bg-white border-slate-300 text-slate-800'"
+                            class="px-2.5 py-1 rounded-lg border font-semibold outline-none focus:ring-1 focus:ring-cyan-500 cursor-pointer">
+                            @for (opt of pageSizeOptions; track opt) {
+                              <option [value]="opt">{{ opt }}</option>
+                            }
+                          </select>
+                        </div>
+                        
+                        <span class="font-medium">
+                          Showing <span [class]="isDark ? 'text-cyan-400' : 'text-cyan-600'" class="font-bold">{{ creditStartItem }}</span>–<span [class]="isDark ? 'text-cyan-400' : 'text-cyan-600'" class="font-bold">{{ creditEndItem }}</span> of <span class="font-bold">{{ creditTotal }}</span> entries
+                        </span>
+                      </div>
+
+                      <div class="flex items-center gap-1.5">
+                        <button 
+                          (click)="loadCreditPage(1)" 
+                          [disabled]="creditPage === 1 || creditLoading"
+                          [class]="isDark ? 'bg-slate-800 hover:bg-slate-700 border-slate-700 text-slate-200 disabled:text-slate-600 disabled:bg-slate-900/50' : 'bg-white hover:bg-slate-100 border-slate-300 text-slate-700 disabled:text-slate-300'"
+                          class="p-1.5 rounded-lg border transition-all disabled:opacity-40 cursor-pointer disabled:cursor-not-allowed"
+                          title="First Page">
+                          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
+                          </svg>
+                        </button>
+
+                        <button 
+                          (click)="loadCreditPage(creditPage - 1)" 
+                          [disabled]="creditPage === 1 || creditLoading"
+                          [class]="isDark ? 'bg-slate-800 hover:bg-slate-700 border-slate-700 text-slate-200 disabled:text-slate-600 disabled:bg-slate-900/50' : 'bg-white hover:bg-slate-100 border-slate-300 text-slate-700 disabled:text-slate-300'"
+                          class="p-1.5 rounded-lg border transition-all disabled:opacity-40 cursor-pointer disabled:cursor-not-allowed"
+                          title="Previous Page">
+                          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                          </svg>
+                        </button>
+
+                        <span 
+                          [class]="isDark ? 'bg-slate-800 border-slate-700 text-slate-200' : 'bg-white border-slate-300 text-slate-800'"
+                          class="px-3 py-1 font-bold rounded-lg border">
+                          Page {{ creditPage }} of {{ creditTotalPages }}
+                        </span>
+
+                        <button 
+                          (click)="loadCreditPage(creditPage + 1)" 
+                          [disabled]="creditPage >= creditTotalPages || creditLoading"
+                          [class]="isDark ? 'bg-slate-800 hover:bg-slate-700 border-slate-700 text-slate-200 disabled:text-slate-600 disabled:bg-slate-900/50' : 'bg-white hover:bg-slate-100 border-slate-300 text-slate-700 disabled:text-slate-300'"
+                          class="p-1.5 rounded-lg border transition-all disabled:opacity-40 cursor-pointer disabled:cursor-not-allowed"
+                          title="Next Page">
+                          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                          </svg>
+                        </button>
+
+                        <button 
+                          (click)="loadCreditPage(creditTotalPages)" 
+                          [disabled]="creditPage >= creditTotalPages || creditLoading"
+                          [class]="isDark ? 'bg-slate-800 hover:bg-slate-700 border-slate-700 text-slate-200 disabled:text-slate-600 disabled:bg-slate-900/50' : 'bg-white hover:bg-slate-100 border-slate-300 text-slate-700 disabled:text-slate-300'"
+                          class="p-1.5 rounded-lg border transition-all disabled:opacity-40 cursor-pointer disabled:cursor-not-allowed"
+                          title="Last Page">
+                          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M6 5l7 7-7 7" />
+                          </svg>
+                        </button>
+                      </div>
+                    </div>
+
                   </div>
                 }
               }
@@ -251,7 +420,14 @@ export interface PurchaseHistoryItem {
                 } @else {
                   <div 
                     [class]="isDark ? 'border-slate-800 bg-slate-950/40' : 'border-slate-200 bg-white shadow-sm'"
-                    class="overflow-x-auto rounded-xl border">
+                    class="relative overflow-x-auto rounded-xl border flex flex-col">
+                    
+                    @if (purchaseLoading) {
+                      <div class="absolute inset-0 z-10 bg-black/30 backdrop-blur-[1px] flex items-center justify-center">
+                        <div class="w-6 h-6 border-2 border-cyan-400 border-t-transparent rounded-full animate-spin"></div>
+                      </div>
+                    }
+
                     <table class="w-full text-left text-xs">
                       <thead 
                         [class]="isDark ? 'bg-slate-900/80 text-slate-400 border-slate-800' : 'bg-slate-100 text-slate-700 border-slate-200'"
@@ -266,7 +442,7 @@ export interface PurchaseHistoryItem {
                         </tr>
                       </thead>
                       <tbody [class]="isDark ? 'divide-slate-800/60' : 'divide-slate-200'" class="divide-y">
-                        @for (p of purchaseItems; track p.id) {
+                        @for (p of purchaseItems; track p.id || $index) {
                           <tr [class]="isDark ? 'hover:bg-slate-800/40' : 'hover:bg-slate-50'" class="transition-colors">
                             <td [class]="isDark ? 'text-slate-400' : 'text-slate-500'" class="px-4 py-3.5 whitespace-nowrap font-mono text-[11px]">
                               {{ p.createdAt | date:'mediumDate' }}
@@ -284,7 +460,7 @@ export interface PurchaseHistoryItem {
                               +{{ p.creditsAdded }}
                             </td>
                             <td class="px-4 py-3.5 text-center">
-                              <span [class]="isDark ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30' : 'bg-emerald-100 text-emerald-800 border-emerald-300'" class="px-2.5 py-1 text-[10px] font-extrabold uppercase rounded-full border">
+                              <span [class]="p.status === 'SUCCESS' ? (isDark ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30' : 'bg-emerald-100 text-emerald-800 border-emerald-300') : (isDark ? 'bg-amber-500/10 text-amber-400 border-amber-500/30' : 'bg-amber-100 text-amber-800 border-amber-300')" class="px-2.5 py-1 text-[10px] font-extrabold uppercase rounded-full border">
                                 {{ p.status }}
                               </span>
                             </td>
@@ -292,6 +468,84 @@ export interface PurchaseHistoryItem {
                         }
                       </tbody>
                     </table>
+
+                    <!-- Pagination Controls -->
+                    <div 
+                      [class]="isDark ? 'border-slate-800 bg-slate-900/90 text-slate-300' : 'border-slate-200 bg-slate-50 text-slate-700'"
+                      class="px-4 py-3 border-t flex flex-wrap items-center justify-between gap-3 text-xs">
+                      
+                      <div class="flex items-center gap-4">
+                        <div class="flex items-center gap-2">
+                          <span [class]="isDark ? 'text-slate-400' : 'text-slate-500'" class="font-medium">Per page:</span>
+                          <select 
+                            [ngModel]="purchaseLimit" 
+                            (ngModelChange)="onPurchaseLimitChange($event)"
+                            [class]="isDark ? 'bg-slate-800 border-slate-700 text-white' : 'bg-white border-slate-300 text-slate-800'"
+                            class="px-2.5 py-1 rounded-lg border font-semibold outline-none focus:ring-1 focus:ring-cyan-500 cursor-pointer">
+                            @for (opt of pageSizeOptions; track opt) {
+                              <option [value]="opt">{{ opt }}</option>
+                            }
+                          </select>
+                        </div>
+                        
+                        <span class="font-medium">
+                          Showing <span [class]="isDark ? 'text-cyan-400' : 'text-cyan-600'" class="font-bold">{{ purchaseStartItem }}</span>–<span [class]="isDark ? 'text-cyan-400' : 'text-cyan-600'" class="font-bold">{{ purchaseEndItem }}</span> of <span class="font-bold">{{ purchaseTotal }}</span> records
+                        </span>
+                      </div>
+
+                      <div class="flex items-center gap-1.5">
+                        <button 
+                          (click)="loadPurchasePage(1)" 
+                          [disabled]="purchasePage === 1 || purchaseLoading"
+                          [class]="isDark ? 'bg-slate-800 hover:bg-slate-700 border-slate-700 text-slate-200 disabled:text-slate-600 disabled:bg-slate-900/50' : 'bg-white hover:bg-slate-100 border-slate-300 text-slate-700 disabled:text-slate-300'"
+                          class="p-1.5 rounded-lg border transition-all disabled:opacity-40 cursor-pointer disabled:cursor-not-allowed"
+                          title="First Page">
+                          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
+                          </svg>
+                        </button>
+
+                        <button 
+                          (click)="loadPurchasePage(purchasePage - 1)" 
+                          [disabled]="purchasePage === 1 || purchaseLoading"
+                          [class]="isDark ? 'bg-slate-800 hover:bg-slate-700 border-slate-700 text-slate-200 disabled:text-slate-600 disabled:bg-slate-900/50' : 'bg-white hover:bg-slate-100 border-slate-300 text-slate-700 disabled:text-slate-300'"
+                          class="p-1.5 rounded-lg border transition-all disabled:opacity-40 cursor-pointer disabled:cursor-not-allowed"
+                          title="Previous Page">
+                          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                          </svg>
+                        </button>
+
+                        <span 
+                          [class]="isDark ? 'bg-slate-800 border-slate-700 text-slate-200' : 'bg-white border-slate-300 text-slate-800'"
+                          class="px-3 py-1 font-bold rounded-lg border">
+                          Page {{ purchasePage }} of {{ purchaseTotalPages }}
+                        </span>
+
+                        <button 
+                          (click)="loadPurchasePage(purchasePage + 1)" 
+                          [disabled]="purchasePage >= purchaseTotalPages || purchaseLoading"
+                          [class]="isDark ? 'bg-slate-800 hover:bg-slate-700 border-slate-700 text-slate-200 disabled:text-slate-600 disabled:bg-slate-900/50' : 'bg-white hover:bg-slate-100 border-slate-300 text-slate-700 disabled:text-slate-300'"
+                          class="p-1.5 rounded-lg border transition-all disabled:opacity-40 cursor-pointer disabled:cursor-not-allowed"
+                          title="Next Page">
+                          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                          </svg>
+                        </button>
+
+                        <button 
+                          (click)="loadPurchasePage(purchaseTotalPages)" 
+                          [disabled]="purchasePage >= purchaseTotalPages || purchaseLoading"
+                          [class]="isDark ? 'bg-slate-800 hover:bg-slate-700 border-slate-700 text-slate-200 disabled:text-slate-600 disabled:bg-slate-900/50' : 'bg-white hover:bg-slate-100 border-slate-300 text-slate-700 disabled:text-slate-300'"
+                          class="p-1.5 rounded-lg border transition-all disabled:opacity-40 cursor-pointer disabled:cursor-not-allowed"
+                          title="Last Page">
+                          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M6 5l7 7-7 7" />
+                          </svg>
+                        </button>
+                      </div>
+                    </div>
+
                   </div>
                 }
               }
@@ -330,61 +584,233 @@ export interface PurchaseHistoryItem {
     }
   `]
 })
-export class BillingHistoryModalComponent implements OnInit {
+export class BillingHistoryModalComponent implements OnInit, OnChanges {
   @Input() isOpen = false;
   @Output() close = new EventEmitter<void>();
 
   private readonly userApiService = inject(UserApiService);
   readonly userResources = inject(UserResourceService);
+  private readonly paymentService = inject(PaymentService);
   private readonly themeService = inject(ThemeService);
+  private readonly cdr = inject(ChangeDetectorRef);
 
   activeTab: 'credits' | 'purchases' = 'credits';
   isLoading = false;
+  private isLoaded = false;
 
+  showRestorePanel = false;
+  isRestoring = false;
+  manualOrderId = '';
+  restoreMessage = '';
+
+  // Credit Ledger Pagination State
   creditItems: CreditLedgerItem[] = [];
+  creditPage = 1;
+  creditLimit = 10;
+  creditTotal = 0;
+  creditLoading = false;
+
+  // Purchase History Pagination State
   purchaseItems: PurchaseHistoryItem[] = [];
+  purchasePage = 1;
+  purchaseLimit = 10;
+  purchaseTotal = 0;
+  purchaseLoading = false;
+
+  readonly pageSizeOptions = [5, 10, 20, 50];
 
   get isDark(): boolean {
     return this.themeService.isEffectiveDark;
   }
 
+  // Credit Ledger Computed Pagination Helpers
+  get creditTotalPages(): number {
+    return Math.ceil(this.creditTotal / this.creditLimit) || 1;
+  }
+
+  get creditStartItem(): number {
+    if (this.creditTotal === 0) return 0;
+    return (this.creditPage - 1) * this.creditLimit + 1;
+  }
+
+  get creditEndItem(): number {
+    return Math.min(this.creditPage * this.creditLimit, this.creditTotal);
+  }
+
+  // Purchase History Computed Pagination Helpers
+  get purchaseTotalPages(): number {
+    return Math.ceil(this.purchaseTotal / this.purchaseLimit) || 1;
+  }
+
+  get purchaseStartItem(): number {
+    if (this.purchaseTotal === 0) return 0;
+    return (this.purchasePage - 1) * this.purchaseLimit + 1;
+  }
+
+  get purchaseEndItem(): number {
+    return Math.min(this.purchasePage * this.purchaseLimit, this.purchaseTotal);
+  }
+
   ngOnInit(): void {
-    if (this.isOpen) {
+    if (this.isOpen && !this.isLoaded) {
       this.loadData();
     }
   }
 
-  ngOnChanges(): void {
-    if (this.isOpen) {
-      this.loadData();
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['isOpen']) {
+      if (changes['isOpen'].currentValue === true) {
+        this.loadData();
+      } else {
+        this.isLoaded = false;
+        this.showRestorePanel = false;
+        this.restoreMessage = '';
+        this.manualOrderId = '';
+        this.creditPage = 1;
+        this.purchasePage = 1;
+      }
     }
   }
 
   loadData(): void {
+    this.isLoaded = true;
     this.isLoading = true;
+    this.cdr.detectChanges();
+
     this.userResources.fetchCreditsAndCoins().subscribe({ error: () => {} });
 
-    this.userApiService.getCreditHistory().subscribe({
-      next: (res) => {
-        this.creditItems = res.rows || [];
-        this.userApiService.getPurchaseHistory().subscribe({
-          next: (pres) => {
-            this.purchaseItems = pres.rows || [];
-            this.isLoading = false;
-          },
-          error: () => {
-            this.isLoading = false;
-          }
-        });
+    const creditOffset = (this.creditPage - 1) * this.creditLimit;
+    const purchaseOffset = (this.purchasePage - 1) * this.purchaseLimit;
+
+    forkJoin({
+      creditRes: this.userApiService.getCreditHistory(this.creditLimit, creditOffset).pipe(catchError(() => of({ count: 0, rows: [] }))),
+      purchaseRes: this.userApiService.getPurchaseHistory(this.purchaseLimit, purchaseOffset).pipe(catchError(() => of({ count: 0, rows: [] })))
+    }).subscribe({
+      next: ({ creditRes, purchaseRes }) => {
+        this.creditItems = creditRes.rows || [];
+        this.creditTotal = creditRes.count || 0;
+        this.purchaseItems = purchaseRes.rows || [];
+        this.purchaseTotal = purchaseRes.count || 0;
+        this.isLoading = false;
+        this.cdr.detectChanges();
       },
       error: () => {
         this.isLoading = false;
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  loadCreditPage(page: number): void {
+    if (page < 1 || (this.creditTotalPages > 0 && page > this.creditTotalPages) || this.creditLoading) return;
+    this.creditPage = page;
+    this.creditLoading = true;
+    this.cdr.detectChanges();
+
+    const offset = (this.creditPage - 1) * this.creditLimit;
+    this.userApiService.getCreditHistory(this.creditLimit, offset).subscribe({
+      next: (res) => {
+        this.creditItems = res.rows || [];
+        this.creditTotal = res.count || 0;
+        this.creditLoading = false;
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.creditLoading = false;
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  onCreditLimitChange(limit: number): void {
+    this.creditLimit = Number(limit);
+    this.creditPage = 1;
+    this.loadCreditPage(1);
+  }
+
+  loadPurchasePage(page: number): void {
+    if (page < 1 || (this.purchaseTotalPages > 0 && page > this.purchaseTotalPages) || this.purchaseLoading) return;
+    this.purchasePage = page;
+    this.purchaseLoading = true;
+    this.cdr.detectChanges();
+
+    const offset = (this.purchasePage - 1) * this.purchaseLimit;
+    this.userApiService.getPurchaseHistory(this.purchaseLimit, offset).subscribe({
+      next: (res) => {
+        this.purchaseItems = res.rows || [];
+        this.purchaseTotal = res.count || 0;
+        this.purchaseLoading = false;
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.purchaseLoading = false;
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  onPurchaseLimitChange(limit: number): void {
+    this.purchaseLimit = Number(limit);
+    this.purchasePage = 1;
+    this.loadPurchasePage(1);
+  }
+
+  switchTab(tab: 'credits' | 'purchases'): void {
+    this.activeTab = tab;
+    this.cdr.detectChanges();
+  }
+
+  triggerAutoRestore(): void {
+    this.isRestoring = true;
+    this.restoreMessage = '';
+    this.cdr.detectChanges();
+
+    this.paymentService.restorePurchase({}).subscribe({
+      next: (res) => {
+        this.isRestoring = false;
+        this.restoreMessage = res.message || 'Restoration complete.';
+        this.loadData();
+      },
+      error: (err) => {
+        this.isRestoring = false;
+        this.restoreMessage = err.error?.message || 'Restore failed.';
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  triggerManualRestore(): void {
+    if (!this.manualOrderId || !this.manualOrderId.trim()) {
+      this.restoreMessage = 'Please enter a valid Order ID or Payment ID.';
+      this.cdr.detectChanges();
+      return;
+    }
+
+    this.isRestoring = true;
+    this.restoreMessage = '';
+    this.cdr.detectChanges();
+
+    const id = this.manualOrderId.trim();
+    const payload = id.startsWith('pay_') ? { paymentId: id } : { orderId: id };
+
+    this.paymentService.restorePurchase(payload).subscribe({
+      next: (res) => {
+        this.isRestoring = false;
+        this.restoreMessage = res.message || 'Restoration complete.';
+        this.manualOrderId = '';
+        this.loadData();
+      },
+      error: (err) => {
+        this.isRestoring = false;
+        this.restoreMessage = err.error?.message || 'Restore failed.';
+        this.cdr.detectChanges();
       }
     });
   }
 
   getAmount(p: PurchaseHistoryItem): number {
-    let amt = parseFloat(p.amount as any) || 0;
+    if (!p) return 0;
+    let amt = parseFloat((p.amount || 0) as any) || 0;
     if (amt === 0) {
       const isUsd = (p.currency || '').toUpperCase() === 'USD';
       const name = (p.itemName || '').toLowerCase();
@@ -400,6 +826,13 @@ export class BillingHistoryModalComponent implements OnInit {
 
   closeModal(): void {
     this.isOpen = false;
+    this.isLoaded = false;
+    this.showRestorePanel = false;
+    this.restoreMessage = '';
+    this.manualOrderId = '';
+    this.creditPage = 1;
+    this.purchasePage = 1;
     this.close.emit();
+    this.cdr.detectChanges();
   }
 }
