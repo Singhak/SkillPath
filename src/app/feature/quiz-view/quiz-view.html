@@ -61,11 +61,16 @@
     <!-- Start Button -->
     <button
       class="start-btn"
-      [class.start-btn--disabled]="!selectedCategory()"
-      [disabled]="!selectedCategory()"
+      [class.start-btn--disabled]="!selectedCategory() || isLoading()"
+      [disabled]="!selectedCategory() || isLoading()"
       (click)="fetchQuiz()">
-      <i class="pi pi-play-circle"></i>
-      <span>Launch Quiz</span>
+      @if (isLoading()) {
+        <i class="pi pi-spin pi-spinner"></i>
+        <span>Loading Quiz...</span>
+      } @else {
+        <i class="pi pi-play-circle"></i>
+        <span>Launch Quiz</span>
+      }
     </button>
 
     <!-- Footer tips -->
@@ -161,27 +166,37 @@
       <div class="footer-actions">
         <button
           class="footer-btn footer-btn--skip"
-          [disabled]="isSubmited()"
-          [class.footer-btn--disabled]="isSubmited()"
+          [disabled]="isSubmited() || isFinishing()"
+          [class.footer-btn--disabled]="isSubmited() || isFinishing()"
           (click)="onNextClick()">
-          <span>Skip</span>
-          <i class="pi pi-fast-forward"></i>
+          @if (isFinishing() && !isSubmited()) {
+            <i class="pi pi-spin pi-spinner"></i>
+            <span>Loading Summary...</span>
+          } @else {
+            <span>Skip</span>
+            <i class="pi pi-fast-forward"></i>
+          }
         </button>
         <button
           class="footer-btn footer-btn--submit"
-          [disabled]="!selectedAnswer().length || isSubmited()"
-          [class.footer-btn--disabled]="!selectedAnswer().length || isSubmited()"
+          [disabled]="!selectedAnswer().length || isSubmited() || isFinishing()"
+          [class.footer-btn--disabled]="!selectedAnswer().length || isSubmited() || isFinishing()"
           (click)="onSubmitClick()">
           <span>Submit</span>
           <i class="pi pi-check"></i>
         </button>
         <button
           class="footer-btn footer-btn--next"
-          [disabled]="!isSubmited()"
-          [class.footer-btn--disabled]="!isSubmited()"
+          [disabled]="!isSubmited() || isFinishing()"
+          [class.footer-btn--disabled]="!isSubmited() || isFinishing()"
           (click)="onNextClick()">
-          <span>Next</span>
-          <i class="pi pi-arrow-right"></i>
+          @if (isFinishing() && isSubmited()) {
+            <i class="pi pi-spin pi-spinner"></i>
+            <span>Loading Summary...</span>
+          } @else {
+            <span>{{ currentQuizIndex() + 1 === quizes().length ? 'Finish' : 'Next' }}</span>
+            <i class="pi" [class.pi-check-circle]="currentQuizIndex() + 1 === quizes().length" [class.pi-arrow-right]="currentQuizIndex() + 1 !== quizes().length"></i>
+          }
         </button>
       </div>
     </div>

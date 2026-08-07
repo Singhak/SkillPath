@@ -88,6 +88,7 @@ export class QuizView implements OnInit, OnDestroy {
   userAttempsCount = signal(0);
 
   // UI state
+  isLoading = signal<boolean>(false);
   isSubmited = signal<boolean>(false);
   isQuizFinished = signal(false);
   isFinishing = signal(false);
@@ -133,16 +134,29 @@ export class QuizView implements OnInit, OnDestroy {
     const category = this.selectedCategory();
     const subCategories = this.selectedSubCategories();
     if (category) {
+      this.isLoading.set(true);
       this.questionApiService
         .getQuestions({ category, subCategory: subCategories, questionCount: this.questionCount() })
         .pipe(takeUntilDestroyed(this.destroyRef))
-        .subscribe((quize) => {
-          this.quizStatsService.quizId.set(quize.quizId);
-          this.quizes.set(quize?.questions ?? []);
-          this.quizesCount.set(quize?.questions.length ?? 0);
-          if (quize?.questions.length > 0) {
-            this.startQuestion(0);
-          }
+        .subscribe({
+          next: (quize) => {
+            this.quizStatsService.quizId.set(quize.quizId);
+            this.quizes.set(quize?.questions ?? []);
+            this.quizesCount.set(quize?.questions.length ?? 0);
+            if (quize?.questions.length > 0) {
+              this.startQuestion(0);
+            }
+            this.isLoading.set(false);
+          },
+          error: () => {
+            this.isLoading.set(false);
+            this.messanger.add({
+              severity: 'error',
+              summary: 'Error',
+              detail: 'Failed to load quiz questions. Please try again.',
+              life: 5000,
+            });
+          },
         });
     }
   }

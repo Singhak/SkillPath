@@ -153,6 +153,11 @@
 .footer-btn--submit { background: linear-gradient(135deg, #10b981, #059669); color: #fff; }
 .footer-btn--next { background: var(--primary-accent-gradient, linear-gradient(135deg, #3b82f6, #6366f1)) !important; color: #fff !important; }
 
+.footer-btn:disabled, .footer-btn--disabled {
+  opacity: 0.55 !important;
+  cursor: not-allowed !important;
+}
+
 @media (max-width: 640px) {
   .quiz-header { flex-direction: column; align-items: flex-start; }
   .quiz-footer { flex-direction: column; align-items: flex-end; }
