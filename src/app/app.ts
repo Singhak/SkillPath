@@ -32,7 +32,7 @@ export class App {
   isOnline = signal(typeof navigator !== 'undefined' ? navigator.onLine : true);
 
   readonly mobileMenuOpen = signal(false);
-  protected readonly title = signal('SkillPath');
+  protected readonly title = signal('ImOnBench');
   readonly sidebarCollapsed = signal(true);
   currentUser = this.authService.currentUser;
   currentPlan = this.authService.currentPlan;

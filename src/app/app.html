@@ -91,6 +91,14 @@
           <span class="nav-label">Help & Guide</span>
           <div class="active-indicator"></div>
         </a>
+        <a class="nav-item" [routerLink]="'/about'" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }"
+          [title]="sidebarCollapsed() ? 'About ImOnBench' : ''">
+          <div class="nav-icon-box">
+            <i class="pi pi-info-circle"></i>
+          </div>
+          <span class="nav-label">About Us</span>
+          <div class="active-indicator"></div>
+        </a>
       </div>
     </nav>
 
