@@ -7,6 +7,10 @@ import { PaymentService } from '../../core/services/payment.service';
 import { Router } from '@angular/router';
 import { BillingHistoryModalComponent } from '../../shared/components/billing-history-modal/billing-history-modal.component';
 
+type Currency = 'INR' | 'USD';
+type PricingPlan = 'Silver' | 'Copper' | 'Gold';
+type PaidPlan = 'Copper' | 'Gold';
+
 @Component({
   selector: 'app-pricing',
   standalone: true,
@@ -20,7 +24,7 @@ import { BillingHistoryModalComponent } from '../../shared/components/billing-hi
       <div class="absolute top-[40%] left-[50%] translate-x-[-50%] w-[30%] h-[30%] rounded-full bg-cyan-600/10 blur-[100px] pointer-events-none"></div>
 
       <div class="text-center mb-10 relative z-10">
-        <h1 class="text-4xl md:text-6xl font-extrabold mb-6 tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600">
+        <h1 class="text-4xl md:text-6xl font-extrabold mb-6 tracking-tight bg-clip-text text-transparent bg-linear-to-r from-cyan-400 via-blue-500 to-purple-600">
           Choose Your Journey
         </h1>
         <p class="text-gray-400 text-lg max-w-2xl mx-auto mb-8">
@@ -32,13 +36,13 @@ import { BillingHistoryModalComponent } from '../../shared/components/billing-hi
           <div class="inline-flex items-center gap-2 bg-white/5 backdrop-blur-md p-1.5 rounded-full border border-white/10 shadow-inner">
             <button 
               (click)="setCurrency('INR')" 
-              [class]="selectedCurrency === 'INR' ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-lg shadow-cyan-500/20' : 'text-gray-400 hover:text-white'"
+              [class]="selectedCurrency === 'INR' ? 'bg-linear-to-r from-cyan-500 to-blue-600 text-white shadow-lg shadow-cyan-500/20' : 'text-gray-400 hover:text-white'"
               class="px-6 py-2 rounded-full text-sm font-semibold transition-all duration-300 flex items-center gap-2">
               <span>🇮🇳</span> INR (₹)
             </button>
             <button 
               (click)="setCurrency('USD')" 
-              [class]="selectedCurrency === 'USD' ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-lg shadow-cyan-500/20' : 'text-gray-400 hover:text-white'"
+              [class]="selectedCurrency === 'USD' ? 'bg-linear-to-r from-cyan-500 to-blue-600 text-white shadow-lg shadow-cyan-500/20' : 'text-gray-400 hover:text-white'"
               class="px-6 py-2 rounded-full text-sm font-semibold transition-all duration-300 flex items-center gap-2">
               <span>🌐</span> USD ($)
             </button>
@@ -68,7 +72,7 @@ import { BillingHistoryModalComponent } from '../../shared/components/billing-hi
         
         <!-- Silver (Free) Plan -->
         <div class="group relative rounded-3xl backdrop-blur-xl bg-white/5 border border-white/10 p-8 hover:bg-white/10 transition-all duration-300 hover:transform hover:-translate-y-2 hover:shadow-[0_8px_30px_rgb(0,0,0,0.12)]">
-          <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-gray-300 to-gray-500 rounded-t-3xl opacity-50"></div>
+          <div class="absolute top-0 left-0 w-full h-1 bg-linear-to-r from-gray-300 to-gray-500 rounded-t-3xl opacity-50"></div>
           
           <h3 class="text-2xl font-bold text-gray-200 mb-2">Silver</h3>
           <p class="text-gray-400 text-sm mb-6 h-10">Perfect to get started and explore basic learning capabilities.</p>
@@ -120,7 +124,7 @@ import { BillingHistoryModalComponent } from '../../shared/components/billing-hi
 
         <!-- Copper Plan -->
         <div class="group relative rounded-3xl backdrop-blur-xl bg-white/5 border border-amber-500/30 p-8 hover:bg-white/10 transition-all duration-300 hover:transform hover:-translate-y-2 hover:shadow-[0_8px_30px_rgba(245,158,11,0.15)] mt-4 md:mt-0">
-          <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-orange-400 to-red-500 rounded-t-3xl opacity-75"></div>
+          <div class="absolute top-0 left-0 w-full h-1 bg-linear-to-r from-orange-400 to-red-500 rounded-t-3xl opacity-75"></div>
           
           <h3 class="text-2xl font-bold text-orange-400 mb-2">Copper</h3>
           <p class="text-gray-400 text-sm mb-6 h-10">Enhanced features, AI evaluations & analytics for active learners.</p>
@@ -139,7 +143,7 @@ import { BillingHistoryModalComponent } from '../../shared/components/billing-hi
               Included in Gold Plan
             </button>
           } @else {
-            <button [disabled]="paymentService.isProcessingPayment()" (click)="subscribePlan('Copper')" class="w-full py-3 px-6 rounded-full font-semibold bg-gradient-to-r from-orange-500 to-red-500 text-white hover:opacity-90 transition-opacity mb-8 shadow-lg shadow-orange-500/20 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+            <button [disabled]="paymentService.isProcessingPayment()" (click)="subscribePlan('Copper')" class="w-full py-3 px-6 rounded-full font-semibold bg-linear-to-r from-orange-500 to-red-500 text-white hover:opacity-90 transition-opacity mb-8 shadow-lg shadow-orange-500/20 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
               @if (paymentService.isProcessingPayment()) {
                 <i class="pi pi-spin pi-spinner text-lg"></i>
                 <span>Processing...</span>
@@ -189,14 +193,14 @@ import { BillingHistoryModalComponent } from '../../shared/components/billing-hi
         </div>
 
         <!-- Gold Plan -->
-        <div class="group relative rounded-3xl backdrop-blur-xl bg-gradient-to-b from-blue-900/40 to-white/5 border border-blue-400/50 p-8 transform md:-translate-y-4 shadow-[0_0_40px_rgba(59,130,246,0.15)] hover:shadow-[0_0_60px_rgba(59,130,246,0.25)] transition-all duration-300 z-20">
+        <div class="group relative rounded-3xl backdrop-blur-xl bg-linear-to-b from-blue-900/40 to-white/5 border border-blue-400/50 p-8 transform md:-translate-y-4 shadow-[0_0_40px_rgba(59,130,246,0.15)] hover:shadow-[0_0_60px_rgba(59,130,246,0.25)] transition-all duration-300 z-20">
           
           <!-- Popular Badge -->
-          <div class="absolute -top-4 left-1/2 -translate-x-1/2 bg-gradient-to-r from-blue-500 to-cyan-400 text-white px-4 py-1 rounded-full text-xs font-bold tracking-wider uppercase shadow-lg">
+          <div class="absolute -top-4 left-1/2 -translate-x-1/2 bg-linear-to-r from-blue-500 to-cyan-400 text-white px-4 py-1 rounded-full text-xs font-bold tracking-wider uppercase shadow-lg">
             Most Popular
           </div>
           
-          <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-400 to-cyan-300 rounded-t-3xl"></div>
+          <div class="absolute top-0 left-0 w-full h-1 bg-linear-to-r from-blue-400 to-cyan-300 rounded-t-3xl"></div>
           
           <h3 class="text-2xl font-bold text-blue-300 mb-2">Gold</h3>
           <p class="text-gray-300 text-sm mb-6 h-10">The ultimate experience with Interviewer Studio, Review Decks & Skill Gap Insights.</p>
@@ -212,7 +216,7 @@ import { BillingHistoryModalComponent } from '../../shared/components/billing-hi
             </button>
           } @else {
             @if (!hasUsedTrial && !isTrialActive) {
-              <button (click)="startTrial()" class="w-full py-3 px-6 rounded-full font-bold bg-gradient-to-r from-green-400 to-emerald-500 text-white hover:from-green-500 hover:to-emerald-600 transition-colors mb-4 shadow-[0_0_20px_rgba(16,185,129,0.4)] cursor-pointer">
+              <button (click)="startTrial()" class="w-full py-3 px-6 rounded-full font-bold bg-linear-to-r from-green-400 to-emerald-500 text-white hover:from-green-500 hover:to-emerald-600 transition-colors mb-4 shadow-[0_0_20px_rgba(16,185,129,0.4)] cursor-pointer">
                 Start 14-Day Free Trial
               </button>
             }
@@ -528,10 +532,11 @@ export class PricingComponent {
   router = inject(Router);
   destroyRef = inject(DestroyRef);
 
-  selectedCurrency: 'INR' | 'USD' = 'INR';
+  selectedCurrency: Currency = 'INR';
+  subscriptionPlan: PricingPlan = 'Silver';
   isBillingModalOpen = false;
 
-  setCurrency(currency: 'INR' | 'USD') {
+  setCurrency(currency: Currency) {
     this.selectedCurrency = currency;
   }
 
@@ -580,15 +585,15 @@ export class PricingComponent {
     }
   }
 
-  get currentPlan(): 'Silver' | 'Copper' | 'Gold' {
-    return (this.authService.currentPlan() || 'Silver') as 'Silver' | 'Copper' | 'Gold';
+  get currentPlan(): PricingPlan {
+    return (this.authService.currentPlan() || 'Silver') as PricingPlan;
   }
 
-  isCurrentPlan(plan: 'Silver' | 'Copper' | 'Gold'): boolean {
+  isCurrentPlan(plan: PricingPlan): boolean {
     return this.currentPlan.toLowerCase() === plan.toLowerCase();
   }
 
-  subscribePlan(plan: 'Copper' | 'Gold') {
+  subscribePlan(plan: PaidPlan) {
     if (!this.authService.isAuthenticated()) {
       this.router.navigate(['/login']);
       return;
