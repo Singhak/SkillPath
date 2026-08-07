@@ -337,7 +337,7 @@
             <span
               [class]="isDark ? 'bg-slate-800 text-slate-300' : 'bg-slate-200 text-slate-700'"
               class="ml-1 px-2 py-0.5 text-[11px] font-bold rounded-full"
-              >{{ creditItems.length }}</span
+              >{{ totalCreditCount }}</span
             >
           </button>
 
@@ -372,7 +372,7 @@
             <span
               [class]="isDark ? 'bg-slate-800 text-slate-300' : 'bg-slate-200 text-slate-700'"
               class="ml-1 px-2 py-0.5 text-[11px] font-bold rounded-full"
-              >{{ purchaseItems.length }}</span
+              >{{ totalPurchaseCount }}</span
             >
           </button>
         </div>
@@ -569,6 +569,60 @@
                     }
                   </tbody>
                 </table>
+
+                <!-- Credit Ledger Pagination Controls -->
+                @if (totalCreditCount > 0) {
+                  <div
+                    [class]="
+                      isDark
+                        ? 'bg-slate-900/80 border-slate-800 text-slate-400'
+                        : 'bg-slate-50 border-slate-200 text-slate-600'
+                    "
+                    class="px-4 py-3 border-t flex items-center justify-between text-xs transition-colors"
+                  >
+                    <span>
+                      Showing <strong [class]="isDark ? 'text-slate-200' : 'text-slate-800'">{{ creditStartIndex }}</strong> to <strong [class]="isDark ? 'text-slate-200' : 'text-slate-800'">{{ creditEndIndex }}</strong> of <strong [class]="isDark ? 'text-slate-200' : 'text-slate-800'">{{ totalCreditCount }}</strong> records
+                    </span>
+
+                    <div class="flex items-center gap-2">
+                      <button
+                        (click)="prevCreditPage()"
+                        [disabled]="creditPage === 1 || isTableLoading"
+                        [class]="
+                          isDark
+                            ? 'bg-slate-800 text-slate-300 hover:bg-slate-700 border-slate-700 disabled:opacity-40'
+                            : 'bg-slate-100 text-slate-700 hover:bg-slate-200 border-slate-300 disabled:opacity-40'
+                        "
+                        class="p-1.5 rounded-lg border transition-colors cursor-pointer disabled:cursor-not-allowed flex items-center justify-center"
+                        title="Previous page"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                        </svg>
+                      </button>
+
+                      <span class="px-2 font-semibold">
+                        Page {{ creditPage }} of {{ totalCreditPages }}
+                      </span>
+
+                      <button
+                        (click)="nextCreditPage()"
+                        [disabled]="creditPage === totalCreditPages || isTableLoading"
+                        [class]="
+                          isDark
+                            ? 'bg-slate-800 text-slate-300 hover:bg-slate-700 border-slate-700 disabled:opacity-40'
+                            : 'bg-slate-100 text-slate-700 hover:bg-slate-200 border-slate-300 disabled:opacity-40'
+                        "
+                        class="p-1.5 rounded-lg border transition-colors cursor-pointer disabled:cursor-not-allowed flex items-center justify-center"
+                        title="Next page"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+                }
               </div>
             }
           }
@@ -700,6 +754,60 @@
                     }
                   </tbody>
                 </table>
+
+                <!-- Purchase History Pagination Controls -->
+                @if (totalPurchaseCount > 0) {
+                  <div
+                    [class]="
+                      isDark
+                        ? 'bg-slate-900/80 border-slate-800 text-slate-400'
+                        : 'bg-slate-50 border-slate-200 text-slate-600'
+                    "
+                    class="px-4 py-3 border-t flex items-center justify-between text-xs transition-colors"
+                  >
+                    <span>
+                      Showing <strong [class]="isDark ? 'text-slate-200' : 'text-slate-800'">{{ purchaseStartIndex }}</strong> to <strong [class]="isDark ? 'text-slate-200' : 'text-slate-800'">{{ purchaseEndIndex }}</strong> of <strong [class]="isDark ? 'text-slate-200' : 'text-slate-800'">{{ totalPurchaseCount }}</strong> records
+                    </span>
+
+                    <div class="flex items-center gap-2">
+                      <button
+                        (click)="prevPurchasePage()"
+                        [disabled]="purchasePage === 1 || isTableLoading"
+                        [class]="
+                          isDark
+                            ? 'bg-slate-800 text-slate-300 hover:bg-slate-700 border-slate-700 disabled:opacity-40'
+                            : 'bg-slate-100 text-slate-700 hover:bg-slate-200 border-slate-300 disabled:opacity-40'
+                        "
+                        class="p-1.5 rounded-lg border transition-colors cursor-pointer disabled:cursor-not-allowed flex items-center justify-center"
+                        title="Previous page"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                        </svg>
+                      </button>
+
+                      <span class="px-2 font-semibold">
+                        Page {{ purchasePage }} of {{ totalPurchasePages }}
+                      </span>
+
+                      <button
+                        (click)="nextPurchasePage()"
+                        [disabled]="purchasePage === totalPurchasePages || isTableLoading"
+                        [class]="
+                          isDark
+                            ? 'bg-slate-800 text-slate-300 hover:bg-slate-700 border-slate-700 disabled:opacity-40'
+                            : 'bg-slate-100 text-slate-700 hover:bg-slate-200 border-slate-300 disabled:opacity-40'
+                        "
+                        class="p-1.5 rounded-lg border transition-colors cursor-pointer disabled:cursor-not-allowed flex items-center justify-center"
+                        title="Next page"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+                }
               </div>
             }
           }

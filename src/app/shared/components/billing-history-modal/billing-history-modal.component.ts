@@ -71,6 +71,109 @@ export class BillingHistoryModalComponent implements OnInit, OnChanges {
   creditItems: CreditLedgerItem[] = [];
   purchaseItems: PurchaseHistoryItem[] = [];
 
+  pageSize = 10;
+  creditPage = 1;
+  purchasePage = 1;
+  totalCreditCount = 0;
+  totalPurchaseCount = 0;
+  isTableLoading = false;
+
+  get totalCreditPages(): number {
+    return Math.ceil(this.totalCreditCount / this.pageSize) || 1;
+  }
+
+  get creditStartIndex(): number {
+    if (this.totalCreditCount === 0) return 0;
+    return (this.creditPage - 1) * this.pageSize + 1;
+  }
+
+  get creditEndIndex(): number {
+    return Math.min(this.creditPage * this.pageSize, this.totalCreditCount);
+  }
+
+  get totalPurchasePages(): number {
+    return Math.ceil(this.totalPurchaseCount / this.pageSize) || 1;
+  }
+
+  get purchaseStartIndex(): number {
+    if (this.totalPurchaseCount === 0) return 0;
+    return (this.purchasePage - 1) * this.pageSize + 1;
+  }
+
+  get purchaseEndIndex(): number {
+    return Math.min(this.purchasePage * this.pageSize, this.totalPurchaseCount);
+  }
+
+  loadCreditPage(page: number): void {
+    if (page < 1 || (page > this.totalCreditPages && this.totalCreditCount > 0)) return;
+    this.creditPage = page;
+    this.isTableLoading = true;
+    this.cdr.detectChanges();
+
+    const offset = (page - 1) * this.pageSize;
+    this.userApiService.getCreditHistory(this.pageSize, offset).pipe(
+      catchError(() => of({ count: 0, rows: [] }))
+    ).subscribe({
+      next: (res) => {
+        this.creditItems = res.rows || [];
+        this.totalCreditCount = res.count ?? this.creditItems.length;
+        this.isTableLoading = false;
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.isTableLoading = false;
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  loadPurchasePage(page: number): void {
+    if (page < 1 || (page > this.totalPurchasePages && this.totalPurchaseCount > 0)) return;
+    this.purchasePage = page;
+    this.isTableLoading = true;
+    this.cdr.detectChanges();
+
+    const offset = (page - 1) * this.pageSize;
+    this.userApiService.getPurchaseHistory(this.pageSize, offset).pipe(
+      catchError(() => of({ count: 0, rows: [] }))
+    ).subscribe({
+      next: (res) => {
+        this.purchaseItems = res.rows || [];
+        this.totalPurchaseCount = res.count ?? this.purchaseItems.length;
+        this.isTableLoading = false;
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.isTableLoading = false;
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  prevCreditPage(): void {
+    if (this.creditPage > 1 && !this.isTableLoading) {
+      this.loadCreditPage(this.creditPage - 1);
+    }
+  }
+
+  nextCreditPage(): void {
+    if (this.creditPage < this.totalCreditPages && !this.isTableLoading) {
+      this.loadCreditPage(this.creditPage + 1);
+    }
+  }
+
+  prevPurchasePage(): void {
+    if (this.purchasePage > 1 && !this.isTableLoading) {
+      this.loadPurchasePage(this.purchasePage - 1);
+    }
+  }
+
+  nextPurchasePage(): void {
+    if (this.purchasePage < this.totalPurchasePages && !this.isTableLoading) {
+      this.loadPurchasePage(this.purchasePage + 1);
+    }
+  }
+
   get isDark(): boolean {
     return this.themeService.isEffectiveDark;
   }
@@ -97,22 +200,31 @@ export class BillingHistoryModalComponent implements OnInit, OnChanges {
   loadData(): void {
     this.isLoaded = true;
     this.isLoading = true;
+    this.creditPage = 1;
+    this.purchasePage = 1;
     this.cdr.detectChanges();
 
     this.userResources.fetchCreditsAndCoins().subscribe({ error: () => {} });
 
+    const offsetCredit = (this.creditPage - 1) * this.pageSize;
+    const offsetPurchase = (this.purchasePage - 1) * this.pageSize;
+
     forkJoin({
-      creditRes: this.userApiService.getCreditHistory().pipe(catchError(() => of({ count: 0, rows: [] }))),
-      purchaseRes: this.userApiService.getPurchaseHistory().pipe(catchError(() => of({ count: 0, rows: [] })))
+      creditRes: this.userApiService.getCreditHistory(this.pageSize, offsetCredit).pipe(catchError(() => of({ count: 0, rows: [] }))),
+      purchaseRes: this.userApiService.getPurchaseHistory(this.pageSize, offsetPurchase).pipe(catchError(() => of({ count: 0, rows: [] })))
     }).subscribe({
       next: ({ creditRes, purchaseRes }) => {
         this.creditItems = creditRes.rows || [];
+        this.totalCreditCount = creditRes.count ?? this.creditItems.length;
         this.purchaseItems = purchaseRes.rows || [];
+        this.totalPurchaseCount = purchaseRes.count ?? this.purchaseItems.length;
         this.isLoading = false;
+        this.isTableLoading = false;
         this.cdr.detectChanges();
       },
       error: () => {
         this.isLoading = false;
+        this.isTableLoading = false;
         this.cdr.detectChanges();
       }
     });
@@ -120,6 +232,8 @@ export class BillingHistoryModalComponent implements OnInit, OnChanges {
 
   switchTab(tab: 'credits' | 'purchases'): void {
     this.activeTab = tab;
+    this.creditPage = 1;
+    this.purchasePage = 1;
     this.cdr.detectChanges();
   }
 
