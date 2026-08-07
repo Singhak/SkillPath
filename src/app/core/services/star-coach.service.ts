@@ -14,6 +14,7 @@ export interface StarEvaluationResult {
   taskFeedback: string;
   actionFeedback: string;
   resultFeedback: string;
+  overallFeedback?: string;
   improvedAnswerSuggestion: string;
   evaluationMode: 'instant' | 'ai_groq';
 }
@@ -72,6 +73,7 @@ export class StarCoachService {
       resultFeedback: hasResult
         ? 'Outstanding quantitative outcome and metric impact provided!'
         : 'Add measurable results (e.g. "improved load time by 40%", "delivered 2 weeks ahead of schedule").',
+      overallFeedback: 'Instant heuristic evaluation complete. Select AI evaluation for deeper AI feedback.',
       improvedAnswerSuggestion: `Structure your answer with: 1) Situation: "In my previous role at...", 2) Task: "My goal was to...", 3) Action: "I designed and implemented...", 4) Result: "This achieved a 35% performance boost."`,
       evaluationMode: 'instant',
     };
@@ -91,17 +93,23 @@ export class StarCoachService {
         if (res && res.creditsDeducted) {
           this.userResourceService.fetchCreditsAndCoins().subscribe({ error: () => {} });
         }
+        const sitScore = res.situationScore || 85;
+        const tskScore = res.taskScore || 80;
+        const actScore = res.actionScore || 90;
+        const rstScore = res.resultScore || 75;
+
         const result: StarEvaluationResult = {
-          overallScore: res.overallScore || 85,
-          situationScore: res.situationScore || 85,
-          taskScore: res.taskScore || 80,
-          actionScore: res.actionScore || 90,
-          resultScore: res.resultScore || 75,
-          situationFeedback: 'Context and situation clarity evaluated by AI.',
-          taskFeedback: 'Task responsibility structure assessed.',
-          actionFeedback: res.starFeedback || 'Action items and execution detail clear.',
-          resultFeedback: 'Quantitative outcome and result metrics evaluated.',
-          improvedAnswerSuggestion: res.improvedAnswer || 'Focus on highlighting quantified production metrics.',
+          overallScore: res.overallScore || Math.round((sitScore + tskScore + actScore + rstScore) / 4),
+          situationScore: sitScore,
+          taskScore: tskScore,
+          actionScore: actScore,
+          resultScore: rstScore,
+          situationFeedback: res.situationFeedback || (sitScore >= 80 ? 'Well-articulated context and environment setup.' : 'Expand on company scale, problem complexity, or scenario.'),
+          taskFeedback: res.taskFeedback || (tskScore >= 80 ? 'Clear description of your assigned responsibilities.' : 'Detail your precise objectives and key deliverables.'),
+          actionFeedback: res.actionFeedback || (actScore >= 80 ? 'Strong focus on personal engineering actions.' : 'Focus on specific tools, decisions, and personal execution.'),
+          resultFeedback: res.resultFeedback || (rstScore >= 80 ? 'Quantifiable outcome and business impact metrics provided.' : 'Include concrete metrics (e.g., % performance gain, revenue saved).'),
+          overallFeedback: res.starFeedback || res.overallFeedback || '',
+          improvedAnswerSuggestion: res.improvedAnswer || res.improvedAnswerSuggestion || 'Focus on highlighting quantified production metrics.',
           evaluationMode: 'ai_groq',
         };
 

@@ -161,123 +161,254 @@ import { Router } from '@angular/router';
             }
 
             <!-- Parsed Results & ATS Score Card -->
-            <div class="bg-slate-800/40 border border-slate-700/50 rounded-2xl p-5">
-              <div class="text-xs font-bold text-indigo-400 uppercase tracking-wider mb-3 flex items-center justify-between">
-                <span>Extracted Profile & ATS Score</span>
-                @if (resumeService.parsedResume()) {
-                  <span class="text-emerald-400 font-semibold flex items-center space-x-1.5 text-xs">
-                    @if (resumeService.parsedResume()?.creditsDeducted) {
-                      <span class="bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 px-2 py-0.5 rounded-full text-[10px]">
-                        ⚡ {{ resumeService.parsedResume()?.creditsDeducted }} Credits Charged
+            <div class="bg-slate-900/80 border border-slate-700/60 rounded-2xl p-5 backdrop-blur-md shadow-xl">
+              <!-- Header -->
+              <div class="flex items-center justify-between border-b border-slate-800 pb-3 mb-4">
+                <div class="flex items-center gap-2">
+                  <div class="w-2.5 h-2.5 rounded-full bg-indigo-500 animate-pulse"></div>
+                  <h3 class="text-xs font-bold text-slate-200 uppercase tracking-wider">Extracted Profile & ATS Analysis</h3>
+                </div>
+                @if (resumeService.parsedResume(); as res) {
+                  <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium bg-slate-800 border border-slate-700/80 text-slate-300">
+                    Engine:
+                    <strong class="text-indigo-400 flex items-center gap-1">
+                      {{ res.parsedBy === 'AI' ? '🤖 AI Deep Analysis' : '⚡ Pattern Parsed' }}
+                    </strong>
+                    @if (res.creditsDeducted) {
+                      <span class="ml-1 bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 px-1.5 py-0.5 rounded text-[10px]">
+                        ⚡ {{ res.creditsDeducted }} Cr
                       </span>
                     }
-                    <span>✓ {{ resumeService.parsedResume()?.parsedBy === 'AI' ? 'AI Deep Analysis' : 'Pattern Parsed' }}</span>
                   </span>
                 }
               </div>
 
               @if (resumeService.parsedResume(); as res) {
-                <div class="space-y-4 animate-fadeIn">
-                  <!-- Name & ATS Rating Badge -->
-                  <div class="flex items-center justify-between bg-slate-900/80 p-3 rounded-xl border border-slate-700/60">
-                    <div>
-                      <div class="font-bold text-white text-sm">{{ res.candidateName || res.fileName }}</div>
-                      <div class="text-xs text-slate-400">{{ res.experienceLevel || 'Candidate' }} • {{ res.experienceYears }}+ Years Experience</div>
-                    </div>
-                    @if (res.atsScore !== undefined) {
-                      <div class="text-right">
-                        <div class="text-xl font-extrabold" [ngClass]="{
-                          'text-emerald-400': res.atsScore >= 80,
-                          'text-amber-400': res.atsScore >= 60 && res.atsScore < 80,
-                          'text-rose-400': res.atsScore < 60
-                        }">
-                          {{ res.atsScore }}<span class="text-xs text-slate-400 font-normal">/100</span>
+                <div class="space-y-3.5 animate-fadeIn">
+
+                  <!-- Executive Score Banner Card -->
+                  <div class="relative overflow-hidden bg-gradient-to-br from-slate-900 via-slate-850 to-indigo-950/50 p-3.5 rounded-xl border border-indigo-500/20 shadow-md">
+                    <div class="flex items-center justify-between relative z-10">
+                      <div>
+                        <span class="text-xs font-bold text-white block mb-0.5">{{ res.candidateName || res.fileName }}</span>
+                        <div class="text-[11px] text-slate-400 font-medium mb-1.5">
+                          {{ res.experienceLevel || 'Candidate' }} • {{ res.experienceYears }}+ Years Experience
                         </div>
-                        <div class="text-[10px] uppercase font-bold text-slate-400">ATS Rating</div>
+                        @if (res.atsScore !== undefined) {
+                          <div class="flex items-baseline gap-2">
+                            <span class="text-2xl font-extrabold tracking-tight"
+                                  [class.text-emerald-400]="res.atsScore >= 80"
+                                  [class.text-amber-400]="res.atsScore >= 60 && res.atsScore < 80"
+                                  [class.text-rose-400]="res.atsScore < 60">
+                              {{ res.atsScore }}%
+                            </span>
+                            <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full border"
+                                  [class.bg-emerald-500/10]="res.atsScore >= 80" [class.text-emerald-300]="res.atsScore >= 80" [class.border-emerald-500/30]="res.atsScore >= 80"
+                                  [class.bg-amber-500/10]="res.atsScore >= 60 && res.atsScore < 80" [class.text-amber-300]="res.atsScore >= 60 && res.atsScore < 80" [class.border-amber-500/30]="res.atsScore >= 60 && res.atsScore < 80"
+                                  [class.bg-rose-500/10]="res.atsScore < 60" [class.text-rose-300]="res.atsScore < 60" [class.border-rose-500/30]="res.atsScore < 60">
+                              {{ res.atsScore >= 80 ? '🔥 Top ATS Match' : res.atsScore >= 60 ? '⚡ Good Match' : '💡 Needs Focus' }}
+                            </span>
+                          </div>
+                        }
                       </div>
-                    }
+
+                      <!-- ATS Score Progress Bar visual -->
+                      @if (res.atsScore !== undefined) {
+                        <div class="w-28 bg-slate-800/80 rounded-lg p-1.5 border border-slate-700/50">
+                          <div class="flex justify-between text-[9px] text-slate-400 mb-1">
+                            <span>Target: 80%+</span>
+                            <span>{{ res.atsScore }}/100</span>
+                          </div>
+                          <div class="h-1.5 w-full bg-slate-700 rounded-full overflow-hidden">
+                            <div class="h-full transition-all duration-500 rounded-full"
+                                 [style.width.%]="res.atsScore"
+                                 [class.bg-emerald-500]="res.atsScore >= 80"
+                                 [class.bg-amber-500]="res.atsScore >= 60 && res.atsScore < 80"
+                                 [class.bg-rose-500]="res.atsScore < 60">
+                            </div>
+                          </div>
+                        </div>
+                      }
+                    </div>
                   </div>
 
-                  <!-- ATS Category Breakdown Bars -->
-                  @if (res.atsBreakdown) {
-                    <div class="grid grid-cols-2 gap-2 text-xs bg-slate-900/40 p-2.5 rounded-xl border border-slate-800">
-                      <div>
-                        <div class="flex justify-between text-[11px] text-slate-400 mb-1">
-                          <span>Formatting</span>
-                          <span class="font-bold text-white">{{ res.atsBreakdown.formatting }}%</span>
+                  <!-- Output Sub-Tabs Control -->
+                  <div class="flex items-center gap-1 bg-slate-950/60 p-1 rounded-xl border border-slate-800 text-xs font-semibold">
+                    <button
+                      (click)="resumeOutputTab.set('metrics')"
+                      [class.bg-indigo-600]="resumeOutputTab() === 'metrics'"
+                      [class.text-white]="resumeOutputTab() === 'metrics'"
+                      [class.shadow-md]="resumeOutputTab() === 'metrics'"
+                      [class.text-slate-400]="resumeOutputTab() !== 'metrics'"
+                      [class.hover:text-slate-200]="resumeOutputTab() !== 'metrics'"
+                      class="flex-1 py-1.5 px-2 rounded-lg transition-all flex items-center justify-center gap-1 text-[11px]"
+                    >
+                      <span>📊 ATS Metrics</span>
+                    </button>
+
+                    <button
+                      (click)="resumeOutputTab.set('skills')"
+                      [class.bg-indigo-600]="resumeOutputTab() === 'skills'"
+                      [class.text-white]="resumeOutputTab() === 'skills'"
+                      [class.shadow-md]="resumeOutputTab() === 'skills'"
+                      [class.text-slate-400]="resumeOutputTab() !== 'skills'"
+                      [class.hover:text-slate-200]="resumeOutputTab() !== 'skills'"
+                      class="flex-1 py-1.5 px-2 rounded-lg transition-all flex items-center justify-center gap-1 text-[11px]"
+                    >
+                      <span>⚡ Skills & Roles</span>
+                    </button>
+
+                    <button
+                      (click)="resumeOutputTab.set('tips')"
+                      [class.bg-indigo-600]="resumeOutputTab() === 'tips'"
+                      [class.text-white]="resumeOutputTab() === 'tips'"
+                      [class.shadow-md]="resumeOutputTab() === 'tips'"
+                      [class.text-slate-400]="resumeOutputTab() !== 'tips'"
+                      [class.hover:text-slate-200]="resumeOutputTab() !== 'tips'"
+                      class="flex-1 py-1.5 px-2 rounded-lg transition-all flex items-center justify-center gap-1 text-[11px]"
+                    >
+                      <span>💡 Advice</span>
+                    </button>
+                  </div>
+
+                  <!-- Tab 1: ATS Category Metrics Grid -->
+                  @if (resumeOutputTab() === 'metrics') {
+                    @if (res.atsBreakdown) {
+                      <div class="grid grid-cols-2 gap-2.5 text-xs animate-fadeIn">
+                        <!-- Formatting Card -->
+                        <div class="bg-slate-800/60 hover:bg-slate-800/90 transition-all p-3 rounded-xl border border-slate-700/60 flex flex-col justify-between">
+                          <div>
+                            <div class="flex items-center justify-between mb-1">
+                              <div class="flex items-center gap-1.5 font-bold text-slate-200">
+                                <span class="w-5 h-5 rounded-md bg-indigo-500/20 text-indigo-400 border border-indigo-500/30 flex items-center justify-center text-[10px]">📋</span>
+                                <span>Formatting</span>
+                              </div>
+                              <span class="font-bold text-indigo-400">{{ res.atsBreakdown.formatting }}%</span>
+                            </div>
+                            <div class="h-1.5 w-full bg-slate-700/60 rounded-full mb-1.5 overflow-hidden">
+                              <div class="h-full bg-indigo-500 rounded-full transition-all" [style.width.%]="res.atsBreakdown.formatting"></div>
+                            </div>
+                            <p class="text-[11px] text-slate-300 leading-relaxed">
+                              {{ res.atsBreakdown.formatting >= 80 ? 'Clean section structure and readable font layout.' : 'Standardize headers and use standard font layouts.' }}
+                            </p>
+                          </div>
                         </div>
-                        <div class="h-1.5 w-full bg-slate-800 rounded-full overflow-hidden">
-                          <div class="h-full bg-indigo-500 rounded-full" [style.width.%]="res.atsBreakdown.formatting"></div>
+
+                        <!-- Impact Card -->
+                        <div class="bg-slate-800/60 hover:bg-slate-800/90 transition-all p-3 rounded-xl border border-slate-700/60 flex flex-col justify-between">
+                          <div>
+                            <div class="flex items-center justify-between mb-1">
+                              <div class="flex items-center gap-1.5 font-bold text-slate-200">
+                                <span class="w-5 h-5 rounded-md bg-purple-500/20 text-purple-400 border border-purple-500/30 flex items-center justify-center text-[10px]">🎯</span>
+                                <span>Impact</span>
+                              </div>
+                              <span class="font-bold text-purple-400">{{ res.atsBreakdown.impact }}%</span>
+                            </div>
+                            <div class="h-1.5 w-full bg-slate-700/60 rounded-full mb-1.5 overflow-hidden">
+                              <div class="h-full bg-purple-500 rounded-full transition-all" [style.width.%]="res.atsBreakdown.impact"></div>
+                            </div>
+                            <p class="text-[11px] text-slate-300 leading-relaxed">
+                              {{ res.atsBreakdown.impact >= 80 ? 'Strong action verbs and quantified achievements.' : 'Add quantitative metrics (% gain, revenue, users).' }}
+                            </p>
+                          </div>
+                        </div>
+
+                        <!-- Skill Match Card -->
+                        <div class="bg-slate-800/60 hover:bg-slate-800/90 transition-all p-3 rounded-xl border border-slate-700/60 flex flex-col justify-between">
+                          <div>
+                            <div class="flex items-center justify-between mb-1">
+                              <div class="flex items-center gap-1.5 font-bold text-slate-200">
+                                <span class="w-5 h-5 rounded-md bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center text-[10px]">⚡</span>
+                                <span>Skill Match</span>
+                              </div>
+                              <span class="font-bold text-emerald-400">{{ res.atsBreakdown.skillsRelevance }}%</span>
+                            </div>
+                            <div class="h-1.5 w-full bg-slate-700/60 rounded-full mb-1.5 overflow-hidden">
+                              <div class="h-full bg-emerald-500 rounded-full transition-all" [style.width.%]="res.atsBreakdown.skillsRelevance"></div>
+                            </div>
+                            <p class="text-[11px] text-slate-300 leading-relaxed">
+                              {{ res.atsBreakdown.skillsRelevance >= 80 ? 'High alignment with target industry skills.' : 'Incorporate missing core technology keywords.' }}
+                            </p>
+                          </div>
+                        </div>
+
+                        <!-- Completeness Card -->
+                        <div class="bg-slate-800/60 hover:bg-slate-800/90 transition-all p-3 rounded-xl border border-slate-700/60 flex flex-col justify-between">
+                          <div>
+                            <div class="flex items-center justify-between mb-1">
+                              <div class="flex items-center gap-1.5 font-bold text-slate-200">
+                                <span class="w-5 h-5 rounded-md bg-sky-500/20 text-sky-400 border border-sky-500/30 flex items-center justify-center text-[10px]">✅</span>
+                                <span>Completeness</span>
+                              </div>
+                              <span class="font-bold text-sky-400">{{ res.atsBreakdown.completeness }}%</span>
+                            </div>
+                            <div class="h-1.5 w-full bg-slate-700/60 rounded-full mb-1.5 overflow-hidden">
+                              <div class="h-full bg-sky-500 rounded-full transition-all" [style.width.%]="res.atsBreakdown.completeness"></div>
+                            </div>
+                            <p class="text-[11px] text-slate-300 leading-relaxed">
+                              {{ res.atsBreakdown.completeness >= 80 ? 'All essential sections and contact info present.' : 'Ensure clear dates, contact info, and education details.' }}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    }
+                  }
+
+                  <!-- Tab 2: Extracted Skills & Suggested Target Roles -->
+                  @if (resumeOutputTab() === 'skills') {
+                    <div class="space-y-3 animate-fadeIn text-xs">
+                      <!-- Extracted Skills -->
+                      <div class="bg-slate-800/60 p-3 rounded-xl border border-slate-700/60">
+                        <span class="text-[11px] font-bold text-indigo-300 block mb-2">
+                          ⚡ Extracted Technical Skills ({{ res.extractedSkills?.length || 0 }})
+                        </span>
+                        <div class="flex flex-wrap gap-1.5 max-h-32 overflow-y-auto pr-1">
+                          @for (s of res.extractedSkills; track s) {
+                            <span class="px-2.5 py-1 rounded-lg bg-indigo-500/20 hover:bg-indigo-500/30 text-indigo-200 border border-indigo-500/30 text-[11px] font-semibold transition-all">
+                              ⚡ {{ s }}
+                            </span>
+                          } @empty {
+                            <span class="text-slate-400 italic">No skills extracted yet</span>
+                          }
                         </div>
                       </div>
 
-                      <div>
-                        <div class="flex justify-between text-[11px] text-slate-400 mb-1">
-                          <span>Impact</span>
-                          <span class="font-bold text-white">{{ res.atsBreakdown.impact }}%</span>
-                        </div>
-                        <div class="h-1.5 w-full bg-slate-800 rounded-full overflow-hidden">
-                          <div class="h-full bg-purple-500 rounded-full" [style.width.%]="res.atsBreakdown.impact"></div>
-                        </div>
-                      </div>
-
-                      <div>
-                        <div class="flex justify-between text-[11px] text-slate-400 mb-1">
-                          <span>Skill Match</span>
-                          <span class="font-bold text-white">{{ res.atsBreakdown.skillsRelevance }}%</span>
-                        </div>
-                        <div class="h-1.5 w-full bg-slate-800 rounded-full overflow-hidden">
-                          <div class="h-full bg-emerald-500 rounded-full" [style.width.%]="res.atsBreakdown.skillsRelevance"></div>
-                        </div>
-                      </div>
-
-                      <div>
-                        <div class="flex justify-between text-[11px] text-slate-400 mb-1">
-                          <span>Completeness</span>
-                          <span class="font-bold text-white">{{ res.atsBreakdown.completeness }}%</span>
-                        </div>
-                        <div class="h-1.5 w-full bg-slate-800 rounded-full overflow-hidden">
-                          <div class="h-full bg-sky-500 rounded-full" [style.width.%]="res.atsBreakdown.completeness"></div>
+                      <!-- Suggested Roles -->
+                      <div class="bg-slate-800/60 p-3 rounded-xl border border-slate-700/60">
+                        <span class="text-[11px] font-bold text-purple-300 block mb-2">
+                          🎯 Suggested Target Roles
+                        </span>
+                        <div class="flex flex-wrap gap-1.5">
+                          @for (role of res.suggestedRoles; track role) {
+                            <span class="px-2.5 py-1 rounded-lg bg-purple-500/20 hover:bg-purple-500/30 text-purple-200 border border-purple-500/30 text-[11px] font-semibold transition-all">
+                              🎯 {{ role }}
+                            </span>
+                          } @empty {
+                            <span class="text-slate-400 italic">No role suggestions available</span>
+                          }
                         </div>
                       </div>
                     </div>
                   }
 
-                  <!-- Extracted Skills -->
-                  <div>
-                    <span class="text-xs text-slate-400 block mb-1.5">Extracted Skills:</span>
-                    <div class="flex flex-wrap gap-1.5 max-h-24 overflow-y-auto pr-1">
-                      @for (s of res.extractedSkills; track s) {
-                        <span class="px-2 py-0.5 rounded-lg bg-indigo-500/20 text-indigo-200 border border-indigo-500/30 text-xs font-semibold">
-                          ⚡ {{ s }}
-                        </span>
-                      }
-                    </div>
-                  </div>
-
-                  <!-- Suggested Profiles -->
-                  <div>
-                    <span class="text-xs text-slate-400 block mb-1.5">Suggested Roles:</span>
-                    <div class="flex flex-wrap gap-1.5">
-                      @for (role of res.suggestedRoles; track role) {
-                        <span class="px-2 py-0.5 rounded-lg bg-purple-500/20 text-purple-200 border border-purple-500/30 text-xs font-semibold">
-                          🎯 {{ role }}
-                        </span>
-                      }
-                    </div>
-                  </div>
-
-                  <!-- ATS Feedback Tips -->
-                  @if (res.atsFeedback && res.atsFeedback.length > 0) {
-                    <div class="bg-amber-500/10 border border-amber-500/30 rounded-xl p-3 text-xs">
-                      <div class="font-bold text-amber-300 mb-1 flex items-center space-x-1">
-                        <span>💡 ATS Improvement Recommendations:</span>
+                  <!-- Tab 3: ATS Improvement Recommendations -->
+                  @if (resumeOutputTab() === 'tips') {
+                    <div class="bg-amber-950/40 border border-amber-500/30 p-3.5 rounded-xl text-[11px] animate-fadeIn space-y-2">
+                      <div class="font-bold text-amber-200 flex items-center gap-1.5 mb-1">
+                        <span>💡 ATS Improvement Recommendations</span>
                       </div>
-                      <ul class="list-disc list-inside text-slate-300 space-y-1 text-[11px]">
-                        @for (tip of res.atsFeedback; track tip) {
-                          <li>{{ tip }}</li>
-                        }
-                      </ul>
+                      @if (res.atsFeedback && res.atsFeedback.length > 0) {
+                        <ul class="space-y-1.5 text-slate-300 leading-relaxed max-h-[200px] overflow-y-auto pr-1">
+                          @for (tip of res.atsFeedback; track tip) {
+                            <li class="flex items-start gap-2 bg-slate-900/50 p-2 rounded-lg border border-amber-500/15">
+                              <span class="text-amber-400 shrink-0 mt-0.5">•</span>
+                              <span>{{ tip }}</span>
+                            </li>
+                          }
+                        </ul>
+                      } @else {
+                        <p class="text-slate-300">Your resume is well structured! Maintain quantitative metrics and clear section headers.</p>
+                      }
                     </div>
                   }
 
@@ -509,7 +640,7 @@ import { Router } from '@angular/router';
                       </span>
                     }
                     <span>🤖 AI</span>
-                    <span class="text-[10px] px-1 bg-amber-500/30 text-amber-300 rounded font-bold">1 Cr</span>
+                    <span class="text-[10px] px-1 bg-amber-500/30 text-amber-300 rounded font-bold">0.25 Cr</span>
                   </button>
                 </div>
               </div>
@@ -541,7 +672,7 @@ import { Router } from '@angular/router';
                 class="w-full py-3 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold text-xs shadow-lg shadow-indigo-500/20 transition-all active:scale-95 disabled:opacity-50"
               >
                 @if (!starCoachService.isEvaluatingWithAi()) {
-                  <span>⭐️ Grade Response ({{ evaluationMode() === 'ai_groq' ? 'AI - 1 Credit' : 'Instant - Free' }})</span>
+                  <span>⭐️ Grade Response ({{ evaluationMode() === 'ai_groq' ? 'AI - 0.25 Credits' : 'Instant - Free' }})</span>
                 } @else {
                   <span class="animate-pulse">🤖 Evaluating with AI...</span>
                 }
@@ -549,52 +680,216 @@ import { Router } from '@angular/router';
             </div>
 
             <!-- STAR Evaluation Output -->
-            <div class="bg-slate-800/40 border border-slate-700/50 rounded-2xl p-5">
-              <div class="text-xs font-bold text-indigo-400 uppercase tracking-wider mb-3 flex items-center justify-between">
-                <span>STAR Breakdown Score</span>
+            <div class="bg-slate-900/80 border border-slate-700/60 rounded-2xl p-5 backdrop-blur-md shadow-xl">
+              <!-- Header -->
+              <div class="flex items-center justify-between border-b border-slate-800 pb-3 mb-4">
+                <div class="flex items-center gap-2">
+                  <div class="w-2.5 h-2.5 rounded-full bg-indigo-500 animate-pulse"></div>
+                  <h3 class="text-xs font-bold text-slate-200 uppercase tracking-wider">STAR Breakdown Analysis</h3>
+                </div>
                 @if (starCoachService.latestEvaluation(); as eval) {
-                  <span class="text-slate-400 font-normal">
-                    Engine: <strong class="text-indigo-300">{{ eval.evaluationMode === 'ai_groq' ? '🤖 AI' : '⚡ Instant Logic' }}</strong>
+                  <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium bg-slate-800 border border-slate-700/80 text-slate-300">
+                    Engine:
+                    <strong class="text-indigo-400 flex items-center gap-1">
+                      {{ eval.evaluationMode === 'ai_groq' ? '🤖 AI Groq' : '⚡ Instant Logic' }}
+                    </strong>
                   </span>
                 }
               </div>
 
               @if (starCoachService.latestEvaluation(); as eval) {
-                <div class="space-y-3 animate-fadeIn">
-                  <div class="flex items-center justify-between bg-slate-900 p-3 rounded-xl border border-slate-800 mb-2">
-                    <span class="text-xs font-bold text-white">Overall STAR Structure Score</span>
-                    <span class="text-xl font-black text-amber-400">{{ eval.overallScore }}%</span>
+                <div class="space-y-3.5 animate-fadeIn">
+                  
+                  <!-- Executive Score Banner Card -->
+                  <div class="relative overflow-hidden bg-gradient-to-br from-slate-900 via-slate-850 to-indigo-950/50 p-3.5 rounded-xl border border-indigo-500/20 shadow-md">
+                    <div class="flex items-center justify-between relative z-10">
+                      <div>
+                        <span class="text-[11px] font-semibold text-slate-400 block mb-0.5">Overall Structure Score</span>
+                        <div class="flex items-baseline gap-2">
+                          <span class="text-2xl font-extrabold tracking-tight"
+                                [class.text-emerald-400]="eval.overallScore >= 80"
+                                [class.text-amber-400]="eval.overallScore >= 65 && eval.overallScore < 80"
+                                [class.text-rose-400]="eval.overallScore < 65">
+                            {{ eval.overallScore }}%
+                          </span>
+                          <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full border"
+                                [class.bg-emerald-500/10]="eval.overallScore >= 80" [class.text-emerald-300]="eval.overallScore >= 80" [class.border-emerald-500/30]="eval.overallScore >= 80"
+                                [class.bg-amber-500/10]="eval.overallScore >= 65 && eval.overallScore < 80" [class.text-amber-300]="eval.overallScore >= 65 && eval.overallScore < 80" [class.border-amber-500/30]="eval.overallScore >= 65 && eval.overallScore < 80"
+                                [class.bg-rose-500/10]="eval.overallScore < 65" [class.text-rose-300]="eval.overallScore < 65" [class.border-rose-500/30]="eval.overallScore < 65">
+                            {{ eval.overallScore >= 80 ? '🔥 Excellent' : eval.overallScore >= 65 ? '⚡ Solid Start' : '💡 Needs Focus' }}
+                          </span>
+                        </div>
+                      </div>
+
+                      <!-- Score Progress Bar visual -->
+                      <div class="w-28 bg-slate-800/80 rounded-lg p-1.5 border border-slate-700/50">
+                        <div class="flex justify-between text-[9px] text-slate-400 mb-1">
+                          <span>Target: 85%+</span>
+                          <span>{{ eval.overallScore }}/100</span>
+                        </div>
+                        <div class="h-1.5 w-full bg-slate-700 rounded-full overflow-hidden">
+                          <div class="h-full transition-all duration-500 rounded-full"
+                               [style.width.%]="eval.overallScore"
+                               [class.bg-emerald-500]="eval.overallScore >= 80"
+                               [class.bg-amber-500]="eval.overallScore >= 65 && eval.overallScore < 80"
+                               [class.bg-rose-500]="eval.overallScore < 65">
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                   </div>
 
-                  <!-- STAR Pillars -->
-                  <div class="grid grid-cols-2 gap-2 text-xs">
-                    <div class="bg-slate-800 p-2.5 rounded-lg border border-slate-700/50">
-                      <div class="flex justify-between font-bold text-slate-200"><span>S - Situation</span><span class="text-indigo-400">{{ eval.situationScore }}%</span></div>
-                      <p class="text-[11px] text-slate-400 mt-1">{{ eval.situationFeedback }}</p>
-                    </div>
-                    <div class="bg-slate-800 p-2.5 rounded-lg border border-slate-700/50">
-                      <div class="flex justify-between font-bold text-slate-200"><span>T - Task</span><span class="text-indigo-400">{{ eval.taskScore }}%</span></div>
-                      <p class="text-[11px] text-slate-400 mt-1">{{ eval.taskFeedback }}</p>
-                    </div>
-                    <div class="bg-slate-800 p-2.5 rounded-lg border border-slate-700/50">
-                      <div class="flex justify-between font-bold text-slate-200"><span>A - Action</span><span class="text-indigo-400">{{ eval.actionScore }}%</span></div>
-                      <p class="text-[11px] text-slate-400 mt-1">{{ eval.actionFeedback }}</p>
-                    </div>
-                    <div class="bg-slate-800 p-2.5 rounded-lg border border-slate-700/50">
-                      <div class="flex justify-between font-bold text-slate-200"><span>R - Result</span><span class="text-indigo-400">{{ eval.resultScore }}%</span></div>
-                      <p class="text-[11px] text-slate-400 mt-1">{{ eval.resultFeedback }}</p>
-                    </div>
+                  <!-- Output Sub-Tabs Control -->
+                  <div class="flex items-center gap-1 bg-slate-950/60 p-1 rounded-xl border border-slate-800 text-xs font-semibold">
+                    <button
+                      (click)="starOutputTab.set('pillars')"
+                      [class.bg-indigo-600]="starOutputTab() === 'pillars'"
+                      [class.text-white]="starOutputTab() === 'pillars'"
+                      [class.shadow-md]="starOutputTab() === 'pillars'"
+                      [class.text-slate-400]="starOutputTab() !== 'pillars'"
+                      [class.hover:text-slate-200]="starOutputTab() !== 'pillars'"
+                      class="flex-1 py-1.5 px-2 rounded-lg transition-all flex items-center justify-center gap-1 text-[11px]"
+                    >
+                      <span>📊 Pillars</span>
+                    </button>
+
+                    <button
+                      (click)="starOutputTab.set('analysis')"
+                      [class.bg-indigo-600]="starOutputTab() === 'analysis'"
+                      [class.text-white]="starOutputTab() === 'analysis'"
+                      [class.shadow-md]="starOutputTab() === 'analysis'"
+                      [class.text-slate-400]="starOutputTab() !== 'analysis'"
+                      [class.hover:text-slate-200]="starOutputTab() !== 'analysis'"
+                      class="flex-1 py-1.5 px-2 rounded-lg transition-all flex items-center justify-center gap-1 text-[11px]"
+                    >
+                      <span>🧠 AI Evaluation</span>
+                    </button>
+
+                    <button
+                      (click)="starOutputTab.set('suggestion')"
+                      [class.bg-indigo-600]="starOutputTab() === 'suggestion'"
+                      [class.text-white]="starOutputTab() === 'suggestion'"
+                      [class.shadow-md]="starOutputTab() === 'suggestion'"
+                      [class.text-slate-400]="starOutputTab() !== 'suggestion'"
+                      [class.hover:text-slate-200]="starOutputTab() !== 'suggestion'"
+                      class="flex-1 py-1.5 px-2 rounded-lg transition-all flex items-center justify-center gap-1 text-[11px]"
+                    >
+                      <span>💡 Enhancement</span>
+                    </button>
                   </div>
 
-                  <!-- Suggestion box -->
-                  <div class="bg-purple-950/40 border border-purple-500/30 p-3 rounded-xl text-[11px] text-purple-200 mt-2">
-                    <strong class="text-white block mb-1">💡 Improvement Advice:</strong>
-                    {{ eval.improvedAnswerSuggestion }}
-                  </div>
+                  <!-- Tab 1: STAR 4-Pillar Grid -->
+                  @if (starOutputTab() === 'pillars') {
+                    <div class="grid grid-cols-2 gap-2.5 text-xs animate-fadeIn">
+                      <!-- Situation Card -->
+                      <div class="bg-slate-800/60 hover:bg-slate-800/90 transition-all p-3 rounded-xl border border-slate-700/60 flex flex-col justify-between">
+                        <div>
+                          <div class="flex items-center justify-between mb-1">
+                            <div class="flex items-center gap-1.5 font-bold text-slate-200">
+                              <span class="w-5 h-5 rounded-md bg-blue-500/20 text-blue-400 border border-blue-500/30 flex items-center justify-center text-[10px]">S</span>
+                              <span>Situation</span>
+                            </div>
+                            <span class="font-bold text-blue-400">{{ eval.situationScore }}%</span>
+                          </div>
+                          <div class="h-1.5 w-full bg-slate-700/60 rounded-full mb-1.5 overflow-hidden">
+                            <div class="h-full bg-blue-500 rounded-full transition-all" [style.width.%]="eval.situationScore"></div>
+                          </div>
+                          <p class="text-[11px] text-slate-300 leading-relaxed">{{ eval.situationFeedback }}</p>
+                        </div>
+                      </div>
+
+                      <!-- Task Card -->
+                      <div class="bg-slate-800/60 hover:bg-slate-800/90 transition-all p-3 rounded-xl border border-slate-700/60 flex flex-col justify-between">
+                        <div>
+                          <div class="flex items-center justify-between mb-1">
+                            <div class="flex items-center gap-1.5 font-bold text-slate-200">
+                              <span class="w-5 h-5 rounded-md bg-purple-500/20 text-purple-400 border border-purple-500/30 flex items-center justify-center text-[10px]">T</span>
+                              <span>Task</span>
+                            </div>
+                            <span class="font-bold text-purple-400">{{ eval.taskScore }}%</span>
+                          </div>
+                          <div class="h-1.5 w-full bg-slate-700/60 rounded-full mb-1.5 overflow-hidden">
+                            <div class="h-full bg-purple-500 rounded-full transition-all" [style.width.%]="eval.taskScore"></div>
+                          </div>
+                          <p class="text-[11px] text-slate-300 leading-relaxed">{{ eval.taskFeedback }}</p>
+                        </div>
+                      </div>
+
+                      <!-- Action Card -->
+                      <div class="bg-slate-800/60 hover:bg-slate-800/90 transition-all p-3 rounded-xl border border-slate-700/60 flex flex-col justify-between">
+                        <div>
+                          <div class="flex items-center justify-between mb-1">
+                            <div class="flex items-center gap-1.5 font-bold text-slate-200">
+                              <span class="w-5 h-5 rounded-md bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center text-[10px]">A</span>
+                              <span>Action</span>
+                            </div>
+                            <span class="font-bold text-emerald-400">{{ eval.actionScore }}%</span>
+                          </div>
+                          <div class="h-1.5 w-full bg-slate-700/60 rounded-full mb-1.5 overflow-hidden">
+                            <div class="h-full bg-emerald-500 rounded-full transition-all" [style.width.%]="eval.actionScore"></div>
+                          </div>
+                          <p class="text-[11px] text-slate-300 leading-relaxed">{{ eval.actionFeedback }}</p>
+                        </div>
+                      </div>
+
+                      <!-- Result Card -->
+                      <div class="bg-slate-800/60 hover:bg-slate-800/90 transition-all p-3 rounded-xl border border-slate-700/60 flex flex-col justify-between">
+                        <div>
+                          <div class="flex items-center justify-between mb-1">
+                            <div class="flex items-center gap-1.5 font-bold text-slate-200">
+                              <span class="w-5 h-5 rounded-md bg-amber-500/20 text-amber-400 border border-amber-500/30 flex items-center justify-center text-[10px]">R</span>
+                              <span>Result</span>
+                            </div>
+                            <span class="font-bold text-amber-400">{{ eval.resultScore }}%</span>
+                          </div>
+                          <div class="h-1.5 w-full bg-slate-700/60 rounded-full mb-1.5 overflow-hidden">
+                            <div class="h-full bg-amber-500 rounded-full transition-all" [style.width.%]="eval.resultScore"></div>
+                          </div>
+                          <p class="text-[11px] text-slate-300 leading-relaxed">{{ eval.resultFeedback }}</p>
+                        </div>
+                      </div>
+                    </div>
+                  }
+
+                  <!-- Tab 2: Detailed AI Evaluation -->
+                  @if (starOutputTab() === 'analysis') {
+                    <div class="bg-indigo-950/40 border border-indigo-500/30 p-4 rounded-xl text-[11px] animate-fadeIn min-h-[140px]">
+                      <div class="flex items-center gap-2 font-bold text-indigo-200 mb-2">
+                        <span>🧠 Detailed AI Evaluation</span>
+                      </div>
+                      <p class="text-slate-300 leading-relaxed max-h-[220px] overflow-y-auto pr-1">
+                        {{ eval.overallFeedback || 'The candidate answer was evaluated. Keep structuring actions and quantified metrics for best results.' }}
+                      </p>
+                    </div>
+                  }
+
+                  <!-- Tab 3: Improved Answer Blueprint -->
+                  @if (starOutputTab() === 'suggestion') {
+                    <div class="bg-purple-950/40 border border-purple-500/30 p-4 rounded-xl text-[11px] animate-fadeIn space-y-2">
+                      <div class="flex items-center justify-between mb-1">
+                        <span class="font-bold text-purple-200 flex items-center gap-1.5">
+                          <span>💡 Suggested STAR Enhancement</span>
+                        </span>
+                        <button (click)="copyImprovedAnswer(eval.improvedAnswerSuggestion)"
+                                class="px-2.5 py-1 rounded-md bg-purple-900/60 hover:bg-purple-800 text-purple-200 hover:text-white border border-purple-500/40 text-[10px] font-medium transition-all flex items-center gap-1">
+                          @if (copiedAnswer()) {
+                            <span class="text-emerald-400">✓ Copied!</span>
+                          } @else {
+                            <span>📋 Copy Suggestion</span>
+                          }
+                        </button>
+                      </div>
+                      <p class="text-purple-100/90 leading-relaxed whitespace-pre-line bg-purple-950/60 p-3 rounded-lg border border-purple-800/40 max-h-[200px] overflow-y-auto">
+                        {{ eval.improvedAnswerSuggestion }}
+                      </p>
+                    </div>
+                  }
+
                 </div>
               } @else {
-                <div class="py-12 text-center text-slate-500 text-xs">
-                  Type your answer response on the left and click "Grade Response".
+                <div class="py-16 text-center text-slate-500 text-xs">
+                  <div class="text-2xl mb-2">⭐️</div>
+                  <p>Type your answer response on the left and click "Grade Response" to see detailed STAR feedback.</p>
                 </div>
               }
             </div>
@@ -616,6 +911,17 @@ export class AiToolsWidgetComponent implements OnInit {
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
 
+  readonly copiedAnswer = signal<boolean>(false);
+  readonly starOutputTab = signal<'pillars' | 'analysis' | 'suggestion'>('pillars');
+  readonly resumeOutputTab = signal<'metrics' | 'skills' | 'tips'>('metrics');
+
+  copyImprovedAnswer(text: string): void {
+    if (!text) return;
+    navigator.clipboard.writeText(text);
+    this.copiedAnswer.set(true);
+    setTimeout(() => this.copiedAnswer.set(false), 2500);
+  }
+
   ngOnInit(): void {
     if (!this.resumeService.parsedResume()) {
       this.resumeService.loadSavedResume();
@@ -634,18 +940,26 @@ export class AiToolsWidgetComponent implements OnInit {
     if (this.resumeService.isParsing()) return;
     const input = event.target as HTMLInputElement;
     if (input.files && input.files[0]) {
-      const res = await this.resumeService.parseResumeFile(input.files[0]);
-      if (res && res.creditsDeducted) {
-        this.userResourceService.fetchCreditsAndCoins().subscribe({ error: () => {} });
+      try {
+        const res = await this.resumeService.parseResumeFile(input.files[0]);
+        if (res && res.creditsDeducted) {
+          this.userResourceService.fetchCreditsAndCoins().subscribe({ error: () => {} });
+        }
+      } catch (err: any) {
+        console.error('Resume parse error:', err);
       }
     }
   }
 
   async parsePastedResumeText(): Promise<void> {
     if (this.resumeService.isParsing() || !this.pastedText || !this.pastedText.trim()) return;
-    const res = await this.resumeService.parseRawText(this.pastedText.trim());
-    if (res && res.creditsDeducted) {
-      this.userResourceService.fetchCreditsAndCoins().subscribe({ error: () => {} });
+    try {
+      const res = await this.resumeService.parseRawText(this.pastedText.trim());
+      if (res && res.creditsDeducted) {
+        this.userResourceService.fetchCreditsAndCoins().subscribe({ error: () => {} });
+      }
+    } catch (err: any) {
+      console.error('Resume parse text error:', err);
     }
   }
 

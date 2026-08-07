@@ -109,18 +109,23 @@ export class ResumeParserService {
     }
 
     if (!extractedText || extractedText.trim().length < 20) {
-      extractedText = await this.extractRawBinaryStrings(file);
+      extractedText = await this.extractSanitizedTextFallback(file);
     }
 
-    return new Promise((resolve) => {
-      this.sendToBackendApi(file.name, extractedText, resolve);
+    if (!extractedText || extractedText.trim().length < 20 || this.isRawBinaryOrXml(extractedText)) {
+      this.isParsing.set(false);
+      return Promise.reject(new Error('The resume file provided does not contain readable text. Please ensure it is a valid .docx, PDF, or text file with selectable text.'));
+    }
+
+    return new Promise((resolve, reject) => {
+      this.sendToBackendApi(file.name, extractedText, resolve, reject);
     });
   }
 
   parseRawText(rawText: string, fileName = 'pasted-resume.txt'): Promise<ParsedResumeResult> {
     this.isParsing.set(true);
-    return new Promise((resolve) => {
-      this.sendToBackendApi(fileName, rawText, resolve);
+    return new Promise((resolve, reject) => {
+      this.sendToBackendApi(fileName, rawText, resolve, reject);
     });
   }
 
@@ -156,41 +161,77 @@ export class ResumeParserService {
     } catch {
       // Fall back to binary text extraction
     }
-    return this.extractRawBinaryStrings(file);
+    return this.extractSanitizedTextFallback(file);
   }
 
   private async extractDocxText(file: File): Promise<string> {
+    // 1. Primary: Use Mammoth.js for decompressed .docx text extraction
     try {
+      await this.loadMammothScript();
       const arrayBuffer = await file.arrayBuffer();
-      const textDecoder = new TextDecoder('utf-8');
-      const rawContent = textDecoder.decode(arrayBuffer);
-
-      // Extract all text inside <w:t> tags from Word XML document structure
-      const matches = rawContent.match(/<w:t[^>]*>(.*?)<\/w:t>/gi);
-      if (matches && matches.length > 0) {
-        const xmlText = matches.map(m => m.replace(/<[^>]+>/g, '')).join(' ');
-        if (xmlText.trim().length > 30) return xmlText;
+      const mammoth = (window as any).mammoth;
+      if (mammoth) {
+        const result = await mammoth.extractRawText({ arrayBuffer });
+        if (result && result.value && result.value.trim().length > 15) {
+          return result.value.trim();
+        }
       }
-    } catch {
-      // Fallback
+    } catch (err) {
+      console.warn('Mammoth extraction failed, trying JSZip fallback:', err);
     }
-    return this.extractRawBinaryStrings(file);
+
+    // 2. Secondary: Use JSZip to unzip word/document.xml
+    try {
+      await this.loadJsZipScript();
+      const JSZip = (window as any).JSZip;
+      if (JSZip) {
+        const zip = await JSZip.loadAsync(file);
+        const docXmlFile = zip.file('word/document.xml');
+        if (docXmlFile) {
+          const xmlText = await docXmlFile.async('text');
+          const matches = xmlText.match(/<w:t[^>]*>(.*?)<\/w:t>/gi);
+          if (matches && matches.length > 0) {
+            const extracted = matches.map((m: string) => m.replace(/<[^>]+>/g, '')).join(' ');
+            if (extracted.trim().length > 20) return extracted.trim();
+          }
+        }
+      }
+    } catch (err) {
+      console.warn('JSZip docx fallback failed:', err);
+    }
+
+    return this.extractSanitizedTextFallback(file);
   }
 
-  private async extractRawBinaryStrings(file: File): Promise<string> {
+  private async extractSanitizedTextFallback(file: File): Promise<string> {
     try {
       const buffer = await file.arrayBuffer();
-      const decoder = new TextDecoder('latin1');
+      const decoder = new TextDecoder('utf-8', { fatal: false });
       const str = decoder.decode(buffer);
-      // Extract printable character blocks >= 3 chars
-      const printableMatches = str.match(/[\w\s.,@+\-/():;]{3,}/g);
-      if (printableMatches) {
-        return printableMatches.join(' ');
+
+      const strippedXml = str.replace(/<[^>]+>/g, ' ');
+      const cleanText = strippedXml
+        .replace(/schemas\.openxmlformats\.org[^\s]*/gi, '')
+        .replace(/\[Content_Types\]\.xml/gi, '')
+        .replace(/word\/(?:document|styles|settings)\.xml/gi, '')
+        .replace(/\s+/g, ' ')
+        .trim();
+
+      if (cleanText.length > 30 && !this.isRawBinaryOrXml(cleanText)) {
+        return cleanText;
       }
     } catch {
       // Ignore
     }
-    return `Resume file: ${file.name}`;
+    return '';
+  }
+
+  private isRawBinaryOrXml(text: string): boolean {
+    if (!text) return true;
+    if (text.length < 20) return true;
+    if (text.includes('schemas.openxmlformats.org') || text.includes('[Content_Types].xml')) return true;
+    if (text.startsWith('PK\x03\x04') || text.includes('word/document.xml')) return true;
+    return false;
   }
 
   private loadPdfJsScript(): Promise<void> {
@@ -207,7 +248,40 @@ export class ResumeParserService {
     });
   }
 
-  private sendToBackendApi(fileName: string, rawText: string, resolve: (res: ParsedResumeResult) => void): void {
+  private loadMammothScript(): Promise<void> {
+    return new Promise((resolve, reject) => {
+      if ((window as any).mammoth) {
+        resolve();
+        return;
+      }
+      const script = document.createElement('script');
+      script.src = 'https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.8.0/mammoth.browser.min.js';
+      script.onload = () => resolve();
+      script.onerror = () => reject(new Error('Failed to load Mammoth script'));
+      document.head.appendChild(script);
+    });
+  }
+
+  private loadJsZipScript(): Promise<void> {
+    return new Promise((resolve, reject) => {
+      if ((window as any).JSZip) {
+        resolve();
+        return;
+      }
+      const script = document.createElement('script');
+      script.src = 'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js';
+      script.onload = () => resolve();
+      script.onerror = () => reject(new Error('Failed to load JSZip script'));
+      document.head.appendChild(script);
+    });
+  }
+
+  private sendToBackendApi(
+    fileName: string,
+    rawText: string,
+    resolve: (res: ParsedResumeResult) => void,
+    reject?: (err: any) => void
+  ): void {
     this.http.post<ParsedResumeResult>(this.apiUrl, { fileName, rawText }).pipe(
       takeUntilDestroyed(this.destroyRef)
     ).subscribe({
@@ -218,7 +292,27 @@ export class ResumeParserService {
         this.userResourceService.fetchCreditsAndCoins().subscribe({ error: () => {} });
         resolve(parsed);
       },
-      error: () => {
+      error: (httpErr) => {
+        const errDetail = httpErr?.error?.error || httpErr?.error?.message;
+        if (httpErr?.status === 400 || (errDetail && errDetail.includes('not readable text'))) {
+          this.isParsing.set(false);
+          if (reject) {
+            reject(new Error(errDetail || 'The uploaded file does not contain readable text.'));
+          } else {
+            this.parsedResume.set({
+              fileName,
+              extractedSkills: [],
+              suggestedRoles: [],
+              experienceYears: 0,
+              atsScore: 0,
+              atsFeedback: [errDetail || 'The uploaded file is not readable text. Please provide a standard .docx or PDF file.'],
+              rawTextPreview: '',
+              parsedBy: 'ERROR',
+            });
+          }
+          return;
+        }
+
         const localFallback = this.extractResumeDetails(fileName, rawText);
         this.parsedResume.set(localFallback);
         this.autoUpdateUserSkills(localFallback.extractedSkills);

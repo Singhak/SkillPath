@@ -46,11 +46,11 @@ export class UserApiService {
     return this.http.post<{ message: string, user: User }>(`${this.apiUrl}/start-trial`, {});
   }
 
-  getCreditHistory(limit = 50, offset = 0): Observable<{ count: number; rows: any[] }> {
+  getCreditHistory(limit = 10, offset = 0): Observable<{ count: number; rows: any[] }> {
     return this.http.get<{ count: number; rows: any[] }>(`${this.apiUrl}/credit-history?limit=${limit}&offset=${offset}`);
   }
 
-  getPurchaseHistory(limit = 50, offset = 0): Observable<{ count: number; rows: any[] }> {
+  getPurchaseHistory(limit = 10, offset = 0): Observable<{ count: number; rows: any[] }> {
     return this.http.get<{ count: number; rows: any[] }>(`${this.apiUrl}/purchase-history?limit=${limit}&offset=${offset}`);
   }
 }
