@@ -38,7 +38,7 @@ export class InterviewReportService {
       reportId,
       sessionId: 'SESS-' + Date.now().toString().slice(-6),
       userName: params.userName || 'Candidate User',
-      userEmail: params.userEmail || 'candidate@skillpath.app',
+      userEmail: params.userEmail || 'info@imonbench.app',
       roleOrSkill: params.roleOrSkill || 'Full Stack Engineer',
       date: new Date().toLocaleDateString('en-US', {
         year: 'numeric',
@@ -95,7 +95,7 @@ export class InterviewReportService {
       <!DOCTYPE html>
       <html>
       <head>
-        <title>SkillPath Performance Evaluation Report - ${report.userName}</title>
+        <title>IMONBENCH Performance Evaluation Report - ${report.userName}</title>
         <style>
           body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -185,7 +185,7 @@ export class InterviewReportService {
       </head>
       <body>
         <div class="header">
-          <div class="brand">⚡ SkillPath AI</div>
+          <div class="brand">⚡ IMONBENCH AI</div>
           <div class="report-badge">Report ID: ${report.reportId}</div>
         </div>
 
@@ -235,7 +235,7 @@ export class InterviewReportService {
         </div>
 
         <div class="footer">
-          <p>Verified by SkillPath AI Assessment Engine | Share Token: ${report.shareToken}</p>
+          <p>Verified by IMONBENCH AI Assessment Engine | Share Token: ${report.shareToken}</p>
         </div>
 
         <script>

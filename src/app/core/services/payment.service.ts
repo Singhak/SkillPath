@@ -123,7 +123,7 @@ export class PaymentService {
       key: payload.key || environment.razorpayKeyId || 'rzp_test_TM3geoygBFGL7G',
       amount: order.amount,
       currency: order.currency || currency,
-      name: 'SkillPath',
+      name: 'IMONBENCH',
       description: itemDescription,
       order_id: order.orderId || order.id,
       handler: (response: any) => {

@@ -82,7 +82,7 @@ export class ReviewDeckService {
           this.flashcards.set(mapped);
         }
       },
-      error: () => {}
+      error: () => { }
     });
   }
 
@@ -144,7 +144,7 @@ export class ReviewDeckService {
     if (this.isPlanFit()) {
       this.http.post<any>(`${this.apiUrl}/${current.id}/recall`, { recallGrade: grade }).pipe(
         takeUntilDestroyed(this.destroyRef)
-      ).subscribe({ error: () => {} });
+      ).subscribe({ error: () => { } });
     }
   }
 
@@ -162,13 +162,13 @@ export class ReviewDeckService {
     if (this.isPlanFit()) {
       this.http.post<any>(this.apiUrl, cardData).pipe(
         takeUntilDestroyed(this.destroyRef)
-      ).subscribe({ error: () => {} });
+      ).subscribe({ error: () => { } });
     }
   }
 
   private loadFromStorage(): void {
     try {
-      const saved = localStorage.getItem('skillpath_review_deck');
+      const saved = localStorage.getItem('imonbench_review_deck');
       if (saved) {
         this.flashcards.set(JSON.parse(saved));
       }
@@ -179,7 +179,7 @@ export class ReviewDeckService {
 
   private saveToStorage(): void {
     try {
-      localStorage.setItem('skillpath_review_deck', JSON.stringify(this.flashcards()));
+      localStorage.setItem('imonbench_review_deck', JSON.stringify(this.flashcards()));
     } catch {
       // Ignore
     }

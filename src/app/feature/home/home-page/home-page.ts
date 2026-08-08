@@ -13,15 +13,15 @@ import { DividerModule } from 'primeng/divider';
   styleUrl: './home-page.css',
 })
 export class HomePageComponent implements OnInit {
-  constructor(private meta: Meta, private title: Title) {}
+  constructor(private meta: Meta, private title: Title) { }
 
   ngOnInit() {
-    this.title.setTitle('SkillPath - Master Your Interviews');
+    this.title.setTitle('IMONBENCH - Master Your Interviews');
     this.meta.addTags([
       { name: 'description', content: 'Practice with confidence. Answer interview-style questions, receive guidance, and sharpen your communication rhythm.' },
       { name: 'keywords', content: 'interview, practice, AI, skills, gamification, software engineering' },
-      { property: 'og:title', content: 'SkillPath - Master Your Interviews' },
-      { property: 'og:description', content: 'Practice with confidence and improve every session with SkillPath.' }
+      { property: 'og:title', content: 'IMONBENCH - Master Your Interviews' },
+      { property: 'og:description', content: 'Practice with confidence and improve every session with IMONBENCH.' }
     ]);
   }
 

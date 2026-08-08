@@ -1,7 +1,7 @@
 <div class="auth-shell">
   <div class="auth-card">
     <div class="auth-hero">
-      <div class="hero-badge">Mordenec</div>
+      <div class="hero-badge">IMONBENCH</div>
       <h1>Welcome back</h1>
       <p>Continue your interview preparation with a calm and focused experience.</p>
       <ul class="hero-points">
@@ -20,92 +20,58 @@
 
       <div class="flex flex-col gap-2 my-4">
         <label for="loginMethodSelect">Login Method</label>
-        <p-selectButton
-          inputId="loginMethodSelect"
-          [options]="loginMethods"
-          [(ngModel)]="selectedLoginMethod"
-          (ngModelChange)="onLoginMethodChange()"
-          optionLabel="label"
-          optionValue="value"
-          [ngModelOptions]="{ standalone: true }"
-          class="w-full"
-        ></p-selectButton>
+        <p-selectButton inputId="loginMethodSelect" [options]="loginMethods" [(ngModel)]="selectedLoginMethod"
+          (ngModelChange)="onLoginMethodChange()" optionLabel="label" optionValue="value"
+          [ngModelOptions]="{ standalone: true }" class="w-full"></p-selectButton>
       </div>
 
       <div class="field-group">
         <label for="email">Email address</label>
-        <input
-          pInputText
-          id="email"
-          type="email"
-          autocomplete="email"
-          class="auth-input"
-          formControlName="emailId"
-        />
+        <input pInputText id="email" type="email" autocomplete="email" class="auth-input" formControlName="emailId" />
         @if (emailId?.invalid && (emailId?.dirty || emailId?.touched)) {
-          @if (emailId?.errors?.['required']) {
-            <small class="text-red-500">Email is required.</small>
-          }
-          @if (emailId?.errors?.['email']) {
-            <small class="text-red-500">Please enter a valid email address.</small>
-          }
+        @if (emailId?.errors?.['required']) {
+        <small class="text-red-500">Email is required.</small>
+        }
+        @if (emailId?.errors?.['email']) {
+        <small class="text-red-500">Please enter a valid email address.</small>
+        }
         }
       </div>
 
       @if (selectedLoginMethod === 'password') {
-        <div class="field-group">
-          <label for="password">Password</label>
-          <p-password
-            inputId="password"
-            [toggleMask]="true"
-            [feedback]="false"
-            class="w-full"
-            formControlName="password"
-          ></p-password>
-        </div>
+      <div class="field-group">
+        <label for="password">Password</label>
+        <p-password inputId="password" [toggleMask]="true" [feedback]="false" class="w-full"
+          formControlName="password"></p-password>
+      </div>
       } @else {
-        <div class="field-group">
-          @if (!otpSent()) {
-            <p-button
-              label="Send OTP"
-              styleClass="w-full"
-              (click)="sendOtp()"
-              [loading]="loading()"
-              [disabled]="emailId?.invalid"
-            ></p-button>
-          } @else {
-            <div>
-              <div class="flex justify-between items-center mb-2">
-                <label for="otp">One-Time Password</label>
-                <p-button
-                  [label]="
+      <div class="field-group">
+        @if (!otpSent()) {
+        <p-button label="Send OTP" styleClass="w-full" (click)="sendOtp()" [loading]="loading()"
+          [disabled]="emailId?.invalid"></p-button>
+        } @else {
+        <div>
+          <div class="flex justify-between items-center mb-2">
+            <label for="otp">One-Time Password</label>
+            <p-button [label]="
                     resendCooldown() > 0
                       ? 'Resend OTP in (' + resendCooldown() + 's)'
                       : 'Resend OTP'
-                  "
-                  styleClass="p-button-link"
-                  (click)="sendOtp()"
-                  [disabled]="resendCooldown() > 0"
-                ></p-button>
-              </div>
-              <p-inputOtp
-                inputId="otp"
-                [length]="6"
-                formControlName="otp"
-                class="w-full justify-center"
-                [integerOnly]="true"
-              ></p-inputOtp>
-              @if (
-                form.controls['otp'].invalid &&
-                (form.controls['otp'].dirty || form.controls['otp'].touched)
-              ) {
-                <div class="p-error text-red-500 mt-2">
-                  <small>A valid 6-digit OTP is required.</small>
-                </div>
-              }
-            </div>
+                  " styleClass="p-button-link" (click)="sendOtp()" [disabled]="resendCooldown() > 0"></p-button>
+          </div>
+          <p-inputOtp inputId="otp" [length]="6" formControlName="otp" class="w-full justify-center"
+            [integerOnly]="true"></p-inputOtp>
+          @if (
+          form.controls['otp'].invalid &&
+          (form.controls['otp'].dirty || form.controls['otp'].touched)
+          ) {
+          <div class="p-error text-red-500 mt-2">
+            <small>A valid 6-digit OTP is required.</small>
+          </div>
           }
         </div>
+        }
+      </div>
       }
 
       <!-- THis feature is not available -->
@@ -117,14 +83,9 @@
         <a routerLink="/forgot-password" class="text-link">Forgot password?</a>
       </div> -->
 
-      <p-button
-        type="submit"
-        [label]="selectedLoginMethod === 'otp' ? 'Verify & Login' : 'Login'"
-        icon="pi pi-sign-in"
-        styleClass="auth-button w-full"
-        [loading]="loading()"
-        [disabled]="selectedLoginMethod === 'otp' && !otpSent()"
-      ></p-button>
+      <p-button type="submit" [label]="selectedLoginMethod === 'otp' ? 'Verify & Login' : 'Login'" icon="pi pi-sign-in"
+        styleClass="auth-button w-full" [loading]="loading()"
+        [disabled]="selectedLoginMethod === 'otp' && !otpSent()"></p-button>
 
       <!--  <p-divider align="center">
         <span class="divider-label">or</span>

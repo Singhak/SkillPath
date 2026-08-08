@@ -2,7 +2,7 @@
   <div class="auth-card">
     <!-- @if (!isRegistered()) { -->
     <div class="auth-hero">
-      <div class="hero-badge">Mordenec</div>
+      <div class="hero-badge">IMONBENCH</div>
       <h1>Create your account</h1>
       <p>Join the platform and start preparing for interviews with confidence.</p>
       <ul class="hero-points">
@@ -13,125 +13,94 @@
     </div>
     <!-- } -->
 
-    <form
-      class="auth-form"
-      [formGroup]="form"
-      (ngSubmit)="isRegistered() ? verifyOtp() : registerUser()"
-    >
+    <form class="auth-form" [formGroup]="form" (ngSubmit)="isRegistered() ? verifyOtp() : registerUser()">
       @if (!isRegistered()) {
-        <div class="form-heading">
-          <span class="form-pill">New account</span>
-          <h2>Sign up today</h2>
-          <p>Fill in your details to get started.</p>
-        </div>
+      <div class="form-heading">
+        <span class="form-pill">New account</span>
+        <h2>Sign up today</h2>
+        <p>Fill in your details to get started.</p>
+      </div>
 
-        <div class="field-group">
-          <label for="fullName">Full name</label>
-          <input
-            pInputText
-            id="fullName"
-            autocomplete="name"
-            class="auth-input"
-            formControlName="name"
-          />
-          @if (
-            form.get('name')?.invalid && (form.get('name')?.dirty || form.get('name')?.touched)
-          ) {
-            @if (form.get('name')?.errors?.['required']) {
-              <small class="text-red-500">Name is required.</small>
-            }
-          } @else {
-            <small>Name is required.</small>
-          }
-        </div>
+      <div class="field-group">
+        <label for="fullName">Full name</label>
+        <input pInputText id="fullName" autocomplete="name" class="auth-input" formControlName="name" />
+        @if (
+        form.get('name')?.invalid && (form.get('name')?.dirty || form.get('name')?.touched)
+        ) {
+        @if (form.get('name')?.errors?.['required']) {
+        <small class="text-red-500">Name is required.</small>
+        }
+        } @else {
+        <small>Name is required.</small>
+        }
+      </div>
 
-        <div class="field-group">
-          <label for="email">Email address</label>
-          <input
-            pInputText
-            id="email"
-            type="email"
-            autocomplete="email"
-            class="auth-input"
-            formControlName="emailId"
-          />
-          @if (
-            form.get('emailId')?.invalid &&
-            (form.get('emailId')?.dirty || form.get('emailId')?.touched)
-          ) {
-            @if (form.get('emailId')?.errors?.['required']) {
-              <small class="text-red-500">Email is required.</small>
-            } @else if (form.get('emailId')?.errors?.['email']) {
-              <small class="text-red-500">Please enter a valid email address.</small>
-            }
-          } @else {
-            <small>Email is required.</small>
-          }
-        </div>
+      <div class="field-group">
+        <label for="email">Email address</label>
+        <input pInputText id="email" type="email" autocomplete="email" class="auth-input" formControlName="emailId" />
+        @if (
+        form.get('emailId')?.invalid &&
+        (form.get('emailId')?.dirty || form.get('emailId')?.touched)
+        ) {
+        @if (form.get('emailId')?.errors?.['required']) {
+        <small class="text-red-500">Email is required.</small>
+        } @else if (form.get('emailId')?.errors?.['email']) {
+        <small class="text-red-500">Please enter a valid email address.</small>
+        }
+        } @else {
+        <small>Email is required.</small>
+        }
+      </div>
 
-        <div class="field-group">
-          <label for="password">Password</label>
-          <p-password
-            inputId="password"
-            [toggleMask]="true"
-            [feedback]="false"
-            class="w-full"
-            formControlName="password"
-          ></p-password>
-          @if (
-            form.get('password')?.invalid &&
-            (form.get('password')?.dirty || form.get('password')?.touched)
-          ) {
-            @if (form.get('password')?.errors?.['required']) {
-              <small class="text-red-500">Password is required.</small>
-            } @else if (form.get('password')?.errors?.['minlength']) {
-              <small class="text-red-500">Password must be at least 6 characters long.</small>
-            }
-          } @else {
-            <small>Minimum 6 characters required.</small>
-          }
-        </div>
+      <div class="field-group">
+        <label for="password">Password</label>
+        <p-password inputId="password" [toggleMask]="true" [feedback]="false" class="w-full"
+          formControlName="password"></p-password>
+        @if (
+        form.get('password')?.invalid &&
+        (form.get('password')?.dirty || form.get('password')?.touched)
+        ) {
+        @if (form.get('password')?.errors?.['required']) {
+        <small class="text-red-500">Password is required.</small>
+        } @else if (form.get('password')?.errors?.['minlength']) {
+        <small class="text-red-500">Password must be at least 6 characters long.</small>
+        }
+        } @else {
+        <small>Minimum 6 characters required.</small>
+        }
+      </div>
 
-        <p-button
-          type="submit"
-          label="Create account"
-          icon="pi pi-user-plus"
-          styleClass="auth-button w-full"
-          [loading]="loading()"
-        ></p-button>
+      <p-button type="submit" label="Create account" icon="pi pi-user-plus" styleClass="auth-button w-full"
+        [loading]="loading()"></p-button>
 
-        <p class="switch-text">
-          Already have an account?
-          <a routerLink="/login">Sign in</a>
-        </p>
+      <p class="switch-text">
+        Already have an account?
+        <a routerLink="/login">Sign in</a>
+      </p>
       } @else {
-        <div class="form-heading text-center">
-          <span class="form-pill">One more step</span>
-          <h2>Verify your email</h2>
-          <p>
-            An OTP has been sent to <strong>{{ form.get('emailId')?.value }}</strong
-            >. Please enter it below.
-          </p>
-        </div>
-
-        <div class="flex justify-center">
-          <p-inputOtp formControlName="otp" [length]="6" [integerOnly]="true"></p-inputOtp>
-        </div>
-
-        <p-button
-          type="submit"
-          label="Verify & Login"
-          icon="pi pi-check"
-          styleClass="auth-button w-full"
-          [loading]="loading()"
-        ></p-button>
-
-        <p class="switch-text">
-          Didn't get an OTP?
-          <button type="button" class="text-indigo-400 hover:underline bg-transparent border-0 cursor-pointer p-0 font-semibold" (click)="sendOtp()">{{
-            resendCooldown() > 0 ? 'Resend OTP in (' + resendCooldown() + 's)' : 'Resend OTP'
-          }}</button>
+      <div class="form-heading text-center">
+        <span class="form-pill">One more step</span>
+        <h2>Verify your email</h2>
+        <p>
+          An OTP has been sent to <strong>{{ form.get('emailId')?.value }}</strong>. Please enter it below.
         </p>
+      </div>
+
+      <div class="flex justify-center">
+        <p-inputOtp formControlName="otp" [length]="6" [integerOnly]="true"></p-inputOtp>
+      </div>
+
+      <p-button type="submit" label="Verify & Login" icon="pi pi-check" styleClass="auth-button w-full"
+        [loading]="loading()"></p-button>
+
+      <p class="switch-text">
+        Didn't get an OTP?
+        <button type="button"
+          class="text-indigo-400 hover:underline bg-transparent border-0 cursor-pointer p-0 font-semibold"
+          (click)="sendOtp()">{{
+          resendCooldown() > 0 ? 'Resend OTP in (' + resendCooldown() + 's)' : 'Resend OTP'
+          }}</button>
+      </p>
       }
     </form>
   </div>

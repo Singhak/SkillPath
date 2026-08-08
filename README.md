@@ -57,3 +57,17 @@ Angular CLI does not come with an end-to-end testing framework by default. You c
 ## Additional Resources
 
 For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+
+## Public Release Hygiene Checklist
+Before deploying to production, ensure the following checks are complete:
+- [ ] `npm run build` succeeds without errors.
+- [ ] Unit tests pass via `ng test` and have adequate coverage for core flows.
+- [ ] Environment configurations (`src/app/environments/environment.ts`) point to the correct production endpoints (e.g. `https://skillpathbackend.onrender.com/api`).
+- [ ] The `baseHref` matches the expected deployment subpath if not deploying to the root domain.
+- [ ] Critical static assets (like `assets/logo.png`) load successfully in the production build.
+- [ ] No major console errors are logged when navigating the compiled application.
+
+## Deployment Notes
+- For GitHub Pages or subdirectory deployments, remember to configure the router base path (e.g., using `--base-href /repo-name/`).
+- The application relies on `localStorage` for session persistence.
+- Ensure that the frontend URL (e.g., `https://skillpath.onrender.com`) is correctly mapped if sharing links such as candidate invite URLs.

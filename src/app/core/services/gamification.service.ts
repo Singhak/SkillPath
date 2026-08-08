@@ -155,7 +155,7 @@ export class GamificationService {
           if (s.longestStreak != null && s.longestStreak > this.longestStreak()) this.longestStreak.set(s.longestStreak);
         }
 
-        this.userResourceService.fetchCreditsAndCoins().subscribe({ error: () => {} });
+        this.userResourceService.fetchCreditsAndCoins().subscribe({ error: () => { } });
         this.lastSyncedAt.set(new Date().toLocaleTimeString());
         this.isSyncing.set(false);
 
@@ -256,7 +256,7 @@ export class GamificationService {
       const userStr = localStorage.getItem('currentUser');
       const userId = userStr ? JSON.parse(userStr).id : null;
       if (userId) {
-        this.userResourceService.updateCoins(userId, newTotal).subscribe({ error: () => {} });
+        this.userResourceService.updateCoins(userId, newTotal).subscribe({ error: () => { } });
       } else {
         this.userResourceService.updateUserCredits({ coins: newTotal });
       }
@@ -339,7 +339,7 @@ export class GamificationService {
 
   private loadStateFromStorage(): void {
     try {
-      const saved = localStorage.getItem('skillpath_gamification');
+      const saved = localStorage.getItem('imonbench_gamification');
       if (saved) {
         const data = JSON.parse(saved);
         this.currentStreak.set(data.currentStreak ?? 1);
@@ -371,7 +371,7 @@ export class GamificationService {
         skillsRatedCount: this.skillsRatedCount(),
         achievements: this.achievements(),
       };
-      localStorage.setItem('skillpath_gamification', JSON.stringify(data));
+      localStorage.setItem('imonbench_gamification', JSON.stringify(data));
     } catch {
       // Ignore
     }
@@ -379,7 +379,7 @@ export class GamificationService {
 
   private loadPendingQueue(): void {
     try {
-      const saved = localStorage.getItem('skillpath_pending_sync');
+      const saved = localStorage.getItem('imonbench_pending_sync');
       if (saved) {
         this.pendingQueue = JSON.parse(saved) || [];
       } else {
@@ -394,7 +394,7 @@ export class GamificationService {
 
   private savePendingQueue(): void {
     try {
-      localStorage.setItem('skillpath_pending_sync', JSON.stringify(this.pendingQueue));
+      localStorage.setItem('imonbench_pending_sync', JSON.stringify(this.pendingQueue));
       this.pendingSyncCount.set(this.pendingQueue.length);
     } catch {
       // Ignore
@@ -403,7 +403,7 @@ export class GamificationService {
 
   private loadSyncedIds(): void {
     try {
-      const saved = localStorage.getItem('skillpath_synced_ids');
+      const saved = localStorage.getItem('imonbench_synced_ids');
       if (saved) {
         const arr = JSON.parse(saved);
         this.syncedActivityIds = new Set(arr);
@@ -417,7 +417,7 @@ export class GamificationService {
     try {
       // Limit saved synced IDs to last 500 to keep localStorage clean
       const arr = Array.from(this.syncedActivityIds).slice(-500);
-      localStorage.setItem('skillpath_synced_ids', JSON.stringify(arr));
+      localStorage.setItem('imonbench_synced_ids', JSON.stringify(arr));
     } catch {
       // Ignore
     }

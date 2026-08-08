@@ -103,9 +103,9 @@ export class InterviewerCopilotService {
         if (matrix && matrix.questions && Array.isArray(matrix.questions)) {
           this.activeMatrix.set(matrix);
           if (typeof window !== 'undefined' && window.localStorage && matrix.id) {
-            localStorage.setItem(`skillpath_active_matrix_${matrix.id}`, JSON.stringify(matrix));
-            localStorage.setItem('skillpath_active_matrix', JSON.stringify(matrix));
-            localStorage.setItem('skillpath_last_session_id', matrix.id);
+            localStorage.setItem(`imonbench_active_matrix_${matrix.id}`, JSON.stringify(matrix));
+            localStorage.setItem('imonbench_active_matrix', JSON.stringify(matrix));
+            localStorage.setItem('imonbench_last_session_id', matrix.id);
           }
           return;
         }
@@ -116,13 +116,13 @@ export class InterviewerCopilotService {
 
     if (typeof window !== 'undefined' && window.localStorage) {
       try {
-        const sId = targetSessionId || localStorage.getItem('skillpath_last_session_id');
-        const matrixKey = sId ? `skillpath_active_matrix_${sId}` : 'skillpath_active_matrix';
-        const idxKey = sId ? `skillpath_current_question_index_${sId}` : 'skillpath_current_question_index';
+        const sId = targetSessionId || localStorage.getItem('imonbench_last_session_id');
+        const matrixKey = sId ? `imonbench_active_matrix_${sId}` : 'imonbench_active_matrix';
+        const idxKey = sId ? `imonbench_current_question_index_${sId}` : 'imonbench_current_question_index';
 
-        const savedMatrix = localStorage.getItem(matrixKey) || localStorage.getItem('skillpath_active_matrix');
-        const savedIdx = localStorage.getItem(idxKey) || localStorage.getItem('skillpath_current_question_index');
-        const savedReport = localStorage.getItem('skillpath_latest_assessment_report');
+        const savedMatrix = localStorage.getItem(matrixKey) || localStorage.getItem('imonbench_active_matrix');
+        const savedIdx = localStorage.getItem(idxKey) || localStorage.getItem('imonbench_current_question_index');
+        const savedReport = localStorage.getItem('imonbench_latest_assessment_report');
 
         if (savedMatrix) {
           const matrix: InterviewSessionMatrix = JSON.parse(savedMatrix);
@@ -164,15 +164,15 @@ export class InterviewerCopilotService {
 
     if (typeof window !== 'undefined' && window.localStorage) {
       if (matrix) {
-        localStorage.setItem('skillpath_active_matrix', JSON.stringify(matrix));
+        localStorage.setItem('imonbench_active_matrix', JSON.stringify(matrix));
         if (sessionId) {
-          localStorage.setItem(`skillpath_active_matrix_${sessionId}`, JSON.stringify(matrix));
-          localStorage.setItem('skillpath_last_session_id', sessionId);
+          localStorage.setItem(`imonbench_active_matrix_${sessionId}`, JSON.stringify(matrix));
+          localStorage.setItem('imonbench_last_session_id', sessionId);
         }
       }
-      localStorage.setItem('skillpath_current_question_index', String(index));
+      localStorage.setItem('imonbench_current_question_index', String(index));
       if (sessionId) {
-        localStorage.setItem(`skillpath_current_question_index_${sessionId}`, String(index));
+        localStorage.setItem(`imonbench_current_question_index_${sessionId}`, String(index));
       }
     }
 
@@ -231,7 +231,7 @@ export class InterviewerCopilotService {
       error: () => {
         // Fallback to local storage if offline
         if (typeof window !== 'undefined' && window.localStorage) {
-          const saved = localStorage.getItem('skillpath_team_templates');
+          const saved = localStorage.getItem('imonbench_team_templates');
           if (saved) {
             try {
               const customTemplates = JSON.parse(saved);
@@ -249,7 +249,7 @@ export class InterviewerCopilotService {
     this.teamTemplates.update((current) => [template, ...current]);
     if (typeof window !== 'undefined' && window.localStorage) {
       const customOnly = this.teamTemplates().filter((t) => t.id.startsWith('custom-'));
-      localStorage.setItem('skillpath_team_templates', JSON.stringify(customOnly));
+      localStorage.setItem('imonbench_team_templates', JSON.stringify(customOnly));
     }
     // Async save to backend team template library
     this.http.post(`${environment.apiUrl}/interviews/templates`, template).pipe(
@@ -556,7 +556,7 @@ export class InterviewerCopilotService {
     this.activeReport.set(report);
 
     if (typeof window !== 'undefined' && window.localStorage) {
-      localStorage.setItem('skillpath_latest_assessment_report', JSON.stringify(report));
+      localStorage.setItem('imonbench_latest_assessment_report', JSON.stringify(report));
     }
 
     // Save report asynchronously to backend API

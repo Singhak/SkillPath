@@ -523,15 +523,15 @@ export class CandidateViewComponent implements OnInit, OnDestroy {
     if (typeof window !== 'undefined') {
       this.storageEventListener = (event: StorageEvent) => {
         const sId = this.sessionId || this.activeMatrix()?.id;
-        const indexKey = sId ? `skillpath_current_question_index_${sId}` : 'skillpath_current_question_index';
-        const matrixKey = sId ? `skillpath_active_matrix_${sId}` : 'skillpath_active_matrix';
+        const indexKey = sId ? `imonbench_current_question_index_${sId}` : 'imonbench_current_question_index';
+        const matrixKey = sId ? `imonbench_active_matrix_${sId}` : 'imonbench_active_matrix';
 
-        if ((event.key === indexKey || event.key === 'skillpath_current_question_index') && event.newValue !== null) {
+        if ((event.key === indexKey || event.key === 'imonbench_current_question_index') && event.newValue !== null) {
           const idx = parseInt(event.newValue, 10);
           if (!isNaN(idx)) {
             this.copilotService.currentQuestionIndex.set(idx);
           }
-        } else if ((event.key === matrixKey || event.key === 'skillpath_active_matrix') && event.newValue) {
+        } else if ((event.key === matrixKey || event.key === 'imonbench_active_matrix') && event.newValue) {
           try {
             const matrix = JSON.parse(event.newValue);
             this.copilotService.activeMatrix.set(matrix);

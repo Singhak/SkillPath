@@ -78,8 +78,8 @@ export class GamificationPanelComponent {
     }
     const user = this.authService.currentUser();
     const reportData = this.interviewReportService.createReportData({
-      userName: user?.name || 'SkillPath Learner',
-      userEmail: user?.email || 'learner@skillpath.app',
+      userName: user?.name || 'IMONBENCH Learner',
+      userEmail: user?.email || 'info@imonbench.in',
       roleOrSkill: user?.targetRole || 'Full Stack Engineer',
       overallScore: 88,
     });

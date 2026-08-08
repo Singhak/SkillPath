@@ -468,8 +468,8 @@ export class HelpComponent {
   readonly faqs: FaqItem[] = [
     {
       id: 1,
-      question: 'How does SkillPath AI score my interview answers?',
-      answer: 'SkillPath AI evaluates your answers across 4 primary vectors: Technical Accuracy, Completeness, Communication Structure (STAR method: Situation, Task, Action, Result), and Problem Solving. It compares your response with industry-standard benchmarks and provides a score from 0-100 alongside concrete improvement suggestions.',
+      question: 'How does IMONBENCH AI score my interview answers?',
+      answer: 'IMONBENCH AI evaluates your answers across 4 primary vectors: Technical Accuracy, Completeness, Communication Structure (STAR method: Situation, Task, Action, Result), and Problem Solving. It compares your response with industry-standard benchmarks and provides a score from 0-100 alongside concrete improvement suggestions.',
       category: 'scoring',
     },
     {
@@ -487,7 +487,7 @@ export class HelpComponent {
     {
       id: 4,
       question: 'What is the STAR method and why is it important?',
-      answer: 'STAR stands for Situation, Task, Action, and Result. It is the universally recommended structure for answering behavioral and technical scenario questions. SkillPath AI automatically breaks down your response into these 4 pillars to show you where you excelled or missed context.',
+      answer: 'STAR stands for Situation, Task, Action, and Result. It is the universally recommended structure for answering behavioral and technical scenario questions. IMONBENCH AI automatically breaks down your response into these 4 pillars to show you where you excelled or missed context.',
       category: 'general',
     },
     {
