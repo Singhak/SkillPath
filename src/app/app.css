@@ -83,7 +83,9 @@
   overflow: hidden;
 }
 
-.brand-icon-wrapper {
+.sidebar.collapsed .brand-icon-wrapper {
+  opacity: 1;
+  pointer-events: auto;
   width: 42px;
   height: 42px;
   border-radius: 12px;
@@ -93,6 +95,14 @@
   border: 1px solid var(--primary-accent-ring, rgba(129, 140, 248, 0.3));
   box-shadow: 0 0 16px var(--primary-accent-light);
   flex-shrink: 0;
+}
+
+.brand-icon-wrapper {
+  opacity: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease, width 0.25s ease, height 0.25s ease;
 }
 
 .brand-logo {
@@ -248,7 +258,9 @@
 .active-indicator {
   display: none;
   position: absolute;
-  left: 0; top: 15%; bottom: 15%;
+  left: 0;
+  top: 15%;
+  bottom: 15%;
   width: 3px;
   border-radius: 0 4px 4px 0;
   background: var(--primary-accent, #818cf8);
@@ -305,8 +317,10 @@
 
 .online-status {
   position: absolute;
-  bottom: -2px; right: -2px;
-  width: 10px; height: 10px;
+  bottom: -2px;
+  right: -2px;
+  width: 10px;
+  height: 10px;
   border-radius: 50%;
   background: #10b981;
   border: 2px solid #0f172a;
@@ -349,9 +363,11 @@
 
 .logout-btn {
   border: 0;
-  width: 32px; height: 32px;
+  width: 32px;
+  height: 32px;
   border-radius: 8px;
-  display: grid; place-items: center;
+  display: grid;
+  place-items: center;
   cursor: pointer;
   background: rgba(255, 255, 255, 0.06);
   color: #94a3b8;
@@ -362,22 +378,64 @@
   color: #ef4444;
 }
 
-.mobile-backdrop, .mobile-toolbar, .mobile-toggle {
+.mobile-backdrop,
+.mobile-toolbar,
+.mobile-toggle {
   display: none;
 }
 
 @media (max-width: 1023px) {
-  .app-shell { position: relative; }
-  .sidebar { position: fixed; left: 0; top: 0; transform: translateX(-100%); }
-  .sidebar.mobile-open { transform: translateX(0); }
-  .mobile-toolbar { display: flex; align-items: center; padding: 1rem 1rem 0; }
-  .mobile-toggle { display: grid; border: 0; width: 40px; height: 40px; border-radius: 10px; place-items: center; cursor: pointer; background: rgba(15, 23, 42, 0.8); color: white; }
-  .mobile-backdrop { display: block; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.45); z-index: 15; }
+  .app-shell {
+    position: relative;
+  }
+
+  .sidebar {
+    position: fixed;
+    left: 0;
+    top: 0;
+    transform: translateX(-100%);
+  }
+
+  .sidebar.mobile-open {
+    transform: translateX(0);
+  }
+
+  .mobile-toolbar {
+    display: flex;
+    align-items: center;
+    padding: 1rem 1rem 0;
+  }
+
+  .mobile-toggle {
+    display: grid;
+    border: 0;
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    place-items: center;
+    cursor: pointer;
+    background: rgba(15, 23, 42, 0.8);
+    color: white;
+  }
+
+  .mobile-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.45);
+    z-index: 15;
+  }
 }
 
 @media (min-width: 1024px) {
-  .sidebar { position: sticky; transform: none; }
-  .mobile-toggle { display: none; }
+  .sidebar {
+    position: sticky;
+    transform: none;
+  }
+
+  .mobile-toggle {
+    display: none;
+  }
 }
 
 .online-status.offline {
