@@ -2,7 +2,10 @@
   <div
     [class]="isDark ? 'bg-black/75' : 'bg-slate-900/40'"
     class="fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-md animate-fadeIn"
-    role="dialog" aria-modal="true" aria-labelledby="billingModalTitle">
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="billingModalTitle"
+  >
     <div
       [class]="
         isDark
@@ -25,7 +28,8 @@
             "
             class="p-2.5 rounded-xl border"
           >
-            <svg aria-hidden="true"
+            <svg
+              aria-hidden="true"
               xmlns="http://www.w3.org/2000/svg"
               class="w-6 h-6"
               fill="none"
@@ -42,7 +46,8 @@
           </div>
           <div>
             <h2
-              id="billingModalTitle" [class]="isDark ? 'text-white' : 'text-slate-900'"
+              id="billingModalTitle"
+              [class]="isDark ? 'text-white' : 'text-slate-900'"
               class="text-xl font-bold tracking-tight"
             >
               Billing & Credit Activity
@@ -54,36 +59,38 @@
         </div>
 
         <div class="flex items-center gap-2">
-          <button
-            type="button"
-            (click)="showRestorePanel = !showRestorePanel"
-            [class]="
-              showRestorePanel
-                ? 'bg-amber-500 text-white shadow-lg shadow-amber-500/20'
-                : isDark
-                  ? 'bg-slate-800 text-amber-400 hover:bg-slate-700 border-slate-700'
-                  : 'bg-amber-50 text-amber-700 hover:bg-amber-100 border-amber-200'
-            "
-            class="px-3.5 py-2 rounded-xl text-xs font-bold border transition-all flex items-center gap-1.5 cursor-pointer"
-          >
-            <svg
-              aria-hidden="true"
-              xmlns="http://www.w3.org/2000/svg"
-              class="w-4 h-4"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
+          @if (false) {
+            <!--//Payment gateway not integrated so disabled-->
+            <button
+              type="button"
+              (click)="showRestorePanel = !showRestorePanel"
+              [class]="
+                showRestorePanel
+                  ? 'bg-amber-500 text-white shadow-lg shadow-amber-500/20'
+                  : isDark
+                    ? 'bg-slate-800 text-amber-400 hover:bg-slate-700 border-slate-700'
+                    : 'bg-amber-50 text-amber-700 hover:bg-amber-100 border-amber-200'
+              "
+              class="px-3.5 py-2 rounded-xl text-xs font-bold border transition-all flex items-center gap-1.5 cursor-pointer"
             >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-              />
-            </svg>
-            <span>Restore Purchase</span>
-          </button>
-
+              <svg
+                aria-hidden="true"
+                xmlns="http://www.w3.org/2000/svg"
+                class="w-4 h-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                />
+              </svg>
+              <span>Restore Purchase</span>
+            </button>
+          }
           <button
             type="button"
             (click)="closeModal()"
@@ -124,23 +131,24 @@
           "
           class="px-6 py-4 border-b space-y-3 transition-all animate-fadeIn"
         >
-          <div class="flex items-start justify-between">
-            <div>
-              <div class="flex items-center gap-2 font-bold text-sm">
-                <span
-                  class="px-2 py-0.5 rounded text-[10px] uppercase font-extrabold bg-amber-500 text-black"
-                  >Technical Glitch Recovery</span
-                >
-                <span>Restore Missing Purchase</span>
+          @if (false) {
+            <div class="flex items-start justify-between">
+              <div>
+                <div class="flex items-center gap-2 font-bold text-sm">
+                  <span
+                    class="px-2 py-0.5 rounded text-[10px] uppercase font-extrabold bg-amber-500 text-black"
+                    >Technical Glitch Recovery</span
+                  >
+                  <span>Restore Missing Purchase</span>
+                </div>
+                <p class="text-xs opacity-90 mt-1">
+                  If money was deducted or a transaction got stuck during payment, click
+                  <strong>Auto-Scan</strong> or enter your
+                  <strong>Order ID / Payment ID</strong> below.
+                </p>
               </div>
-              <p class="text-xs opacity-90 mt-1">
-                If money was deducted or a transaction got stuck during payment, click
-                <strong>Auto-Scan</strong> or enter your
-                <strong>Order ID / Payment ID</strong> below.
-              </p>
             </div>
-          </div>
-
+          }
           <div class="flex flex-wrap items-center gap-3">
             <button
               type="button"
@@ -150,7 +158,9 @@
             >
               @if (isRestoring) {
                 <div
-                  class="w-3.5 h-3.5 border-2 border-black border-t-transparent rounded-full animate-spin" aria-hidden="true"></div>
+                  class="w-3.5 h-3.5 border-2 border-black border-t-transparent rounded-full animate-spin"
+                  aria-hidden="true"
+                ></div>
                 <span>Scanning Payment Gateways...</span>
               } @else {
                 <svg
@@ -318,7 +328,11 @@
         <div role="tablist" class="flex items-center gap-4">
           <button
             type="button"
-            id="credit-ledger-tab" role="tab" [attr.aria-selected]="activeTab === 'credits'" aria-controls="credit-ledger-panel" (click)="switchTab('credits')"
+            id="credit-ledger-tab"
+            role="tab"
+            [attr.aria-selected]="activeTab === 'credits'"
+            aria-controls="credit-ledger-panel"
+            (click)="switchTab('credits')"
             [class]="
               activeTab === 'credits'
                 ? isDark
@@ -355,7 +369,11 @@
 
           <button
             type="button"
-            id="purchase-history-tab" role="tab" [attr.aria-selected]="activeTab === 'purchases'" aria-controls="purchase-history-panel" (click)="switchTab('purchases')"
+            id="purchase-history-tab"
+            role="tab"
+            [attr.aria-selected]="activeTab === 'purchases'"
+            aria-controls="purchase-history-panel"
+            (click)="switchTab('purchases')"
             [class]="
               activeTab === 'purchases'
                 ? isDark
@@ -424,7 +442,8 @@
             class="py-16 text-center space-y-3"
           >
             <div
-              class="inline-block w-8 h-8 border-3 border-cyan-500 border-t-transparent rounded-full animate-spin" aria-hidden="true"
+              class="inline-block w-8 h-8 border-3 border-cyan-500 border-t-transparent rounded-full animate-spin"
+              aria-hidden="true"
             ></div>
             <p class="text-sm font-medium">Loading activity logs...</p>
           </div>
@@ -467,7 +486,10 @@
                 </p>
               </div>
             } @else {
-              <div id="credit-ledger-panel" role="tabpanel" [attr.aria-labelledby]="'credit-ledger-tab'"
+              <div
+                id="credit-ledger-panel"
+                role="tabpanel"
+                [attr.aria-labelledby]="'credit-ledger-tab'"
                 [class]="
                   isDark
                     ? 'border-slate-800 bg-slate-950/40'
@@ -516,11 +538,20 @@
                         >
                           <div class="flex items-center gap-2">
                             @if (item.type === 'DEDUCTION') {
-                              <span class="w-2 h-2 rounded-full bg-amber-400" aria-hidden="true"></span>
+                              <span
+                                class="w-2 h-2 rounded-full bg-amber-400"
+                                aria-hidden="true"
+                              ></span>
                             } @else if (item.type === 'PURCHASE') {
-                              <span class="w-2 h-2 rounded-full bg-emerald-400" aria-hidden="true"></span>
+                              <span
+                                class="w-2 h-2 rounded-full bg-emerald-400"
+                                aria-hidden="true"
+                              ></span>
                             } @else {
-                              <span class="w-2 h-2 rounded-full bg-cyan-400" aria-hidden="true"></span>
+                              <span
+                                class="w-2 h-2 rounded-full bg-cyan-400"
+                                aria-hidden="true"
+                              ></span>
                             }
                             <span>{{ item.feature }}</span>
                           </div>
@@ -599,7 +630,19 @@
                     class="px-4 py-3 border-t flex items-center justify-between text-xs transition-colors"
                   >
                     <span>
-                      Showing <strong [class]="isDark ? 'text-slate-200' : 'text-slate-800'">{{ creditStartIndex }}</strong> to <strong [class]="isDark ? 'text-slate-200' : 'text-slate-800'">{{ creditEndIndex }}</strong> of <strong [class]="isDark ? 'text-slate-200' : 'text-slate-800'">{{ totalCreditCount }}</strong> records
+                      Showing
+                      <strong [class]="isDark ? 'text-slate-200' : 'text-slate-800'">{{
+                        creditStartIndex
+                      }}</strong>
+                      to
+                      <strong [class]="isDark ? 'text-slate-200' : 'text-slate-800'">{{
+                        creditEndIndex
+                      }}</strong>
+                      of
+                      <strong [class]="isDark ? 'text-slate-200' : 'text-slate-800'">{{
+                        totalCreditCount
+                      }}</strong>
+                      records
                     </span>
 
                     <div class="flex items-center gap-2">
@@ -616,8 +659,20 @@
                         title="Previous page"
                         aria-label="Previous credit ledger page"
                       >
-                        <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                        <svg
+                          aria-hidden="true"
+                          xmlns="http://www.w3.org/2000/svg"
+                          class="w-4 h-4"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M15 19l-7-7 7-7"
+                          />
                         </svg>
                       </button>
 
@@ -638,8 +693,20 @@
                         title="Next page"
                         aria-label="Next credit ledger page"
                       >
-                        <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                        <svg
+                          aria-hidden="true"
+                          xmlns="http://www.w3.org/2000/svg"
+                          class="w-4 h-4"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M9 5l7 7-7 7"
+                          />
                         </svg>
                       </button>
                     </div>
@@ -687,7 +754,10 @@
                 </p>
               </div>
             } @else {
-              <div id="purchase-history-panel" role="tabpanel" [attr.aria-labelledby]="'purchase-history-tab'"
+              <div
+                id="purchase-history-panel"
+                role="tabpanel"
+                [attr.aria-labelledby]="'purchase-history-tab'"
                 [class]="
                   isDark
                     ? 'border-slate-800 bg-slate-950/40'
@@ -789,7 +859,19 @@
                     class="px-4 py-3 border-t flex items-center justify-between text-xs transition-colors"
                   >
                     <span>
-                      Showing <strong [class]="isDark ? 'text-slate-200' : 'text-slate-800'">{{ purchaseStartIndex }}</strong> to <strong [class]="isDark ? 'text-slate-200' : 'text-slate-800'">{{ purchaseEndIndex }}</strong> of <strong [class]="isDark ? 'text-slate-200' : 'text-slate-800'">{{ totalPurchaseCount }}</strong> records
+                      Showing
+                      <strong [class]="isDark ? 'text-slate-200' : 'text-slate-800'">{{
+                        purchaseStartIndex
+                      }}</strong>
+                      to
+                      <strong [class]="isDark ? 'text-slate-200' : 'text-slate-800'">{{
+                        purchaseEndIndex
+                      }}</strong>
+                      of
+                      <strong [class]="isDark ? 'text-slate-200' : 'text-slate-800'">{{
+                        totalPurchaseCount
+                      }}</strong>
+                      records
                     </span>
 
                     <div class="flex items-center gap-2">
@@ -806,8 +888,20 @@
                         title="Previous page"
                         aria-label="Previous purchase history page"
                       >
-                        <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                        <svg
+                          aria-hidden="true"
+                          xmlns="http://www.w3.org/2000/svg"
+                          class="w-4 h-4"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M15 19l-7-7 7-7"
+                          />
                         </svg>
                       </button>
 
@@ -828,8 +922,20 @@
                         title="Next page"
                         aria-label="Next purchase history page"
                       >
-                        <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                        <svg
+                          aria-hidden="true"
+                          xmlns="http://www.w3.org/2000/svg"
+                          class="w-4 h-4"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M9 5l7 7-7 7"
+                          />
                         </svg>
                       </button>
                     </div>

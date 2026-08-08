@@ -51,22 +51,27 @@ export class PaymentService {
         return;
       }
     }
-
-    this.isProcessingPayment.set(true);
-
-    // 1. Create order on backend (backend selects configured provider strategy)
-    this.http.post<any>(`${this.apiUrl}/create-order`, { amount, credits, currency, plan }).pipe(
-      takeUntilDestroyed(this.destroyRef)
-    ).subscribe({
-      next: (order) => {
-        this.processCheckout(order, amount, credits, currency, plan);
-      },
-      error: (err) => {
-        this.isProcessingPayment.set(false);
-        console.error('Error creating payment order', err);
-        this.notifyError('Order Failed', err.error?.message || err.error?.error || 'Failed to initialize payment process.');
-      }
-    });
+    //TODO on production mode, enable the below code
+    /* this.isProcessingPayment.set(true);
+ 
+     // 1. Create order on backend (backend selects configured provider strategy)
+     this.http.post<any>(`${this.apiUrl}/create-order`, { amount, credits, currency, plan }).pipe(
+       takeUntilDestroyed(this.destroyRef)
+     ).subscribe({
+       next: (order) => {
+         this.processCheckout(order, amount, credits, currency, plan);
+       },
+       error: (err) => {
+         this.isProcessingPayment.set(false);
+         console.error('Error creating payment order', err);
+         this.notifyError('Order Failed', err.error?.message || err.error?.error || 'Failed to initialize payment process.');
+       }
+     });*/
+    // Payment Gateway registration is currently in progress
+    this.notifyInfo(
+      'Subscription and Credit Purchases Coming Soon',
+      ' Enjoy full platform features today with our extended 30-Day Free Trial'
+    );
   }
 
   private processCheckout(order: any, amount: number, credits: number, currency: string, plan?: string): void {

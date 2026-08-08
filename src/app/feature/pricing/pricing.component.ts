@@ -31,6 +31,16 @@ type PaidPlan = 'Copper' | 'Gold';
           Unlock the full potential of AI with our flexible pricing plans. Whether you're just starting out or scaling up, we have a plan for you.
         </p>
 
+        <!-- Payment Gateway Registration Notice Banner -->
+        <div class="max-w-2xl mx-auto mb-8 p-4 rounded-2xl bg-amber-500/15 border border-amber-500/30 backdrop-blur-md text-center shadow-lg">
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/20 text-amber-300 text-xs font-bold uppercase tracking-wider mb-2">
+            <span>⚡ Subscription and Credit Purchases Coming Soon</span>
+          </div>
+          <p class="text-gray-300 text-md mt-1">
+            Enjoy full platform features today with our extended <strong>30-Day Free Trial</strong>!
+          </p>
+        </div>
+
         <!-- Currency Switcher Toggle & History Button -->
         <div class="flex flex-wrap items-center justify-center gap-4">
           <div class="inline-flex items-center gap-2 bg-white/5 backdrop-blur-md p-1.5 rounded-full border border-white/10 shadow-inner">
@@ -148,7 +158,7 @@ type PaidPlan = 'Copper' | 'Gold';
                 <i class="pi pi-spin pi-spinner text-lg"></i>
                 <span>Processing...</span>
               } @else {
-                <span>Subscribe Now</span>
+                <span>Coming Soon</span>
               }
             </button>
           }
@@ -217,7 +227,7 @@ type PaidPlan = 'Copper' | 'Gold';
           } @else {
             @if (!hasUsedTrial && !isTrialActive) {
               <button (click)="startTrial()" class="w-full py-3 px-6 rounded-full font-bold bg-linear-to-r from-green-400 to-emerald-500 text-white hover:from-green-500 hover:to-emerald-600 transition-colors mb-4 shadow-[0_0_20px_rgba(16,185,129,0.4)] cursor-pointer">
-                Start 14-Day Free Trial
+                Start 30-Day Free Trial
               </button>
             }
 
@@ -226,7 +236,7 @@ type PaidPlan = 'Copper' | 'Gold';
                 <i class="pi pi-spin pi-spinner text-lg"></i>
                 <span>Processing...</span>
               } @else {
-                <span>Go Gold</span>
+                <span>Coming Soon</span>
               }
             </button>
           }
@@ -296,7 +306,7 @@ type PaidPlan = 'Copper' | 'Gold';
                  <i class="pi pi-spin pi-spinner"></i>
                  <span>Processing...</span>
                } @else {
-                 <span>Buy Now</span>
+                 <span>Coming Soon</span>
                }
              </button>
           </div>
@@ -315,7 +325,7 @@ type PaidPlan = 'Copper' | 'Gold';
                  <i class="pi pi-spin pi-spinner"></i>
                  <span>Processing...</span>
                } @else {
-                 <span>Buy Now</span>
+                 <span>Coming Soon</span>
                }
              </button>
           </div>
@@ -334,7 +344,7 @@ type PaidPlan = 'Copper' | 'Gold';
                  <i class="pi pi-spin pi-spinner"></i>
                  <span>Processing...</span>
                } @else {
-                 <span>Buy Now</span>
+                 <span>Coming Soon</span>
                }
              </button>
           </div>
@@ -553,7 +563,7 @@ export class PricingComponent {
       this.router.navigate(['/login']);
       return;
     }
-    
+
     if (this.hasUsedTrial) {
       alert("You have already used your free trial.");
       return;
@@ -563,13 +573,14 @@ export class PricingComponent {
       takeUntilDestroyed(this.destroyRef)
     ).subscribe({
       next: (res) => {
-        alert("14-Day Free Trial started successfully!");
+        alert("30-Day Free Trial started successfully!");
         const u = res.user;
         const plan = u?.plan || res.plan;
+        const trial30DaysFromNow = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
         this.authService.updateUserProfile({
           ...(plan ? { plan } : {}),
-          isTrialActive: u?.isTrialActive ?? res.isTrialActive,
-          trialExpiryDate: u?.trialExpiryDate || res.trialExpiryDate,
+          isTrialActive: u?.isTrialActive ?? res.isTrialActive ?? true,
+          trialExpiryDate: u?.trialExpiryDate || res.trialExpiryDate || trial30DaysFromNow,
           hasUsedTrial: true
         });
       },
