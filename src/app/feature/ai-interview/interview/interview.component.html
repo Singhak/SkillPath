@@ -48,7 +48,7 @@
         </div>
 
         <div class="field-group">
-          <label class="field-label">Interview Topic</label>
+          <label for="topic" class="field-label">Interview Topic</label>
           <div class="topic-input-wrapper">
             <i class="pi pi-search topic-icon"></i>
             <input id="topic" pInputText class="topic-input"
@@ -58,7 +58,7 @@
           </div>
         </div>
 
-        <button pButton class="start-btn flex items-center justify-center gap-2" (click)="startInterview()" [disabled]="!topic().trim() || loading()">
+        <button type="button" pButton class="start-btn flex items-center justify-center gap-2" (click)="startInterview()" [disabled]="!topic().trim() || loading()">
           @if (loading()) {
             <i class="pi pi-spin pi-spinner"></i>
             <span>Generating Questions...</span>
@@ -120,18 +120,18 @@
             <i class="pi pi-android"></i>
           </div>
           <span class="ai-label">AI Interviewer</span>
-          <p-button icon="pi pi-volume-up" rounded text severity="secondary"
+          <p-button type="button" icon="pi pi-volume-up" [rounded]="true" [text]="true" severity="secondary"
             (click)="speakQuestion(question.question)" />
         </div>
         <p class="question-text">{{ question.question }}</p>
       </div>
 
       <!-- Answer Section -->
-      <div class="answer-section">
-        <label class="field-label">Your Answer</label>
-        <textarea pInputTextarea rows="6" class="answer-textarea"
-          [value]="userAnswer()" [readonly]="!isEditingAnswer()"
-          (input)="onUserAnswerInput($any($event.target).value)"
+      <div class="answer-input-area">
+        <label for="aiAnswerTextarea" class="input-label font-semibold">Your Answer</label>
+        <textarea id="aiAnswerTextarea" pInputTextarea class="answer-textarea" rows="4" [ngModel]="userAnswer()"
+          (ngModelChange)="userAnswer.set($event)"
+          [disabled]="evaluating() || isRecording()"
           placeholder="Your spoken answer will appear here…">
         </textarea>
       </div>
@@ -140,12 +140,12 @@
       @if (voiceState$ | async; as voice) {
       <div class="voice-controls">
         @if (isRecording()) {
-        <p-button label="Stop Recording" icon="pi pi-stop-circle" severity="danger"
+        <p-button type="button" label="Stop Recording" icon="pi pi-stop-circle" severity="danger"
           (click)="stopRecording()" />
         } @else {
-        <p-button label="Start Speaking" icon="pi pi-microphone" (click)="startRecording()"
+        <p-button type="button" label="Start Speaking" icon="pi pi-microphone" (click)="startRecording()"
           [disabled]="evaluating()" />
-        <p-button label="Evaluate Answer (⚡ 0.25 Credits)" icon="pi pi-check-circle" severity="warn"
+        <p-button type="button" label="Evaluate Answer (⚡ 0.25 Credits)" icon="pi pi-check-circle" severity="warn"
           (click)="stopRecordingAndEvaluate()"
           [disabled]="evaluating() || !userAnswer().trim()" />
         }
@@ -192,7 +192,7 @@
         </div>
 
         <div class="feedback-actions">
-          <p-button label="Next Question" icon="pi pi-arrow-right" iconPos="right"
+          <p-button type="button" label="Next Question" icon="pi pi-arrow-right" iconPos="right"
             (click)="nextQuestion()" />
         </div>
       </div>
@@ -297,7 +297,7 @@
           </div>
         </div>
 
-        <p-button label="Start New Interview" icon="pi pi-refresh" size="large"
+        <p-button type="button" label="Start New Interview" icon="pi pi-refresh" size="large"
           styleClass="w-full" (click)="endInterview()" />
       </div>
     </div>

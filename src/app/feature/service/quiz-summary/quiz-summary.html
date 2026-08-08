@@ -4,9 +4,9 @@
 
         <!-- Header Banner -->
         <div class="summary-hero">
-            <div class="hero-close-btn" (click)="close.emit()">
+            <button type="button" class="hero-close-btn" (click)="close.emit()" aria-label="Close quiz summary">
                 <i class="pi pi-times"></i>
-            </div>
+            </button>
             <div class="hero-icon">
                 <i class="pi pi-trophy"></i>
             </div>
@@ -60,11 +60,11 @@
 
         <!-- Footer Actions -->
         <div class="summary-actions">
-            <button class="summary-btn summary-btn--restart" (click)="restart.emit()">
+            <button type="button" class="summary-btn summary-btn--restart" (click)="restart.emit()">
                 <i class="pi pi-refresh"></i>
                 <span>Restart Quiz</span>
             </button>
-            <button class="summary-btn summary-btn--close" (click)="close.emit()">
+            <button type="button" class="summary-btn summary-btn--close" (click)="close.emit()">
                 <i class="pi pi-home"></i>
                 <span>Back to Setup</span>
             </button>

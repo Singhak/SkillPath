@@ -45,11 +45,12 @@
       </div>
 
       <div class="form-field">
-        <label class="field-label">
+        <label class="field-label" for="questionCountSelect">
           <i class="pi pi-question-circle"></i> Number of Questions
         </label>
         <p-select
           class="field-select"
+          inputId="questionCountSelect"
           [ngModel]="questionCount()"
           (ngModelChange)="questionCount.set(+$event)"
           [options]="questionCountOptions"
@@ -60,6 +61,7 @@
 
     <!-- Start Button -->
     <button
+      type="button"
       class="start-btn"
       [class.start-btn--disabled]="!selectedCategory() || isLoading()"
       [disabled]="!selectedCategory() || isLoading()"
@@ -123,6 +125,7 @@
           <span>{{ coins() }}</span>
         </div>
         <button
+          type="button"
           class="action-btn action-btn--hint"
           (click)="onHintClick()"
           [disabled]="isSubmited() || availableHints() === 0"
@@ -131,6 +134,7 @@
           <span>Hint ({{ availableHints() }})</span>
         </button>
         <button
+          type="button"
           class="action-btn action-btn--report"
           (click)="showReportDialog()">
           <i class="pi pi-flag"></i>
@@ -165,6 +169,7 @@
       </div>
       <div class="footer-actions">
         <button
+          type="button"
           class="footer-btn footer-btn--skip"
           [disabled]="isSubmited() || isFinishing()"
           [class.footer-btn--disabled]="isSubmited() || isFinishing()"
@@ -178,6 +183,7 @@
           }
         </button>
         <button
+          type="button"
           class="footer-btn footer-btn--submit"
           [disabled]="!selectedAnswer().length || isSubmited() || isFinishing()"
           [class.footer-btn--disabled]="!selectedAnswer().length || isSubmited() || isFinishing()"
@@ -186,6 +192,7 @@
           <i class="pi pi-check"></i>
         </button>
         <button
+          type="button"
           class="footer-btn footer-btn--next"
           [disabled]="!isSubmited() || isFinishing()"
           [class.footer-btn--disabled]="!isSubmited() || isFinishing()"

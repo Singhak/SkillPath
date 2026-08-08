@@ -101,9 +101,12 @@
         <div class="mode-grid">
           @for (mode of themeModes; track mode.key) {
             <div
+              role="button"
+              tabindex="0"
               class="mode-card"
               [class.selected]="themeService.mode() === mode.key"
               (click)="selectThemeMode(mode.key)"
+              (keydown.enter)="selectThemeMode(mode.key)"
             >
               <div class="mode-header">
                 <div class="mode-icon-box">
@@ -139,9 +142,12 @@
         <div class="accent-grid">
           @for (color of accentColors; track color.key) {
             <div
+              role="button"
+              tabindex="0"
               class="accent-card"
               [class.selected]="themeService.accent() === color.key"
               (click)="selectAccent(color.key)"
+              (keydown.enter)="selectAccent(color.key)"
             >
               <div class="accent-swatch" [style.background]="color.gradient">
                 @if (themeService.accent() === color.key) {
@@ -751,7 +757,7 @@
                 name="currentPass"
                 placeholder="Enter current password"
               />
-              <button type="button" class="password-toggle-btn" (click)="toggleCurrentPassword()">
+              <button type="button" class="password-toggle-btn" (click)="toggleCurrentPassword()" aria-label="Toggle current password visibility">
                 <i [class]="showCurrentPassword() ? 'pi pi-eye-slash' : 'pi pi-eye'"></i>
               </button>
             </div>
@@ -770,7 +776,7 @@
                 name="newPass"
                 placeholder="At least 6 characters"
               />
-              <button type="button" class="password-toggle-btn" (click)="toggleNewPassword()">
+              <button type="button" class="password-toggle-btn" (click)="toggleNewPassword()" aria-label="Toggle new password visibility">
                 <i [class]="showNewPassword() ? 'pi pi-eye-slash' : 'pi pi-eye'"></i>
               </button>
             </div>
@@ -789,7 +795,7 @@
                 name="confirmPass"
                 placeholder="Re-enter new password"
               />
-              <button type="button" class="password-toggle-btn" (click)="toggleConfirmPassword()">
+              <button type="button" class="password-toggle-btn" (click)="toggleConfirmPassword()" aria-label="Toggle confirm password visibility">
                 <i [class]="showConfirmPassword() ? 'pi pi-eye-slash' : 'pi pi-eye'"></i>
               </button>
             </div>

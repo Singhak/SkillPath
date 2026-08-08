@@ -10,6 +10,7 @@
       <div class="flex items-center space-x-2">
         <span class="text-base">⚡</span>
         <span class="font-medium">{{ statusMsg }}</span>
+        <!-- Emojis here are part of the text, not purely decorative -->
       </div>
       @if (gamificationService.lastSyncedAt()) {
         <span class="text-[10px] text-indigo-300/80">
@@ -60,6 +61,7 @@
     >
       <div
         class="flex items-center justify-center w-12 h-12 rounded-xl bg-linear-to-tr from-amber-500 to-orange-600 text-white text-2xl shadow-lg shadow-orange-500/30 animate-pulse"
+        aria-hidden="true"
       >
         🔥
       </div>
@@ -84,6 +86,7 @@
       >
         <span
           class="w-2.5 h-2.5 rounded-full inline-block"
+          aria-hidden="true"
           [ngClass]="
             isOnline()
               ? 'bg-emerald-400 shadow-sm shadow-emerald-400/50'
@@ -107,6 +110,7 @@
 
       <!-- Sync Progress Button -->
       <button
+        type="button"
         (click)="gamificationService.syncProgressWithBackend(true)"
         [disabled]="gamificationService.isSyncing()"
         class="px-3.5 py-2 rounded-xl bg-emerald-600/30 hover:bg-emerald-600/50 border border-emerald-400/40 text-emerald-200 hover:text-white font-medium text-xs flex items-center space-x-2 transition-all shadow-md active:scale-95 disabled:opacity-50"
@@ -118,6 +122,7 @@
 
       <!-- Report PDF -->
       <button
+        type="button"
         (click)="generateAndDownloadReport()"
         class="px-3.5 py-2 rounded-xl bg-indigo-600/30 hover:bg-indigo-600/50 border border-indigo-400/30 text-indigo-200 hover:text-white font-medium text-xs flex items-center space-x-2 transition-all shadow-md active:scale-95 relative"
       >
@@ -156,6 +161,7 @@
     >
       @for (cat of categories; track $index) {
         <button
+          type="button"
           (click)="filterCategory.set(cat.id)"
           [class.bg-indigo-600]="filterCategory() === cat.id"
           [class.text-white]="filterCategory() === cat.id"
@@ -263,6 +269,7 @@
       </div>
 
       <button
+        type="button"
         (click)="gamificationService.dismissNewlyUnlockedBadge()"
         class="w-full py-3 rounded-xl bg-linear-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold text-sm shadow-lg shadow-indigo-500/30 transition-all active:scale-95"
       >
@@ -291,19 +298,24 @@
       </p>
 
       <div class="mb-6 flex flex-col items-center">
-        <label class="text-xs font-semibold text-slate-400 mb-2 uppercase tracking-wide"
+        <label
+          for="number_of_credit"
+          class="text-xs font-semibold text-slate-400 mb-2 uppercase tracking-wide"
           >Number of Credits</label
         >
         <div
           class="flex items-center space-x-3 bg-slate-800/50 p-2 rounded-xl border border-slate-700/50"
         >
           <button
+            type="button"
             (click)="creditsToBuy.set(creditsToBuy() > 1 ? creditsToBuy() - 1 : 1)"
+            aria-label="Decrease credits to buy"
             class="w-8 h-8 rounded-lg bg-slate-700 hover:bg-slate-600 text-white flex justify-center items-center"
           >
             <i class="pi pi-minus text-xs"></i>
           </button>
           <input
+            id="number_of_credit"
             type="number"
             [ngModel]="creditsToBuy()"
             (ngModelChange)="onCreditsChange($event)"
@@ -311,7 +323,9 @@
             min="1"
           />
           <button
+            type="button"
             (click)="creditsToBuy.set(creditsToBuy() + 1)"
+            aria-label="Increase credits to buy"
             class="w-8 h-8 rounded-lg bg-slate-700 hover:bg-slate-600 text-white flex justify-center items-center"
           >
             <i class="pi pi-plus text-xs"></i>
@@ -327,12 +341,14 @@
 
       <div class="flex space-x-3">
         <button
+          type="button"
           (click)="showBuyCreditsModal.set(false)"
           class="flex-1 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white font-bold text-sm transition-all"
         >
           Cancel
         </button>
         <button
+          type="button"
           (click)="confirmBuyAiCredits()"
           class="flex-1 py-2.5 rounded-xl bg-linear-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 text-white font-bold text-sm shadow-lg shadow-amber-500/30 transition-all active:scale-95"
         >

@@ -82,8 +82,9 @@
             </div>
 
             <div class="tech-weight">
-              <label>Weight %</label>
+              <label [attr.for]="'weight_' + i">Weight %</label>
               <input
+                [id]="'weight_' + i"
                 type="number"
                 [(ngModel)]="tech.weightPercentage"
                 [name]="'weight_' + i"
@@ -95,8 +96,9 @@
             </div>
 
             <div class="tech-count">
-              <label>Questions</label>
+              <label [attr.for]="'count_' + i">Questions</label>
               <input
+                [id]="'count_' + i"
                 type="number"
                 [(ngModel)]="tech.questionCount"
                 [name]="'count_' + i"
@@ -112,6 +114,7 @@
               (click)="removeTechnology(i)"
               [disabled]="technologies.length <= 1"
               title="Remove Technology"
+              aria-label="Remove Technology"
             >
               ✕
             </button>
@@ -121,7 +124,9 @@
 
       <!-- Add Custom Tech -->
       <div class="add-tech-row">
+        <label for="newTechInput" class="sr-only">Add Custom Technology</label>
         <input
+          id="newTechInput"
           type="text"
           [(ngModel)]="newTechName"
           name="newTechName"
@@ -140,9 +145,10 @@
 
       <div class="difficulty-grid">
         <div class="diff-card easy">
-          <span class="diff-label">Easy (Fundamentals)</span>
+          <label for="easyPctInput" class="diff-label">Easy (Fundamentals)</label>
           <span class="diff-val">{{ difficultyDistribution.easyPercentage }}%</span>
           <input
+            id="easyPctInput"
             type="range"
             min="0"
             max="100"
@@ -151,9 +157,10 @@
           />
         </div>
         <div class="diff-card medium">
-          <span class="diff-label">Medium (Scenarios)</span>
+          <label for="medPctInput" class="diff-label">Medium (Scenarios)</label>
           <span class="diff-val">{{ difficultyDistribution.mediumPercentage }}%</span>
           <input
+            id="medPctInput"
             type="range"
             min="0"
             max="100"
@@ -162,9 +169,10 @@
           />
         </div>
         <div class="diff-card hard">
-          <span class="diff-label">Hard (Deep Dive / Arch)</span>
+          <label for="hardPctInput" class="diff-label">Hard (Deep Dive / Arch)</label>
           <span class="diff-val">{{ difficultyDistribution.hardPercentage }}%</span>
           <input
+            id="hardPctInput"
             type="range"
             min="0"
             max="100"
@@ -197,8 +205,11 @@
     <div class="template-list">
       @for (template of teamTemplates(); track template.title) {
         <div
+          role="button"
+          tabindex="0"
           class="template-item"
           (click)="selectTemplate(template)"
+          (keydown.enter)="selectTemplate(template)"
         >
           <div class="template-top">
             <h4>{{ template.title }}</h4>

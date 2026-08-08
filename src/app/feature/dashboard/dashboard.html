@@ -207,11 +207,12 @@
           </h3>
         </div>
         <div class="table-search-box">
+          <label for="tableSearchInput" class="sr-only">Search category or date</label>
           <i class="pi pi-search search-icon"></i>
-          <input type="text" placeholder="Search category or date..." [ngModel]="tableSearchQuery()"
+          <input id="tableSearchInput" type="text" placeholder="Search category or date..." [ngModel]="tableSearchQuery()"
             (ngModelChange)="tableSearchQuery.set($event)" class="search-input" />
           @if (tableSearchQuery()) {
-          <button class="clear-search" (click)="tableSearchQuery.set('')">
+          <button type="button" class="clear-search" (click)="tableSearchQuery.set('')" aria-label="Clear search">
             <i class="pi pi-times"></i>
           </button>
           }
@@ -224,14 +225,14 @@
           (onPage)="onTablePage($event)" class="p-datatable-sm custom-table">
           <ng-template pTemplate="header">
             <tr>
-              <th>Category</th>
-              <th>Date</th>
-              <th>Total Qs</th>
-              <th>Correct</th>
-              <th>Wrong</th>
-              <th>Skipped</th>
-              <th>Time Taken</th>
-              <th>Score</th>
+              <th scope="col">Category</th>
+              <th scope="col">Date</th>
+              <th scope="col">Total Qs</th>
+              <th scope="col">Correct</th>
+              <th scope="col">Wrong</th>
+              <th scope="col">Skipped</th>
+              <th scope="col">Time Taken</th>
+              <th scope="col">Score</th>
             </tr>
           </ng-template>
 
@@ -271,7 +272,7 @@
                   <i class="pi pi-inbox empty-icon"></i>
                   <p>No quiz attempts found matching your query.</p>
                   @if (!quizAttempts().length) {
-                  <button class="action-btn primary-btn btn-sm" (click)="onNewQuiz()">Start First Quiz</button>
+                  <button type="button" class="action-btn primary-btn btn-sm" (click)="onNewQuiz()">Start First Quiz</button>
                   }
                   }
                 </div>

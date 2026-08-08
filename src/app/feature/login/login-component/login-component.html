@@ -19,8 +19,9 @@
       </div>
 
       <div class="flex flex-col gap-2 my-4">
-        <label>Login Method</label>
+        <label for="loginMethodSelect">Login Method</label>
         <p-selectButton
+          inputId="loginMethodSelect"
           [options]="loginMethods"
           [(ngModel)]="selectedLoginMethod"
           (ngModelChange)="onLoginMethodChange()"

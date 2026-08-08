@@ -195,9 +195,12 @@
           <div class="rubric-list">
             @for (item of q.rubricItems; track item.id) {
               <div
+                role="button"
+                tabindex="0"
                 class="rubric-item"
                 [class.checked]="item.checked"
                 (click)="toggleRubric(item.id)"
+                (keydown.enter)="toggleRubric(item.id)"
               >
                 <div class="checkbox-custom">
                   @if (item.checked) {
@@ -243,8 +246,9 @@
             }
 
             <div class="notes-field">
-              <label>Interviewer Observation Notes</label>
+              <label for="interviewerNotes">Interviewer Observation Notes</label>
               <textarea
+                id="interviewerNotes"
                 [(ngModel)]="manualNotes"
                 (change)="onNotesChange()"
                 placeholder="e.g. Candidate explained call stack & nextTick accurately, but needed slight hint on stream backpressure..."

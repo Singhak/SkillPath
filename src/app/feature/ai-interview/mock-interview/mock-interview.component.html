@@ -45,10 +45,10 @@
 
           <!-- Topic -->
           <div class="field-group">
-            <label class="field-label">Interview Topic</label>
+            <label for="mockTopicInput" class="field-label">Interview Topic</label>
             <div class="topic-input-wrap">
               <i class="pi pi-search topic-icon"></i>
-              <input pInputText class="topic-input"
+              <input id="mockTopicInput" pInputText class="topic-input"
                 placeholder="e.g. Angular, React, Product Design..."
                 [ngModel]="topic()" (ngModelChange)="topic.set($event)" />
             </div>
@@ -58,22 +58,22 @@
           @if (source() === 'ai') {
           <div class="ai-settings-grid">
             <div class="field-group">
-              <label class="field-label">Experience Level</label>
-              <p-autoComplete [(ngModel)]="experienceLevel" [suggestions]="filteredExperienceLevels"
+              <label for="expLevelInput" class="field-label">Experience Level</label>
+              <p-autoComplete inputId="expLevelInput" [(ngModel)]="experienceLevel" [suggestions]="filteredExperienceLevels"
                 (completeMethod)="search($event, experienceLevels, 'experienceLevel')"
                 [dropdown]="true" placeholder="e.g. Senior" class="w-full" appendTo="body">
               </p-autoComplete>
             </div>
             <div class="field-group">
-              <label class="field-label">Your Role</label>
-              <p-autoComplete [(ngModel)]="userRole" [suggestions]="filteredUserRoles"
+              <label for="userRoleInput" class="field-label">Your Role</label>
+              <p-autoComplete inputId="userRoleInput" [(ngModel)]="userRole" [suggestions]="filteredUserRoles"
                 (completeMethod)="search($event, userRoles, 'userRole')"
                 [dropdown]="true" placeholder="e.g. Frontend Dev" class="w-full" appendTo="body">
               </p-autoComplete>
             </div>
             <div class="field-group">
-              <label class="field-label">No. of Questions</label>
-              <p-select class="w-full" [ngModel]="questionCount()"
+              <label for="mockQuestionCountInput" class="field-label">No. of Questions</label>
+              <p-select inputId="mockQuestionCountInput" class="w-full" [ngModel]="questionCount()"
                 (ngModelChange)="questionCount.set(+$event)"
                 [options]="questionCountOptions" appendTo="body">
               </p-select>
@@ -84,8 +84,8 @@
           <!-- Upload Questions -->
           @if (source() === 'upload') {
           <div class="field-group">
-            <label class="field-label">Paste or Upload Your Questions</label>
-            <textarea pInputTextarea rows="8" class="upload-textarea"
+            <label for="uploadedQuestionsTextarea" class="field-label">Paste or Upload Your Questions</label>
+            <textarea id="uploadedQuestionsTextarea" pInputTextarea rows="8" class="upload-textarea"
               placeholder="One question per line"
               [ngModel]="uploadedQuestions()" (ngModelChange)="uploadedQuestions.set($event)">
             </textarea>
@@ -94,7 +94,7 @@
             (onSelect)="onFileSelect($event)" chooseLabel="Or Upload a .txt File" />
           }
 
-          <button pButton class="start-mock-btn flex items-center justify-center gap-2" (click)="generateQuestions()" [disabled]="loading()">
+          <button type="button" pButton class="start-mock-btn flex items-center justify-center gap-2" (click)="generateQuestions()" [disabled]="loading()">
             @if (loading()) {
               <i class="pi pi-spin pi-spinner"></i>
               Generating Questions...
