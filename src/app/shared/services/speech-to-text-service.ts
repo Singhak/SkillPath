@@ -1,18 +1,20 @@
 import { Injectable, NgZone } from '@angular/core';
 import { Subject } from 'rxjs';
 
-declare var webkitSpeechRecognition: any;
+declare const webkitSpeechRecognition: any;
 
-@Injectable()
+@Injectable({
+  providedIn: 'root',
+})
 export class SpeechToTextService {
 
     private recognition: any;
 
-    transcript$ = new Subject<string>();
-    listening$ = new Subject<boolean>();
-    error$ = new Subject<string>();
+    readonly transcript$ = new Subject<string>();
+    readonly listening$ = new Subject<boolean>();
+    readonly error$ = new Subject<string>();
 
-    constructor(private zone: NgZone) {
+    constructor(private readonly zone: NgZone) {
         const SpeechRecognition =
             (window as any).SpeechRecognition ||
             webkitSpeechRecognition;
@@ -103,7 +105,7 @@ export class SpeechToTextService {
 
         try {
             this.recognition.start();
-        } catch (error) {
+        } catch {
             this.error$.next('Speech recognition is already running.');
         }
     }

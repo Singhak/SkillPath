@@ -11,8 +11,8 @@ import { ReviewDeckService } from '../../core/services/review-deck.service';
   providedIn: 'root',
 })
 export class QuizStatsService {
-  private quizApiService = inject(QuizApiService);
-  private questionApiService = inject(QuestionApiService);
+  private readonly quizApiService = inject(QuizApiService);
+  private readonly questionApiService = inject(QuestionApiService);
   private readonly reviewDeckService = inject(ReviewDeckService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly questionsStats = signal<QuestionStats[]>([]);
@@ -78,7 +78,7 @@ export class QuizStatsService {
   endAttempt(options: EndAttemptOptions): void {
     const { question, timeTaken, selectedAnswer, isCorrect, score, coinsEarned } = options;
 
-    if (isCorrect === false) {
+    if (!isCorrect) {
       this.reviewDeckService.addFlashcard({
         question: question.question,
         category: question.category || 'Quiz Missed',
@@ -134,28 +134,14 @@ export class QuizStatsService {
     this.questionsStats.set([]);
   }
 
-  updateQuizStats() {
-    // this.quizStats.set({
-    //   category: this.questionsStats()[0].category,
-    //   totalQuestions: this.questionsStats().length,
-    //   wrongAnswerCount: this.wrongAnswerCount(),
-    //   correctAnswerCount: this.correctAnswerCount(),
-    //   attemptedQuestionCount: this.attemptedQuestionCount(),
-    //   totalScore: this.totalScore(),
-    //   hintsUsedCount: this.hintsUsedCount(),
-    //   totalCoinsEarned: this.totalCoinsEarned(),
-    //   totalCoinsSpent: this.totalCoinsSpent(),
-    //   skippedCount: this.skippedCount(),
-    //   totalTimeTakenInSeconds: this.totalTimeTakenInSeconds(),
-    // });
-
-    return this.quizApiService.updateQuizStats(this.quizId()).pipe(
+  updateQuizStats(): void {
+    this.quizApiService.updateQuizStats(this.quizId()).pipe(
       takeUntilDestroyed(this.destroyRef)
     ).subscribe();
   }
 
-  createQuestionStats() {
-    return this.questionApiService.createQuestionStats(this.questionsStats()).pipe(
+  createQuestionStats(): void {
+    this.questionApiService.createQuestionStats(this.questionsStats()).pipe(
       takeUntilDestroyed(this.destroyRef)
     ).subscribe();
   }

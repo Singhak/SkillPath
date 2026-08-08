@@ -35,14 +35,18 @@ import { CommonModule } from '@angular/common';
   styleUrl: './sign-up-component.css',
 })
 export class SignUpComponent {
-  private fb = inject(FormBuilder);
-  private loginService = inject(LoginService);
-  private router = inject(Router);
-  private messageService = inject(MessageService);
-  private destroyRef = inject(DestroyRef);
+  private readonly fb = inject(FormBuilder);
+  private readonly loginService = inject(LoginService);
+  private readonly router = inject(Router);
+  private readonly messageService = inject(MessageService);
+  private readonly destroyRef = inject(DestroyRef);
+
   form: FormGroup;
-  loading = signal(false);
-  isRegistered = signal(false);
+  readonly loading = signal(false);
+  readonly isRegistered = signal(false);
+  readonly otpSent = signal(false);
+  readonly resendCooldown = signal(0);
+  private cooldownInterval: ReturnType<typeof setInterval> | null = null;
 
   constructor() {
     this.form = this.fb.group({
@@ -53,7 +57,7 @@ export class SignUpComponent {
     });
   }
 
-  registerUser() {
+  registerUser(): void {
     if (
       this.form.get('name')?.invalid ||
       this.form.get('emailId')?.invalid ||
@@ -83,13 +87,13 @@ export class SignUpComponent {
           detail: 'An OTP has been sent to your email.',
         });
         // Clear validators from registration fields as they are no longer visible
-        this.startResendCooldown()
+        this.startResendCooldown();
         this.form.get('name')?.clearValidators();
         this.form.get('password')?.clearValidators();
       });
   }
 
-  verifyOtp() {
+  verifyOtp(): void {
     if (this.form.get('otp')?.invalid) {
       return;
     }
@@ -108,12 +112,14 @@ export class SignUpComponent {
       });
   }
 
-  sendOtp() {
-    if(this.resendCooldown() > 0) return;
+  sendOtp(): void {
+    if (this.resendCooldown() > 0) {
+      return;
+    }
     this.loginService.sendOtp(this.form.get('emailId')?.value).pipe(
       takeUntilDestroyed(this.destroyRef)
     ).subscribe(() => {
-      this.otpSent.set(true)
+      this.otpSent.set(true);
       this.messageService.add({
         severity: 'success',
         summary: 'Success',
@@ -123,17 +129,13 @@ export class SignUpComponent {
     });
   }
 
-  otpSent = signal(false);
-  resendCooldown = signal(0);
-  private cooldownInterval: any;
-
-  private startResendCooldown() {
+  private startResendCooldown(): void {
     this.otpSent.set(true);
     // Start cooldown timer
     this.resendCooldown.set(60);
     this.cooldownInterval = setInterval(() => {
       this.resendCooldown.update((value) => value - 1);
-      if (this.resendCooldown() <= 0) {
+      if (this.resendCooldown() <= 0 && this.cooldownInterval) {
         clearInterval(this.cooldownInterval);
       }
     }, 1000);

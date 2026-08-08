@@ -1,6 +1,5 @@
 import { Component, computed, inject, signal } from '@angular/core';
-import { Router, RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
-import { MessageService } from 'primeng/api';
+import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
 import { ToastModule } from 'primeng/toast';
 import { AuthService } from './core/services/auth.service';
 import { PaymentService } from './core/services/payment.service';
@@ -25,19 +24,19 @@ import { HealthService } from './core/services/health.service';
   styleUrl: './app.css',
 })
 export class App {
-  private authService = inject(AuthService);
-  private healthService = inject(HealthService);
-  protected paymentService = inject(PaymentService);
-  isWakingUp$ = this.healthService.isWakingUp$;
-  isOnline = signal(typeof navigator !== 'undefined' ? navigator.onLine : true);
+  private readonly authService = inject(AuthService);
+  private readonly healthService = inject(HealthService);
+  protected readonly paymentService = inject(PaymentService);
+  readonly isWakingUp$ = this.healthService.isWakingUp$;
+  readonly isOnline = signal(typeof navigator !== 'undefined' ? navigator.onLine : true);
 
   readonly mobileMenuOpen = signal(false);
   protected readonly title = signal('ImOnBench');
   readonly sidebarCollapsed = signal(true);
-  currentUser = this.authService.currentUser;
-  currentPlan = this.authService.currentPlan;
-  isAuthenticated = this.authService.isAuthenticated;
-  userInitials = computed(() => {
+  readonly currentUser = this.authService.currentUser;
+  readonly currentPlan = this.authService.currentPlan;
+  readonly isAuthenticated = this.authService.isAuthenticated;
+  readonly userInitials = computed(() => {
     const user = this.currentUser();
     if (!user?.name) {
       return '';
@@ -49,7 +48,7 @@ export class App {
     return user.name.substring(0, 2).toUpperCase();
   });
   
-  remainingTrialDays = computed(() => {
+  readonly remainingTrialDays = computed(() => {
     const user = this.currentUser();
     if (!user?.isTrialActive || !user?.trialExpiryDate) {
       return null;
@@ -58,7 +57,7 @@ export class App {
     const today = new Date();
     const diffTime = expiryDate.getTime() - today.getTime();
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    return diffDays > 0 ? diffDays : 0;
+    return Math.max(0, diffDays);
   });
   constructor() {
     this.healthService.pingBackend();
@@ -87,8 +86,12 @@ export class App {
 
   getPlanColorClass(): string {
     const plan = this.currentPlan();
-    if (plan === 'Gold') return 'plan-gold';
-    if (plan === 'Copper') return 'plan-copper';
+    if (plan === 'Gold') {
+      return 'plan-gold';
+    }
+    if (plan === 'Copper') {
+      return 'plan-copper';
+    }
     return 'plan-silver';
   }
 }

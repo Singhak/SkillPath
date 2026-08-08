@@ -42,20 +42,20 @@ import { MessageService } from 'primeng/api';
   styleUrl: './login-component.css',
 })
 export class LoginComponent implements OnDestroy {
-  private fb = inject(FormBuilder);
-  private loginService = inject(LoginService);
-  private router = inject(Router);
-  private messageService = inject(MessageService);
-  private loggingService = inject(LoggingService);
-  private destroyRef = inject(DestroyRef);
+  private readonly fb = inject(FormBuilder);
+  private readonly loginService = inject(LoginService);
+  private readonly router = inject(Router);
+  private readonly messageService = inject(MessageService);
+  private readonly loggingService = inject(LoggingService);
+  private readonly destroyRef = inject(DestroyRef);
 
-  loading = signal(false);
-  otpSent = signal(false);
-  resendCooldown = signal(0);
-  private cooldownInterval: any;
+  readonly loading = signal(false);
+  readonly otpSent = signal(false);
+  readonly resendCooldown = signal(0);
+  private cooldownInterval: ReturnType<typeof setInterval> | null = null;
   form: FormGroup;
 
-  loginMethods = [
+  readonly loginMethods = [
     { label: 'Password', value: 'password' },
     { label: 'OTP', value: 'otp' },
   ];
@@ -92,7 +92,7 @@ export class LoginComponent implements OnDestroy {
     otpControl?.updateValueAndValidity();
   }
 
-  sendOtp() {
+  sendOtp(): void {
     const emailControl = this.form.get('emailId');
     if (emailControl?.invalid) {
       emailControl.markAsTouched();
@@ -121,20 +121,20 @@ export class LoginComponent implements OnDestroy {
       });
   }
 
-  private startResendCooldown() {
+  private startResendCooldown(): void {
     this.otpSent.set(true);
 
     // Start cooldown timer
     this.resendCooldown.set(60);
     this.cooldownInterval = setInterval(() => {
       this.resendCooldown.update((value) => value - 1);
-      if (this.resendCooldown() <= 0) {
+      if (this.resendCooldown() <= 0 && this.cooldownInterval) {
         clearInterval(this.cooldownInterval);
       }
     }, 1000);
   }
 
-  loginUser() {
+  loginUser(): void {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       return;

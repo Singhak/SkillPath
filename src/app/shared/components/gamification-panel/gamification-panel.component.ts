@@ -37,7 +37,9 @@ export class GamificationPanelComponent {
   readonly creditsToBuy = signal<number>(1);
   readonly currentConversionRate = computed(() => {
     const plan = this.authService.currentPlan();
-    return plan === 'Gold' ? 30 : plan === 'Copper' ? 50 : 100;
+    if (plan === 'Gold') return 30;
+    if (plan === 'Copper') return 50;
+    return 100;
   });
 
   readonly categories = [
@@ -85,8 +87,8 @@ export class GamificationPanelComponent {
   }
 
   onCreditsChange(val: any): void {
-    let parsed = parseInt(val, 10);
-    if (isNaN(parsed) || parsed < 1) parsed = 1;
+    let parsed = Number.parseInt(val, 10);
+    if (Number.isNaN(parsed) || parsed < 1) parsed = 1;
     this.creditsToBuy.set(parsed);
   }
 

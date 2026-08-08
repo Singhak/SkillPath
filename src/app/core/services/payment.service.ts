@@ -7,18 +7,18 @@ import { environment } from '../../environments/environment';
 import { UserResourceService } from './user-resource.service';
 import { AuthService } from './auth.service';
 
-declare var window: any;
+declare const window: any;
 
 @Injectable({
   providedIn: 'root'
 })
 export class PaymentService {
-  private http = inject(HttpClient);
-  private userResourceService = inject(UserResourceService);
-  private authService = inject(AuthService);
-  private messageService = inject(MessageService, { optional: true });
-  private apiUrl = `${environment.apiUrl}/payment`;
-  private destroyRef = inject(DestroyRef);
+  private readonly http = inject(HttpClient);
+  private readonly userResourceService = inject(UserResourceService);
+  private readonly authService = inject(AuthService);
+  private readonly messageService = inject(MessageService, { optional: true });
+  private readonly apiUrl = `${environment.apiUrl}/payment`;
+  private readonly destroyRef = inject(DestroyRef);
 
   /**
    * Tracks payment lifecycle loading state (order creation -> gateway modal -> payment verification)

@@ -105,19 +105,14 @@
     <div class="sidebar-footer">
       @if(isAuthenticated()){
       @if(remainingTrialDays() !== null) {
-      <div class="trial-banner"
-        style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(5, 150, 105, 0.15)); border: 1px solid rgba(16, 185, 129, 0.2); border-radius: 10px; padding: 8px 12px; margin-bottom: 12px; display: flex; align-items: center;">
-        <i class="pi pi-clock" style="color: #10b981; font-size: 1rem; margin-right: 8px;"></i>
-        <span style="color: #10b981; font-weight: 700; font-size: 0.75rem;">{{ remainingTrialDays() }} Days Left</span>
+      <div class="bg-linear-to-br from-emerald-500/15 to-emerald-600/15 border border-emerald-500/20 rounded-xl p-2.5 mb-3 flex items-center">
+        <i class="pi pi-clock text-emerald-500 text-base mr-2"></i>
+        <span class="text-emerald-500 font-bold text-xs">{{ remainingTrialDays() }} Days Left</span>
       </div>
       }
-      <a class="nav-item" [routerLink]="'/pricing'" routerLinkActive="active"
-        [title]="sidebarCollapsed() ? 'Upgrade Plan' : ''"
-        style="height: 38px; padding: 0 12px; margin-bottom: 12px; background: linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(234, 88, 12, 0.15)); border: 1px solid rgba(245, 158, 11, 0.2); border-radius: 10px;">
-        <i class="pi pi-bolt" style="color: #f59e0b; font-size: 1rem;"
-          [style.margin-right]="sidebarCollapsed() ? '0' : '8px'"></i>
-        <span class="nav-label"
-          style="color: #f59e0b; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; font-size: 0.75rem; line-height: 1;">Upgrade</span>
+      <a class="nav-item h-9 px-3 mb-3 bg-linear-to-br from-amber-500/15 to-orange-600/15 border border-amber-500/20 rounded-xl flex items-center" [routerLink]="'/pricing'" routerLinkActive="active" [title]="sidebarCollapsed() ? 'Upgrade Plan' : ''">
+        <i class="pi pi-bolt text-amber-500 text-base" [style.margin-right]="sidebarCollapsed() ? '0' : '8px'"></i>
+        <span class="nav-label text-amber-500 font-bold uppercase tracking-wider text-xs leading-none">Upgrade</span>
       </a>
       <div class="user-profile-card">
         <div class="avatar-container">
@@ -128,7 +123,7 @@
           <strong class="user-name">{{ currentUser()?.name }}</strong>
           <span class="user-role">Member</span>
         </div>
-        <button class="logout-btn" (click)="logout()" title="Logout">
+        <button class="logout-btn" type="button" (click)="logout()" title="Logout" aria-label="Logout">
           <i class="pi pi-sign-out"></i>
         </button>
       </div>
@@ -144,12 +139,12 @@
     </div>
   </aside>
   @if (mobileMenuOpen()) {
-  <div class="mobile-backdrop" (click)="closeSidebar()" (keydown)="closeSidebar()"></div>
+  <div class="mobile-backdrop" role="button" aria-label="Close navigation menu" tabindex="0" (click)="closeSidebar()" (keydown.enter)="closeSidebar()"></div>
   }
 
   <div class="content-shell">
     <div class="mobile-toolbar">
-      <button class="mobile-toggle" type="button" (click)="toggleSidebar()">
+      <button class="mobile-toggle" type="button" (click)="toggleSidebar()" aria-label="Toggle navigation menu">
         <i class="pi pi-bars"></i>
       </button>
     </div>
@@ -160,7 +155,7 @@
 
   <!-- Global Payment Processing Modal Overlay -->
   @if (paymentService.isProcessingPayment()) {
-    <div class="fixed inset-0 z-99999 flex flex-col items-center justify-center bg-slate-950/85 backdrop-blur-md transition-all duration-300 pointer-events-auto">
+    <div class="fixed inset-0 z-99999 flex flex-col items-center justify-center bg-slate-950/85 backdrop-blur-md transition-all duration-300 pointer-events-auto" role="dialog" aria-modal="true" aria-labelledby="paymentProcessingTitle">
       <div class="bg-slate-900/95 border border-cyan-500/30 rounded-3xl p-8 max-w-md w-full mx-4 shadow-[0_0_50px_rgba(6,182,212,0.2)] flex flex-col items-center text-center relative overflow-hidden">
         <!-- Glow background effects -->
         <div class="absolute -top-12 -left-12 w-36 h-36 bg-cyan-500/20 rounded-full blur-3xl pointer-events-none"></div>
@@ -168,14 +163,14 @@
         
         <div class="relative mb-6">
           <div class="w-20 h-20 rounded-2xl bg-linear-to-tr from-cyan-500 via-blue-600 to-purple-600 flex items-center justify-center shadow-lg shadow-cyan-500/30 animate-pulse">
-            <i class="pi pi-credit-card text-4xl text-white"></i>
+            <i class="pi pi-credit-card text-4xl text-white" aria-hidden="true"></i>
           </div>
           <div class="absolute -bottom-2 -right-2 w-8 h-8 rounded-full bg-slate-900 border border-slate-700 flex items-center justify-center shadow">
-            <i class="pi pi-spin pi-spinner text-cyan-400 text-base"></i>
+            <i class="pi pi-spin pi-spinner text-cyan-400 text-base" aria-hidden="true"></i>
           </div>
         </div>
 
-        <h3 class="text-2xl font-extrabold text-white mb-2 tracking-tight">Processing Payment</h3>
+        <h3 id="paymentProcessingTitle" class="text-2xl font-extrabold text-white mb-2 tracking-tight">Processing Payment</h3>
         <p class="text-sm text-slate-300 mb-6 leading-relaxed">
           Connecting to secure payment gateway. Please complete your payment transaction...
         </p>

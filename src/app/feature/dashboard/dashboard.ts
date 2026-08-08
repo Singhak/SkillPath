@@ -72,19 +72,7 @@ export class Dashboard implements OnInit {
     () => (this.authService.freeCredits() ?? 0) + (this.authService.paidCredits() ?? 0),
   );
 
-  readonly totalCoins = computed(() => {
-    return this.authService.userCoins()
-    // const attempts = this.quizAttempts();
-    // const coinsEarned = attempts.reduce(
-    //   (sum, item: QuizStats) => sum + Number(item.totalCoinsEarned || 0),
-    //   0,
-    // );
-    // const coinsSpent = attempts.reduce(
-    //   (sum, item: QuizStats) => sum + Number(item.totalCoinsSpent || 0),
-    //   0,
-    // );
-    // return coinsEarned - coinsSpent;
-  });
+  readonly totalCoins = computed(() => this.authService.userCoins());
 
   readonly filteredQuizAttempts = computed(() => {
     const query = this.tableSearchQuery().toLowerCase().trim();
@@ -426,11 +414,11 @@ export class Dashboard implements OnInit {
     }
   }
 
-  onNewQuiz() {
+  onNewQuiz(): void {
     this.router.navigate(['/quiz']);
   }
 
-  onStartAiInterview() {
+  onStartAiInterview(): void {
     if (this.authService.currentPlan() !== 'Gold') {
       this.confirmationService.confirm({
         message: 'This feature requires the Gold plan. Would you like to upgrade your plan?',
@@ -447,8 +435,10 @@ export class Dashboard implements OnInit {
     this.router.navigate(['/aiinterview']);
   }
 
-  formattedTime(timeInSec: number) {
-    if (!timeInSec || isNaN(timeInSec)) return '0m 0s';
+  formattedTime(timeInSec: number): string {
+    if (!timeInSec || isNaN(timeInSec)) {
+      return '0m 0s';
+    }
     const minutes = Math.floor(timeInSec / 60);
     const seconds = Math.floor(timeInSec % 60);
     return `${minutes}m ${seconds}s`;

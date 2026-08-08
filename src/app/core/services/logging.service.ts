@@ -20,7 +20,7 @@ export interface LogEntry {
 })
 export class LoggingService {
   private isEnabled = true;
-  private maxBufferSize = 100;
+  private readonly maxBufferSize = 100;
   private logBuffer: LogEntry[] = [];
   private readonly STORAGE_KEY = 'app_log_buffer';
 
@@ -115,12 +115,12 @@ export class LoggingService {
   }
 
   /** Returns all stored logs */
-  getLogs(count: number = 50): LogEntry[] {
+  getLogs(count = 50): LogEntry[] {
     return this.logBuffer.slice(-count);
   }
 
   /** Returns stored errors only */
-  getRecentErrors(count: number = 20): LogEntry[] {
+  getRecentErrors(count = 20): LogEntry[] {
     return this.logBuffer
       .filter((e) => e.level === 'ERROR')
       .slice(-count);

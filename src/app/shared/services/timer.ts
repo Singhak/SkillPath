@@ -1,6 +1,8 @@
 import { Injectable, computed, signal } from '@angular/core';
 
-@Injectable()
+@Injectable({
+  providedIn: 'root',
+})
 export class Timer {
 
   private intervalId: ReturnType<typeof setInterval> | null = null;
@@ -18,16 +20,20 @@ export class Timer {
       .padStart(2, '0')}`;
   });
 
-  start() {
-    if (this.intervalId) return;
+  start(): void {
+    if (this.intervalId) {
+      return;
+    }
 
     this.intervalId = setInterval(() => {
       this.seconds.update(v => v + 1);
     }, 1000);
   }
 
-  stop() {
-    if (!this.intervalId) return;
+  stop(): void {
+    if (!this.intervalId) {
+      return;
+    }
 
     clearInterval(this.intervalId);
     this.intervalId = null;

@@ -286,7 +286,7 @@ export class SkillRate implements OnInit {
     const skill = this.selectedSkill().trim();
     const rating = this.selectedRating();
 
-    if (!skill || rating == null) {
+    if (!skill || rating === null || rating === undefined) {
       return;
     }
 

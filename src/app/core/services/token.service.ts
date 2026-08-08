@@ -15,9 +15,9 @@ export class TokenService {
   private readonly refreshTokenKey = 'refreshToken';
   private readonly apiUrl = `${environment.apiUrl}/auth`;
 
-  private http = inject(HttpClient);
-  private router = inject(Router);
-  private platformId = inject(PLATFORM_ID);
+  private readonly http = inject(HttpClient);
+  private readonly router = inject(Router);
+  private readonly platformId = inject(PLATFORM_ID);
 
   private isRefreshing = false;
   private refreshTokenSubject = new BehaviorSubject<string | null>(null);

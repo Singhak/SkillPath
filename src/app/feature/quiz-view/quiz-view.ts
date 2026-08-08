@@ -46,15 +46,15 @@ import { UserApiService } from '../../core/services/apis/user-api.service';
 })
 export class QuizView implements OnInit, OnDestroy {
   // region Service Injections
-  questionApiService = inject(QuestionApiService);
-  messanger = inject(MessageService);
-  quizStatsService = inject(QuizStatsService);
-  categoryApiService = inject(CatrgoryApiService);
-  userService = inject(UserApiService);
-  authService = inject(AuthService);
+  readonly questionApiService = inject(QuestionApiService);
+  readonly messanger = inject(MessageService);
+  readonly quizStatsService = inject(QuizStatsService);
+  readonly categoryApiService = inject(CatrgoryApiService);
+  readonly userService = inject(UserApiService);
+  readonly authService = inject(AuthService);
   private readonly reportIssueService = inject(ReportIssueService);
   private readonly route = inject(ActivatedRoute);
-  timer = inject(Timer);
+  readonly timer = inject(Timer);
   private readonly destroyRef = inject(DestroyRef);
 
   readonly questionCountOptions = [5, 10, 15];
@@ -161,7 +161,7 @@ export class QuizView implements OnInit, OnDestroy {
     }
   }
 
-  private startQuestion(index: number) {
+  private startQuestion(index: number): void {
     const question = this.quizes()[index];
     this.currentQuiz.set(question);
     this.currentQuizIndex.set(index);
@@ -187,7 +187,7 @@ export class QuizView implements OnInit, OnDestroy {
   }
 
   // Handles both "Next" and "Skip"
-  onNextClick() {
+  onNextClick(): void {
     if (this.currentQuizIndex() + 1 < this.quizesCount()) {
       // If not submitted, it's a skip
       if (!this.isSubmited()) {
@@ -195,7 +195,9 @@ export class QuizView implements OnInit, OnDestroy {
       }
       this.startQuestion(this.currentQuizIndex() + 1);
     } else {
-      if (this.isFinishing()) return;
+      if (this.isFinishing()) {
+        return;
+      }
 
       // Last question was answered/skipped, finish the quiz
       if (!this.isSubmited()) {
@@ -213,9 +215,11 @@ export class QuizView implements OnInit, OnDestroy {
     }
   }
 
-  onSubmitClick() {
+  onSubmitClick(): void {
 
-    if (!this.selectedAnswer()?.trim()?.length) return;
+    if (!this.selectedAnswer()?.trim()?.length) {
+      return;
+    }
     this.isSubmited.set(true);
     const quiz = this.currentQuiz();
     const selected = this.selectedAnswer();
@@ -245,7 +249,7 @@ export class QuizView implements OnInit, OnDestroy {
     this.timer.stop();
   }
 
-  onCloseSummary() {
+  onCloseSummary(): void {
     // Reset the entire quiz state to go back to the selection screen.
     this.quizes.set([]);
     this.quizesCount.set(0);
@@ -260,14 +264,14 @@ export class QuizView implements OnInit, OnDestroy {
     this.quizStatsService.reset();
   }
 
-  onRestartQuiz() {
+  onRestartQuiz(): void {
     this.quizStatsService.reset();
     this.isQuizFinished.set(false);
     this.numberOfCorrectAns = 0;
     this.startQuestion(0);
   }
 
-  onHintClick() {
+  onHintClick(): void {
     const hintCost = 2;
     if (this.coins() >= hintCost) {
       const currentQuizHints = this.currentQuiz()?.hints;
@@ -289,7 +293,7 @@ export class QuizView implements OnInit, OnDestroy {
     }
   }
 
-  showReportDialog() {
+  showReportDialog(): void {
     this.reportIssueService.showDialog({
       title: 'Report an Issue with this Question',
       issueTypes: ['Question', 'Options', 'Explanation', 'Answer', 'Other'],
@@ -304,7 +308,7 @@ export class QuizView implements OnInit, OnDestroy {
   private readonly gamificationService = inject(GamificationService);
 
   // region Private Helpers
-  private updateStats() {
+  private updateStats(): void {
     this.gamificationService.recordActivity('quiz');
     //update coins before close
     const coinsEarned = this.quizStatsService.correctAnswerCount() * 5; // we are not deduting the hint use coins since those already deduted

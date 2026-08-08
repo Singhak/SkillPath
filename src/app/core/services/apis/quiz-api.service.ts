@@ -1,26 +1,26 @@
-import { HttpClient } from '@angular/common/http';
-import { Service, inject } from '@angular/core';
+import { HttpClient, HttpParams } from '@angular/common/http';
+import { Injectable, inject } from '@angular/core';
 import { environment } from '../../../environments/environment';
 import { Observable } from 'rxjs';
 import { QuizStats } from '../../../feature/quiz-view/quiz.model';
 
-@Service()
+@Injectable({ providedIn: 'root' })
 export class QuizApiService {
   private readonly apiUrl = `${environment.apiUrl}/quizzes`;
-  private http = inject(HttpClient);
+  private readonly http = inject(HttpClient);
 
   updateQuizStats(quizId: number): Observable<void> {
-    return this.http.put<void>(`${environment.apiUrl}/quizzes/${quizId}/complete`, {});
+    return this.http.put<void>(`${this.apiUrl}/${quizId}/complete`, {});
   }
 
   getQuizAttempts(limit?: number, offset?: number): Observable<QuizStats[]> {
-    let params: any = {};
+    let params = new HttpParams();
     if (limit !== undefined && limit !== null) {
-      params.limit = limit;
+      params = params.set('limit', limit);
     }
     if (offset !== undefined && offset !== null) {
-      params.offset = offset;
+      params = params.set('offset', offset);
     }
-    return this.http.get<QuizStats[]>(`${environment.apiUrl}/quizzes`, { params });
+    return this.http.get<QuizStats[]>(this.apiUrl, { params });
   }
 }

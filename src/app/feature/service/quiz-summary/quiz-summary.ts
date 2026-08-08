@@ -14,37 +14,57 @@ import { QuizStatsService } from '../quiz-stats.service';
 export class QuizSummaryComponent {
   visible = input.required<boolean>();
   totalQuestions = input.required<number>();
-  statsService = inject(QuizStatsService);
+  readonly statsService = inject(QuizStatsService);
   close = output<void>();
   restart = output<void>();
 
   scorePercent = computed(() => {
     const total = this.totalQuestions();
-    if (!total) return 0;
+    if (!total) {
+      return 0;
+    }
     return Math.round((this.statsService.correctAnswerCount() / total) * 100);
   });
 
   perfLabel = computed(() => {
     const pct = this.scorePercent();
-    if (pct >= 90) return 'Excellent!';
-    if (pct >= 70) return 'Great Job!';
-    if (pct >= 50) return 'Keep Going!';
+    if (pct >= 90) {
+      return 'Excellent!';
+    }
+    if (pct >= 70) {
+      return 'Great Job!';
+    }
+    if (pct >= 50) {
+      return 'Keep Going!';
+    }
     return 'Needs Work';
   });
 
   perfBadgeClass = computed(() => {
     const pct = this.scorePercent();
-    if (pct >= 90) return 'perf-badge perf-badge--excellent';
-    if (pct >= 70) return 'perf-badge perf-badge--great';
-    if (pct >= 50) return 'perf-badge perf-badge--average';
+    if (pct >= 90) {
+      return 'perf-badge perf-badge--excellent';
+    }
+    if (pct >= 70) {
+      return 'perf-badge perf-badge--great';
+    }
+    if (pct >= 50) {
+      return 'perf-badge perf-badge--average';
+    }
     return 'perf-badge perf-badge--poor';
   });
 
   perfBadgeIcon = computed(() => {
     const pct = this.scorePercent();
-    if (pct >= 90) return 'pi pi-star-fill';
-    if (pct >= 70) return 'pi pi-thumbs-up';
-    if (pct >= 50) return 'pi pi-bolt';
+    if (pct >= 90) {
+      return 'pi pi-star-fill';
+    }
+    if (pct >= 70) {
+      return 'pi pi-thumbs-up';
+    }
+    if (pct >= 50) {
+      return 'pi pi-bolt';
+    }
     return 'pi pi-exclamation-triangle';
   });
 

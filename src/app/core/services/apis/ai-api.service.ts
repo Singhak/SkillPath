@@ -1,19 +1,20 @@
 import { HttpClient } from '@angular/common/http';
-import { inject, Service } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { environment } from '../../../environments/environment';
-import { Observable, of } from 'rxjs';
+import { Observable } from 'rxjs';
 import { InterviewQuestion } from '../../models/interview-question.model';
 import { AIEvaluationResult } from '../ai-question';
-@Service()
+
+@Injectable({ providedIn: 'root' })
 export class AiApiService {
   private readonly apiUrl = `${environment.apiUrl}`;
-  private http = inject(HttpClient);
+  private readonly http = inject(HttpClient);
 
-  generateEvaluation(dataToSend: ApiEvalBody) {
+  generateEvaluation(dataToSend: ApiEvalBody): Observable<AIEvaluationResult> {
     return this.http.post<AIEvaluationResult>(`${this.apiUrl}/ai-evaluations`, dataToSend);
   }
 
-  generateMockEvaluation(dataToSend: ApiEvalBody[]) {
+  generateMockEvaluation(dataToSend: ApiEvalBody[]): Observable<AIEvaluationResult | AIEvaluationResult[]> {
     return this.http.post<AIEvaluationResult | AIEvaluationResult[]>(
       `${this.apiUrl}/ai-evaluations/mock-evaluation`,
       dataToSend,

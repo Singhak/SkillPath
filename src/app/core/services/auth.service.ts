@@ -1,7 +1,7 @@
 import { isPlatformBrowser } from '@angular/common';
 import { Injectable, signal, computed, effect, inject, PLATFORM_ID } from '@angular/core';
 import { Router } from '@angular/router';
-import { Observable, of, tap } from 'rxjs';
+import { Observable, tap } from 'rxjs';
 import { UserResourceService } from './user-resource.service';
 import { User, LoginResponse, RefreshTokenResponse } from '../models/user.model';
 
@@ -16,11 +16,11 @@ export class AuthService {
   private readonly authTokenKey = 'authToken';
   private readonly refreshTokenKey = 'refreshToken';
 
-  private platformId = inject(PLATFORM_ID);
-  private router = inject(Router);
-  private userResourceService = inject(UserResourceService);
+  private readonly platformId = inject(PLATFORM_ID);
+  private readonly router = inject(Router);
+  private readonly userResourceService = inject(UserResourceService);
 
-  private _currentUser = signal<User | null>(null);
+  private readonly _currentUser = signal<User | null>(null);
 
 
   readonly currentUser = this._currentUser.asReadonly();
@@ -95,13 +95,13 @@ export class AuthService {
     }
   }
 
-  refreshCreditsAndCoins(): Observable<any> {
+  refreshCreditsAndCoins(): Observable<{ coinsRes: { coins: number }; creditsRes: { freeCredits: string; paidCredits: string } }> {
     return this.userResourceService.fetchCreditsAndCoins();
   }
 
   decrementAiCredits(amount: number): Observable<{ message: string, freeCredits: string, paidCredits: string }> {
     return this.userResourceService.decrementAiCredits(amount).pipe(
-      tap((updatedUser) => {
+      tap(() => {
         const user = this._currentUser();
         if (user) {
           this._currentUser.set(user);

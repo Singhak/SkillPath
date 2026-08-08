@@ -38,7 +38,7 @@ export interface PurchaseHistoryItem {
   selector: 'app-billing-history-modal',
   standalone: true,
   imports: [CommonModule, FormsModule],
-  templateUrl:'./billing-history-modal.component.html',
+  templateUrl: './billing-history-modal.component.html',
   styles: [`
     @keyframes fadeIn {
       from { opacity: 0; transform: scale(0.97); }
@@ -204,7 +204,7 @@ export class BillingHistoryModalComponent implements OnInit, OnChanges {
     this.purchasePage = 1;
     this.cdr.detectChanges();
 
-    this.userResources.fetchCreditsAndCoins().subscribe({ error: () => {} });
+    this.userResources.fetchCreditsAndCoins().subscribe({ error: () => { } });
 
     const offsetCredit = (this.creditPage - 1) * this.pageSize;
     const offsetPurchase = (this.purchasePage - 1) * this.pageSize;
@@ -257,7 +257,7 @@ export class BillingHistoryModalComponent implements OnInit, OnChanges {
   }
 
   triggerManualRestore(): void {
-    if (!this.manualOrderId || !this.manualOrderId.trim()) {
+    if (!this.manualOrderId?.trim()) {
       this.restoreMessage = 'Please enter a valid Order ID or Payment ID.';
       this.cdr.detectChanges();
       return;
@@ -287,18 +287,37 @@ export class BillingHistoryModalComponent implements OnInit, OnChanges {
 
   getAmount(p: PurchaseHistoryItem): number {
     if (!p) return 0;
-    let amt = parseFloat((p.amount || 0) as any) || 0;
-    if (amt === 0) {
-      const isUsd = (p.currency || '').toUpperCase() === 'USD';
-      const name = (p.itemName || '').toLowerCase();
-      if (name.includes('gold')) return isUsd ? 2.99 : 50;
-      if (name.includes('copper')) return isUsd ? 0.99 : 20;
-      if (p.creditsAdded === 1 || name.includes('1 ai credit')) return isUsd ? 0.25 : 5;
-      if (p.creditsAdded === 3 || name.includes('3 ai credit')) return isUsd ? 0.50 : 10;
-      if (p.creditsAdded === 10 || name.includes('10 ai credit')) return isUsd ? 1.00 : 25;
-      if (p.creditsAdded > 0) return isUsd ? p.creditsAdded * 0.25 : p.creditsAdded * 5;
-    }
-    return amt;
+    const amt = Number.parseFloat(String(p.amount ?? 0)) || 0;
+    if (amt > 0) return amt;
+
+    return this.getFallbackAmount(p);
+  }
+
+  private getFallbackAmount(p: PurchaseHistoryItem): number {
+    const isUsd = (p.currency || '').toUpperCase() === 'USD';
+    const name = (p.itemName || '').toLowerCase();
+    const credits = p.creditsAdded || 0;
+
+    if (name.includes('gold')) return isUsd ? 2.99 : 50;
+    if (name.includes('copper')) return isUsd ? 0.99 : 20;
+
+    const packagePrice = this.getCreditPackagePrice(credits, name, isUsd);
+    if (packagePrice !== null) return packagePrice;
+
+    return credits > 0 ? (isUsd ? credits * 0.25 : credits * 5) : 0;
+  }
+
+  private getCreditPackagePrice(credits: number, name: string, isUsd: boolean): number | null {
+    const packages = [
+      { check: credits === 1 || name.includes('1 ai credit'), usd: 0.25, inr: 5 },
+      { check: credits === 3 || name.includes('3 ai credit'), usd: 0.50, inr: 10 },
+      { check: credits === 10 || name.includes('10 ai credit'), usd: 1.00, inr: 25 }
+    ];
+
+    const found = packages.find(pkg => pkg.check);
+    if (!found) return null;
+
+    return isUsd ? found.usd : found.inr;
   }
 
   closeModal(): void {

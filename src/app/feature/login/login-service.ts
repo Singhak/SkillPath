@@ -8,8 +8,8 @@ import { AuthService, LoginResponse } from '../../core/services/auth.service';
   providedIn: 'root',
 })
 export class LoginService {
-  private http = inject(HttpClient);
-  private authService = inject(AuthService);
+  private readonly http = inject(HttpClient);
+  private readonly authService = inject(AuthService);
   // Use the base URL from the environment file
   private readonly apiUrl = `${environment.apiUrl}/auth`;
 
@@ -22,8 +22,8 @@ export class LoginService {
     );
   }
 
-  register(userInfo: any): Observable<any> {
-    return this.http.post(`${this.apiUrl}/register`, userInfo);
+  register(userInfo: Record<string, unknown>): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(`${this.apiUrl}/register`, userInfo);
   }
 
   verifyRegistrationOtp(data: { emailId: string; otp: string }): Observable<LoginResponse> {
@@ -40,8 +40,8 @@ export class LoginService {
     this.authService.logout();
   }
 
-  sendOtp(emailId: string): Observable<any> {
-    return this.http.post(`${this.apiUrl}/otp-login`, { emailId });
+  sendOtp(emailId: string): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(`${this.apiUrl}/otp-login`, { emailId });
   }
 
   loginWithOtp(data: { emailId: string; otp: string }): Observable<LoginResponse> {

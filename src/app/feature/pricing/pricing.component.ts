@@ -526,17 +526,17 @@ type PaidPlan = 'Copper' | 'Gold';
   `
 })
 export class PricingComponent {
-  authService = inject(AuthService);
-  userResourceService = inject(UserResourceService);
-  paymentService = inject(PaymentService);
-  router = inject(Router);
-  destroyRef = inject(DestroyRef);
+  readonly authService = inject(AuthService);
+  readonly userResourceService = inject(UserResourceService);
+  readonly paymentService = inject(PaymentService);
+  readonly router = inject(Router);
+  private readonly destroyRef = inject(DestroyRef);
 
   selectedCurrency: Currency = 'INR';
   subscriptionPlan: PricingPlan = 'Silver';
   isBillingModalOpen = false;
 
-  setCurrency(currency: Currency) {
+  setCurrency(currency: Currency): void {
     this.selectedCurrency = currency;
   }
 
@@ -564,10 +564,12 @@ export class PricingComponent {
     ).subscribe({
       next: (res) => {
         alert("14-Day Free Trial started successfully!");
+        const u = res.user;
+        const plan = u?.plan || res.plan;
         this.authService.updateUserProfile({
-          plan: res.plan,
-          isTrialActive: res.isTrialActive,
-          trialExpiryDate: res.trialExpiryDate,
+          ...(plan ? { plan } : {}),
+          isTrialActive: u?.isTrialActive ?? res.isTrialActive,
+          trialExpiryDate: u?.trialExpiryDate || res.trialExpiryDate,
           hasUsedTrial: true
         });
       },

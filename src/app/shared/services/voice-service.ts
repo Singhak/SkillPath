@@ -1,7 +1,7 @@
 import { Injectable, NgZone } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 
-declare var webkitSpeechRecognition: any;
+declare const webkitSpeechRecognition: any;
 
 export interface VoiceState {
   idle: boolean;
@@ -26,9 +26,9 @@ export class VoiceService {
     error: null,
   });
 
-  state$ = this.state.asObservable();
+  readonly state$ = this.state.asObservable();
 
-  constructor(private zone: NgZone) {
+  constructor(private readonly zone: NgZone) {
     this.initializeSpeechRecognition();
   }
 

@@ -1,16 +1,16 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { BehaviorSubject, firstValueFrom, timer } from 'rxjs';
-import { timeout, catchError } from 'rxjs/operators';
+import { BehaviorSubject, firstValueFrom } from 'rxjs';
+import { timeout } from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root',
 })
 export class HealthService {
-  public isWakingUp$ = new BehaviorSubject<boolean>(false);
-  private backendUrl = 'https://skillpathbackend.onrender.com/api/health';
+  public readonly isWakingUp$ = new BehaviorSubject<boolean>(false);
+  private readonly backendUrl = 'https://skillpathbackend.onrender.com/api/health';
 
-  constructor(private http: HttpClient) {}
+  constructor(private readonly http: HttpClient) {}
 
   async pingBackend(): Promise<void> {
     // Show "waking up" banner if server takes longer than 1.5 seconds to answer

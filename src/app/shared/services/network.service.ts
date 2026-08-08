@@ -8,7 +8,7 @@ import { environment } from '../../environments/environment';
 })
 export class NetworkService {
 
-    private http: HttpClient;
+    private readonly http: HttpClient;
     private readonly HEALTH_URL = `${environment.apiUrl}/health`;
     // Writable signal
     readonly status = signal<boolean>(navigator.onLine);

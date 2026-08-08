@@ -46,10 +46,10 @@ export class UserResourceService {
           this._userCoins.set(coinsRes.coins);
         }
         if (creditsRes) {
-          if (creditsRes.freeCredits != null) {
+          if (creditsRes.freeCredits !== null && creditsRes.freeCredits !== undefined) {
             this._freeCredits.set(Number.parseFloat(creditsRes.freeCredits));
           }
-          if (creditsRes.paidCredits != null) {
+          if (creditsRes.paidCredits !== null && creditsRes.paidCredits !== undefined) {
             this._paidCredits.set(Number.parseFloat(creditsRes.paidCredits));
           }
         }
@@ -153,7 +153,7 @@ export class UserResourceService {
     this._paidCredits.set(0);
   }
 
-  startFreeTrial(): Observable<any> {
+  startFreeTrial(): Observable<{ message?: string; plan?: 'Silver' | 'Copper' | 'Gold'; isTrialActive?: boolean; trialExpiryDate?: string; user?: User }> {
     return this.userService.startFreeTrial().pipe(
       tap(() => {
         this.fetchCreditsAndCoins().subscribe({ error: () => {} });

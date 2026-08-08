@@ -42,8 +42,8 @@ export class UserApiService {
     return this.http.post<{ message: string, coins: number, freeCredits: string, paidCredits: string }>(`${this.apiUrl}/credits/buy-with-coins`, { credits });
   }
 
-  startFreeTrial(): Observable<{ message: string, user: User }> {
-    return this.http.post<{ message: string, user: User }>(`${this.apiUrl}/start-trial`, {});
+  startFreeTrial(): Observable<{ message?: string; plan?: 'Silver' | 'Copper' | 'Gold'; isTrialActive?: boolean; trialExpiryDate?: string; user?: User }> {
+    return this.http.post<{ message?: string; plan?: 'Silver' | 'Copper' | 'Gold'; isTrialActive?: boolean; trialExpiryDate?: string; user?: User }>(`${this.apiUrl}/start-trial`, {});
   }
 
   getCreditHistory(limit = 10, offset = 0): Observable<{ count: number; rows: any[] }> {

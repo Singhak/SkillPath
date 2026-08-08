@@ -31,7 +31,9 @@ export class AiToolsWidgetComponent implements OnInit {
   readonly resumeOutputTab = signal<'metrics' | 'skills' | 'tips'>('metrics');
 
   copyImprovedAnswer(text: string): void {
-    if (!text) return;
+    if (!text) {
+      return;
+    }
     navigator.clipboard.writeText(text);
     this.copiedAnswer.set(true);
     setTimeout(() => this.copiedAnswer.set(false), 2500);
@@ -56,7 +58,9 @@ export class AiToolsWidgetComponent implements OnInit {
   );
 
   async onFileSelected(event: Event): Promise<void> {
-    if (this.resumeService.isParsing()) return;
+    if (this.resumeService.isParsing()) {
+      return;
+    }
     const input = event.target as HTMLInputElement;
     if (input.files && input.files[0]) {
       try {
@@ -71,7 +75,9 @@ export class AiToolsWidgetComponent implements OnInit {
   }
 
   async parsePastedResumeText(): Promise<void> {
-    if (this.resumeService.isParsing() || !this.pastedText || !this.pastedText.trim()) return;
+    if (this.resumeService.isParsing() || !this.pastedText || !this.pastedText.trim()) {
+      return;
+    }
     try {
       const res = await this.resumeService.parseRawText(this.pastedText.trim());
       if (res && res.creditsDeducted) {
