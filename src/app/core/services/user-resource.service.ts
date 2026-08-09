@@ -21,8 +21,19 @@ export class UserResourceService {
   initialize(user: User | null): void {
     if (user) {
       this._userCoins.set(user.coins ?? 0);
-      this._paidCredits.set(Number.parseFloat(user.paidCredits ?? "0"));
-      this.fetchCreditsAndCoins().subscribe({ error: () => {} });
+      if (user.freeCredits !== undefined && user.freeCredits !== null) {
+        const parsedFree = typeof user.freeCredits === 'number' ? user.freeCredits : Number.parseFloat(user.freeCredits.toString());
+        if (!Number.isNaN(parsedFree)) {
+          this._freeCredits.set(parsedFree);
+        }
+      }
+      if (user.paidCredits !== undefined && user.paidCredits !== null) {
+        const parsedPaid = typeof user.paidCredits === 'number' ? user.paidCredits : Number.parseFloat(user.paidCredits.toString());
+        if (!Number.isNaN(parsedPaid)) {
+          this._paidCredits.set(parsedPaid);
+        }
+      }
+      this.fetchCreditsAndCoins().subscribe({ error: () => { } });
     } else {
       this.clear();
     }
@@ -61,7 +72,7 @@ export class UserResourceService {
     this._userCoins.set(newCoinTotal);
     return this.userService.updateUser(id, { coins: newCoinTotal }).pipe(
       tap(() => {
-        this.fetchCreditsAndCoins().subscribe({ error: () => {} });
+        this.fetchCreditsAndCoins().subscribe({ error: () => { } });
       })
     );
   }
@@ -85,7 +96,7 @@ export class UserResourceService {
         if (res) {
           this.updateUserCredits({ freeCredits: res.freeCredits, paidCredits: res.paidCredits, refetch: true });
         } else {
-          this.fetchCreditsAndCoins().subscribe({ error: () => {} });
+          this.fetchCreditsAndCoins().subscribe({ error: () => { } });
         }
       })
     );
@@ -127,14 +138,14 @@ export class UserResourceService {
       if (!Number.isNaN(parsed)) this._paidCredits.set(parsed);
     }
     if (refetch) {
-      this.fetchCreditsAndCoins().subscribe({ error: () => {} });
+      this.fetchCreditsAndCoins().subscribe({ error: () => { } });
     }
   }
 
   addFreeCredits(freeCredits: number): Observable<User> {
     return this.userService.addFreeCredits(freeCredits).pipe(
       tap(() => {
-        this.fetchCreditsAndCoins().subscribe({ error: () => {} });
+        this.fetchCreditsAndCoins().subscribe({ error: () => { } });
       })
     );
   }
@@ -142,7 +153,7 @@ export class UserResourceService {
   addPaidCredits(paidCredits: number): Observable<User> {
     return this.userService.addPaidCredits(paidCredits).pipe(
       tap(() => {
-        this.fetchCreditsAndCoins().subscribe({ error: () => {} });
+        this.fetchCreditsAndCoins().subscribe({ error: () => { } });
       })
     );
   }
@@ -156,7 +167,7 @@ export class UserResourceService {
   startFreeTrial(): Observable<{ message?: string; plan?: 'Silver' | 'Copper' | 'Gold'; isTrialActive?: boolean; trialExpiryDate?: string; user?: User }> {
     return this.userService.startFreeTrial().pipe(
       tap(() => {
-        this.fetchCreditsAndCoins().subscribe({ error: () => {} });
+        this.fetchCreditsAndCoins().subscribe({ error: () => { } });
       })
     );
   }

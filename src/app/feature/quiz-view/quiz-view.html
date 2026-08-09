@@ -77,9 +77,9 @@
 
     <!-- Footer tips -->
     <div class="setup-tips">
-      <span class="tip-item"><i class="pi pi-lightbulb"></i> Use hints wisely</span>
-      <span class="tip-item"><i class="pi pi-bitcoin"></i> Earn 5 coins per correct</span>
-      <span class="tip-item"><i class="pi pi-clock"></i> Timer tracks your speed</span>
+      <span class="tip-item tip-item--hint"><i class="pi pi-lightbulb"></i> Use hints wisely</span>
+      <span class="tip-item tip-item--coins"><i class="pi pi-bitcoin"></i> Earn 5 coins per correct</span>
+      <span class="tip-item tip-item--timer"><i class="pi pi-clock"></i> Timer tracks your speed</span>
     </div>
   </div>
 </div>
@@ -116,27 +116,41 @@
       </div>
 
       <div class="quiz-actions">
-        <div class="stat-pill stat-pill--timer">
-          <i class="pi pi-clock"></i>
-          <span>{{ timer.time() }}</span>
+        <div class="stat-pill stat-pill--timer" title="Time Elapsed">
+          <div class="stat-pill-icon-wrap timer-icon-wrap">
+            <i class="pi pi-clock stat-pill-icon"></i>
+          </div>
+          <div class="stat-pill-content">
+            <span class="stat-pill-value">{{ timer.time() }}</span>
+          </div>
         </div>
-        <div class="stat-pill stat-pill--coins">
-          <i class="pi pi-bitcoin"></i>
-          <span>{{ coins() }}</span>
+
+        <div class="stat-pill stat-pill--coins" title="Coins Earned">
+          <div class="stat-pill-icon-wrap coin-icon-wrap">
+            <i class="pi pi-bitcoin stat-pill-icon"></i>
+          </div>
+          <div class="stat-pill-content">
+            <span class="stat-pill-value">{{ coins() }}</span>
+            <span class="stat-pill-unit">Coins</span>
+          </div>
         </div>
+
         <button
           type="button"
           class="action-btn action-btn--hint"
           (click)="onHintClick()"
           [disabled]="isSubmited() || availableHints() === 0"
-          [class.action-btn--disabled]="isSubmited() || availableHints() === 0">
+          [class.action-btn--disabled]="isSubmited() || availableHints() === 0"
+          title="Use a hint (costs 2 coins)">
           <i class="pi pi-lightbulb"></i>
           <span>Hint ({{ availableHints() }})</span>
         </button>
+
         <button
           type="button"
           class="action-btn action-btn--report"
-          (click)="showReportDialog()">
+          (click)="showReportDialog()"
+          title="Report issue with question">
           <i class="pi pi-flag"></i>
           <span>Report</span>
         </button>

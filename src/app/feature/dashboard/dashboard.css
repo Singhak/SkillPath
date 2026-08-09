@@ -212,7 +212,7 @@
 }
 
 .date-cell {
-  color: #64748b !important;
+  color: var(--text-muted, #64748b) !important;
 }
 
 .count-pill {
@@ -239,7 +239,7 @@
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
-  color: #64748b;
+  color: var(--text-muted, #64748b);
   font-size: 0.82rem;
 }
 
@@ -253,6 +253,14 @@
   padding: 0.25rem 0.6rem;
   border-radius: 8px;
   border: 1px solid #fef3c7;
+}
+
+:root.p-dark .score-badge,
+:root[data-theme='dark'] .score-badge,
+html.dark .score-badge {
+  background: rgba(245, 158, 11, 0.15);
+  border-color: rgba(245, 158, 11, 0.3);
+  color: #fbbf24;
 }
 
 @media (max-width: 1280px) {

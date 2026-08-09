@@ -75,7 +75,7 @@ export const AI_CREDIT_COST = {
   JOB_PROFILE_ANALYSIS: 2.00
 };
 
-export const INITIAL_ACHIEVEMENTS: Achievement[] = [
+export const MASTER_ACHIEVEMENTS: Achievement[] = [
   {
     id: 'STREAK_1_DAY',
     title: 'First Step',
@@ -173,6 +173,8 @@ export const INITIAL_ACHIEVEMENTS: Achievement[] = [
     xpReward: 150,
   },
 ];
+
+export const INITIAL_ACHIEVEMENTS: Achievement[] = MASTER_ACHIEVEMENTS;
 
 export const DEFAULT_JOB_ROLES: JobRoleRequirement[] = [
   {

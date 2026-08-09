@@ -1149,8 +1149,16 @@ input:checked + .slider:before {
   overflow-x: auto;
   border-radius: 12px;
   border: 1px solid var(--border-color, #e2e8f0);
+  background: var(--card-bg, #ffffff);
 }
 
+/* Global PrimeNG Table & Custom Table Styling */
+.p-datatable,
+.custom-table {
+  background: transparent !important;
+}
+
+.custom-table .p-datatable-thead > tr > th,
 .custom-table th {
   background: var(--subtle-bg, #f8fafc) !important;
   color: var(--text-color, #475569) !important;
@@ -1162,15 +1170,44 @@ input:checked + .slider:before {
   border-bottom: 2px solid var(--border-color, #e2e8f0) !important;
 }
 
-.custom-table td {
-  padding: 0.85rem 1rem !important;
+.custom-table .p-datatable-tbody > tr,
+.custom-table .p-datatable-tbody > tr > td,
+.custom-table td,
+.table-row td {
+  background: var(--card-bg, #ffffff) !important;
   color: var(--body-text-color, #1e293b) !important;
   font-size: 0.88rem !important;
+  padding: 0.85rem 1rem !important;
   border-bottom: 1px solid var(--border-color, #f1f5f9) !important;
+  transition: background-color 0.15s ease, color 0.15s ease;
 }
 
+.custom-table .p-datatable-tbody > tr:hover,
+.custom-table .p-datatable-tbody > tr:hover > td,
+.custom-table .p-datatable-tbody > tr.table-row:hover td,
 .table-row:hover td {
-  background: var(--hover-bg, #f8fafc) !important;
+  background: var(--hover-bg, #f1f5f9) !important;
+  color: var(--body-text-color, #0f172a) !important;
+}
+
+/* Paginator Styling in Dark & Light Modes */
+.p-paginator {
+  background: var(--card-bg, #ffffff) !important;
+  color: var(--text-color, #475569) !important;
+  border-top: 1px solid var(--border-color, #e2e8f0) !important;
+}
+
+.p-paginator .p-paginator-page,
+.p-paginator .p-paginator-next,
+.p-paginator .p-paginator-last,
+.p-paginator .p-paginator-first,
+.p-paginator .p-paginator-prev {
+  color: var(--text-color, #475569) !important;
+}
+
+.p-paginator .p-paginator-page.p-highlight {
+  background: var(--primary-accent-light, rgba(99, 102, 241, 0.15)) !important;
+  color: var(--primary-accent, #6366f1) !important;
 }
 
 .empty-table-state {

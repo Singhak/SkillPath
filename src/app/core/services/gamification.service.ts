@@ -1,6 +1,6 @@
 import { Injectable, signal, computed, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Achievement, UserGamificationStats } from '../models/achievement.model';
+import { Achievement } from '../models/achievement.model';
 import { UserResourceService } from './user-resource.service';
 import { INITIAL_ACHIEVEMENTS } from '../../shared/constants';
 import { environment } from '../../environments/environment';
@@ -100,11 +100,40 @@ export class GamificationService {
           if (data.longestStreak != null && data.longestStreak > this.longestStreak()) {
             this.longestStreak.set(data.longestStreak);
           }
+          if (data.achievements) {
+            this.mergeBackendAchievements(data.achievements);
+          }
           this.saveStateToStorage();
         }
       },
-      error: () => { }
+      error: () => { },
     });
+  }
+
+  private mergeBackendAchievements(dbAchievements: any[]): void {
+    if (!Array.isArray(dbAchievements) || dbAchievements.length === 0) return;
+
+    const unlockedMap = new Map(
+      dbAchievements.map((item) => [item.badgeKey || item.id, item.unlockedAt || item.unlocked_at])
+    );
+
+    const updated = this.achievements().map((ach) => {
+      if (unlockedMap.has(ach.id)) {
+        const unlockedAtDate = unlockedMap.get(ach.id);
+        return {
+          ...ach,
+          isUnlocked: true,
+          currentProgress: ach.requiredCount,
+          unlockedAt: unlockedAtDate
+            ? new Date(unlockedAtDate).toLocaleDateString()
+            : ach.unlockedAt || new Date().toLocaleDateString(),
+        };
+      }
+      return ach;
+    });
+
+    this.achievements.set(updated);
+    this.saveStateToStorage();
   }
 
   /**
@@ -135,6 +164,10 @@ export class GamificationService {
         xpPoints: this.xpPoints(),
         currentStreak: this.currentStreak(),
         longestStreak: this.longestStreak(),
+        quizCompletedCount: this.quizCompletedCount(),
+        interviewCompletedCount: this.interviewCompletedCount(),
+        skillsRatedCount: this.skillsRatedCount(),
+        achievements: this.achievements().filter((a) => a.isUnlocked),
       },
     };
 
@@ -148,11 +181,12 @@ export class GamificationService {
         this.pendingQueue = this.pendingQueue.filter((act) => !this.syncedActivityIds.has(act.id));
         this.savePendingQueue();
 
-        if (res && res.stats) {
+        if (res?.stats) {
           const s = res.stats;
           if (s.xpPoints != null && s.xpPoints > this.xpPoints()) this.xpPoints.set(s.xpPoints);
           if (s.currentStreak != null && s.currentStreak > this.currentStreak()) this.currentStreak.set(s.currentStreak);
           if (s.longestStreak != null && s.longestStreak > this.longestStreak()) this.longestStreak.set(s.longestStreak);
+          if (s.achievements) this.mergeBackendAchievements(s.achievements);
         }
 
         this.userResourceService.fetchCreditsAndCoins().subscribe({ error: () => { } });
@@ -217,23 +251,44 @@ export class GamificationService {
       timestamp: new Date().toISOString(),
     };
 
+    const unlockedBadges = this.achievements()
+      .filter((a) => a.isUnlocked)
+      .map((a) => a.id);
+    const localStats = {
+      quizCompletedCount: this.quizCompletedCount(),
+      interviewCompletedCount: this.interviewCompletedCount(),
+      skillsRatedCount: this.skillsRatedCount(),
+      currentStreak: this.currentStreak(),
+    };
+
     if (!this.networkService.status()) {
       this.enqueuePendingActivity(activityItem);
       this.syncStatusMessage.set('Progress saved locally (Offline). Will auto-sync when online.');
     } else {
       // Send directly with deduplication activityId payload
-      this.http.post<any>(`${this.apiUrl}/activity`, { type, increment: countIncrement, activityId }).subscribe({
-        next: () => {
-          this.syncedActivityIds.add(activityId);
-          this.saveSyncedIds();
-          this.lastSyncedAt.set(new Date().toLocaleTimeString());
-        },
-        error: () => {
-          // If network error occurs, queue item for auto-sync retry
-          this.enqueuePendingActivity(activityItem);
-          this.syncStatusMessage.set('Network issue. Saved locally for background retry.');
-        },
-      });
+      this.http
+        .post<any>(`${this.apiUrl}/activity`, {
+          type,
+          increment: countIncrement,
+          activityId,
+          unlockedBadges,
+          localStats,
+        })
+        .subscribe({
+          next: (res) => {
+            this.syncedActivityIds.add(activityId);
+            this.saveSyncedIds();
+            if (res?.achievements) {
+              this.mergeBackendAchievements(res.achievements);
+            }
+            this.lastSyncedAt.set(new Date().toLocaleTimeString());
+          },
+          error: () => {
+            // If network error occurs, queue item for auto-sync retry
+            this.enqueuePendingActivity(activityItem);
+            this.syncStatusMessage.set('Network issue. Saved locally for background retry.');
+          },
+        });
     }
   }
 

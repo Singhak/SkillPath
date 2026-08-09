@@ -194,10 +194,7 @@ export class InterviewComponent {
       )
       .subscribe({
         next: () => {
-          const actualCost = (this.session()?.questions.length || count) * AI_CREDIT_COST.QUESTION_GENERATION;
-          this.authService.decrementAiCredits(actualCost).pipe(
-            takeUntilDestroyed(this.destroyRef)
-          ).subscribe();
+          this.authService.refreshCreditsAndCoins().subscribe();
         },
         error: (err) => {
           this.messageService.add({
@@ -296,9 +293,7 @@ export class InterviewComponent {
         this.voiceService.setStateIdle();
         if (result && Object.keys(result).length > 0) {
           this.voiceService.speak(result.feedback);
-          this.authService.decrementAiCredits(aiCreditCost).pipe(
-            takeUntilDestroyed(this.destroyRef)
-          ).subscribe();
+          this.authService.refreshCreditsAndCoins().subscribe();
         } else {
           this.messageService.add({
             severity: 'error',

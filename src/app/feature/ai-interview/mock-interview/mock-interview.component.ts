@@ -196,12 +196,9 @@ export class MockInterviewComponent {
             this.errorMessage.set('No questions were generated. Please try another topic.');
             return;
           }
-          const actualCost = generatedQuestions.length * AI_CREDIT_COST.QUESTION_GENERATION;
           this.startInterviewWithQuestions(generatedQuestions, topic);
           this.speakQuestion(generatedQuestions[0].question);
-          this.authService.decrementAiCredits(actualCost).pipe(
-            takeUntilDestroyed(this.destroyRef)
-          ).subscribe();
+          this.authService.refreshCreditsAndCoins().subscribe();
         },
         error: () => {
           this.errorMessage.set('Unable to generate questions right now. Please try again.');
@@ -304,9 +301,7 @@ export class MockInterviewComponent {
       takeUntilDestroyed(this.destroyRef)
     ).subscribe({
       next: (res) => {
-        this.authService.decrementAiCredits(evaluationCost).pipe(
-          takeUntilDestroyed(this.destroyRef)
-        ).subscribe();
+        this.authService.refreshCreditsAndCoins().subscribe();
         this.endInterview();
       },
       error: (err) => {
