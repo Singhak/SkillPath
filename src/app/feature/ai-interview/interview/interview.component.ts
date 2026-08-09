@@ -27,7 +27,8 @@ import { AI_CREDIT_COST, EXPERIENCE_LEVELS, INTERVIEW_TIPS, USER_ROLES } from '.
 import { MessageService } from 'primeng/api';
 import { AuthService } from '../../../core/services/auth.service';
 import { TableModule } from "primeng/table";
-import { Select } from "primeng/select";
+import { SelectModule } from "primeng/select";
+import { BadgeModule } from 'primeng/badge';
 
 
 @Component({
@@ -49,7 +50,8 @@ import { Select } from "primeng/select";
     PanelModule,
     AutoCompleteModule,
     TableModule,
-    Select
+    SelectModule,
+    BadgeModule
   ],
   templateUrl: './interview.component.html',
   styleUrls: ['./interview.component.css'],
@@ -82,6 +84,8 @@ export class InterviewComponent {
   jobDescription = signal('');
   userRole = signal('');
   experienceLevel = signal('');
+
+  readonly loading = signal(false);
 
   // ------------------------------------------------
   // UI State
@@ -156,17 +160,50 @@ export class InterviewComponent {
     const topic = this.topic().trim();
 
     if (!topic) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Topic Required',
+        detail: 'Please enter an interview topic before starting.',
+      });
       return;
     }
 
     const count = Number(this.questionCount()) || 5;
+    const requiredCredits = count * AI_CREDIT_COST.QUESTION_GENERATION;
+    const availableCredits = this.freeCredits() + this.paidCredits();
+
+    if (availableCredits < requiredCredits) {
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Insufficient Credits',
+        detail: `Generating ${count} question(s) requires ${requiredCredits} AI credit(s). You have ${availableCredits} credit(s).`,
+        life: 5000,
+      });
+      return;
+    }
+
+    this.loading.set(true);
     this.interviewService
       .startInterview(topic, this.userRole(), this.experienceLevel(), count)
       .pipe(
         takeUntilDestroyed(this.destroyRef),
-        finalize(() => this.speakQuestion()),
+        finalize(() => {
+          this.loading.set(false);
+          this.speakQuestion();
+        }),
       )
-      .subscribe();
+      .subscribe({
+        next: () => {
+          this.authService.refreshCreditsAndCoins().subscribe();
+        },
+        error: (err) => {
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: err?.error?.message || 'Failed to generate interview questions. Please try again.',
+          });
+        }
+      });
   }
 
   startInterviewWithQuestions(questions: InterviewQuestion[], topic: string): void {
@@ -256,7 +293,7 @@ export class InterviewComponent {
         this.voiceService.setStateIdle();
         if (result && Object.keys(result).length > 0) {
           this.voiceService.speak(result.feedback);
-          this.authService.decrementAiCredits(aiCreditCost).subscribe();
+          this.authService.refreshCreditsAndCoins().subscribe();
         } else {
           this.messageService.add({
             severity: 'error',

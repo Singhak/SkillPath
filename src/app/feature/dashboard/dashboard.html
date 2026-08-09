@@ -1,106 +1,292 @@
-<div class="p-3">
-  <main class="dashboard-main">
-    <section class="hero-card">
-      <div>
-        <p class="eyebrow">Today</p>
-        <h3>Keep learners engaged with polished insights.</h3>
-        <p>
-          Track attempt trends, accuracy, and participation without losing focus on the journey.
+<div class="dashboard-wrapper">
+  <main class="dashboard-container">
+    <!-- Hero Header Banner -->
+    <section class="hero-banner">
+      <div class="hero-content">
+        <div class="hero-header-badge">
+          <i class="pi pi-sparkles"></i>
+          <span>Personal Dashboard</span>
+        </div>
+        <h1 class="hero-title">Welcome back, <span class="highlight">{{ userName() }}</span>! 👋</h1>
+        <p class="hero-subtitle">
+          Track attempt trends, accuracy rates, and skill mastery to level up your technical expertise.
         </p>
+        <div class="hero-actions">
+          <button class="action-btn primary-btn" type="button" (click)="onNewQuiz()">
+            <i class="pi pi-play-circle"></i>
+            <span>Take New Quiz</span>
+          </button>
+          <button class="action-btn secondary-btn" type="button" (click)="onStartAiInterview()">
+            <i class="pi pi-microchip-ai"></i>
+            <span>Practice AI Interview</span>
+          </button>
+        </div>
       </div>
-      <div class="flex gap-2">
-        <div class="hero-badge">
-          <span class="hero-badge-label">AI Credits</span>
-          <strong class="pi pi-microchip-ai"><span class="ml-2">{{ totalAiCredits() }}</span></strong>
+
+      <div class="hero-widgets">
+        <div class="glass-widget credit-widget">
+          <div class="widget-main">
+            <div class="widget-icon credit-icon">
+              <i class="pi pi-microchip-ai"></i>
+            </div>
+            <div class="widget-details">
+              <span class="widget-label">AI Credits</span>
+              <strong class="widget-val credit-val">{{ totalAiCredits() }}</strong>
+            </div>
+          </div>
+          <div class="widget-actions">
+            <button class="widget-action-btn credit-action flex-1" type="button" (click)="onBuyCredits()">
+              <i class="pi pi-plus"></i>
+              <span>Buy Credit</span>
+            </button>
+            <button class="widget-action-btn secondary-action flex-1" type="button" (click)="onViewBillingHistory()">
+              <i class="pi pi-history"></i>
+              <span>History</span>
+            </button>
+          </div>
         </div>
-        <div class="hero-badge">
-          <span class="hero-badge-label">Total Coins</span>
-          <strong class="pi pi-bitcoin"><span class="ml-2">{{ totalCoins() }}</span></strong>
+
+        <div class="glass-widget coin-widget">
+          <div class="widget-main">
+            <div class="widget-icon coin-icon">
+              <i class="pi pi-bitcoin"></i>
+            </div>
+            <div class="widget-details">
+              <span class="widget-label">Net Coins</span>
+              <strong class="widget-val coin-val">{{ totalCoins() }}</strong>
+            </div>
+          </div>
+          <div class="widget-actions">
+            <button class="widget-action-btn coin-action flex-1" type="button" (click)="onConvertCoins()">
+              <i class="pi pi-sync"></i>
+              <span>Convert to Credit</span>
+            </button>
+          </div>
         </div>
-        <button class="primary-action" type="button" (click)="onNewQuiz()">
-          <i class="pi pi-plus"></i>
-          <span>New quiz</span>
-        </button>
       </div>
     </section>
 
-    <div class="stats-grid sm:col-4 md:col-8 xl:col-9">
-      @for (card of summaryCards(); track card) {
-      <div class="stat-card">
-        <div class="stat-card-icon" [ngClass]="'accent-' + card.accent">
+    <!-- Stage 3 Gamification, Streaks & PDF Evaluation Report Panel -->
+    <app-gamification-panel></app-gamification-panel>
+
+    <!-- Stage 2 Skill Gap & Spaced Repetition Review Deck Panel -->
+    <app-skill-gap-panel></app-skill-gap-panel>
+
+    <!-- Stage 1 AI Tools & Interview Enhancements Panel -->
+    <app-ai-tools-widget></app-ai-tools-widget>
+
+    <!-- Key Performance Metrics Grid -->
+    <section class="stats-grid">
+      @for (card of summaryCards(); track card.label) {
+      <div class="kpi-card">
+        <div class="kpi-icon-box" [ngClass]="'accent-' + card.accent">
           <i class="{{ card.icon }}"></i>
         </div>
-        <div>
-          <p class="stat-label">{{ card.label }}</p>
-          <h4>{{ card.value }}</h4>
+        <div class="kpi-info">
+          <span class="kpi-label">{{ card.label }}</span>
+          <h3 class="kpi-value">{{ card.value }}</h3>
+          <span class="kpi-subtitle">{{ card.subtitle }}</span>
         </div>
       </div>
       }
-    </div>
+    </section>
 
-    <p-panel header="Performance Chart" toggleable>
-      <div class="content-grid" toggleable>
-        <div class="panel">
-          <div class="panel-header">
-            <div>
-              <p class="eyebrow">Trend</p>
-              <!-- <h3>Attempt performance</h3> -->
-            </div>
-            <p-floatlabel class="filter-field" variant="on">
-              <p-select [(ngModel)]="selectChartCategory" inputId="category_select" [options]="categoryList()"
-                class="w-full"></p-select>
-              <label for="category_select">Category</label>
-            </p-floatlabel>
+    <!-- Analytics & Skill Breakdown -->
+    <div class="relative">
+      <!-- Locked Overlay for Silver Plan -->
+      @if (authService.currentPlan() === 'Silver') {
+      <div class="absolute inset-0 z-50 flex items-center justify-center rounded-3xl backdrop-blur-md bg-gray-900/40 border border-gray-700/50">
+        <div class="text-center p-8 bg-gray-900/90 rounded-2xl shadow-2xl border border-gray-700 max-w-sm">
+          <div class="w-16 h-16 rounded-full bg-linear-to-r from-orange-400 to-red-500 flex items-center justify-center mx-auto mb-4">
+            <i class="pi pi-lock text-3xl text-white"></i>
           </div>
-          <p-chart type="line" [data]="lineData()" [options]="chartOptions"></p-chart>
-        </div>
-
-        <div class="panel">
-          <div class="panel-header">
-            <div>
-              <p class="eyebrow">Split</p>
-              <h3>Category mix</h3>
-            </div>
-          </div>
-          <p-chart type="pie" [data]="pieData()" [options]="chartOptions"></p-chart>
+          <h3 class="text-xl font-bold text-white mb-2">Advanced Analytics Locked</h3>
+          <p class="text-gray-400 mb-6 text-sm">Upgrade to the Copper plan to view your performance trends and category mix distribution.</p>
+          <a routerLink="/pricing" class="inline-block w-full py-3 px-6 rounded-full font-semibold bg-linear-to-r from-orange-500 to-red-500 text-white hover:opacity-90 transition-opacity">
+            Upgrade to Copper
+          </a>
         </div>
       </div>
-    </p-panel>
+      }
 
-    <p-panel header="Recent quiz attempts" toggleable>
-      <!-- <div class="panel-header">
-        <div>
-          <p class="eyebrow">Activity</p>
-          <h3>Recent quiz attempts</h3>
+      <div class="analytics-grid" [class.opacity-30]="authService.currentPlan() === 'Silver'" [class.pointer-events-none]="authService.currentPlan() === 'Silver'">
+        <!-- Performance Line Chart -->
+        <div class="glass-card chart-card flex-2">
+          <div class="card-header">
+            <div>
+              <div class="section-tag">
+                <i class="pi pi-chart-line"></i>
+                <span>Attempt Trends</span>
+              </div>
+              <h3 class="card-title">Category Performance</h3>
+            </div>
+            <div class="category-selector-wrapper">
+              <p-select [(ngModel)]="selectChartCategory" inputId="category_select" [options]="categoryList()"
+                placeholder="Select Category" class="custom-select"></p-select>
+            </div>
+          </div>
+          <div class="chart-wrapper">
+            @if (lineData()) {
+            <p-chart type="line" [data]="lineData()" [options]="lineChartOptions" height="260px"></p-chart>
+            } @else {
+            <div class="chart-empty">No performance data available yet</div>
+            }
+          </div>
         </div>
-      </div> -->
 
-      <p-table [value]="quizAttempts()" [tableStyle]="{ 'min-width': '100%' }" showGridlines [rows]="5"
-        [scrollable]="true" scrollHeight="400px" [virtualScroll]="true" [virtualScrollItemSize]="47">
-        <ng-template pTemplate="header">
-          <tr>
-            <th>Category</th>
-            <th>Total Questions</th>
-            <th>Wrong Answers</th>
-            <th>Correct Answers</th>
-            <th>Time Taken</th>
-            <th>Skipped</th>
-            <th>Hints Used</th>
-          </tr>
-        </ng-template>
+        <!-- Category Mix Doughnut Chart -->
+        <div class="glass-card chart-card flex-1">
+          <div class="card-header">
+            <div>
+              <div class="section-tag">
+                <i class="pi pi-chart-pie"></i>
+                <span>Distribution</span>
+              </div>
+              <h3 class="card-title">Category Mix</h3>
+            </div>
+          </div>
+          <div class="chart-wrapper doughnut-wrapper">
+            @if (pieData()) {
+            <p-chart type="doughnut" [data]="pieData()" [options]="pieChartOptions" height="260px"></p-chart>
+            } @else {
+            <div class="chart-empty">No category data</div>
+            }
+          </div>
+        </div>
+      </div>
+    </div>
 
-        <ng-template pTemplate="body" let-row>
-          <tr>
-            <td>{{ row.category }}</td>
-            <td>{{ row.totalQuestions }}</td>
-            <td>{{ row.wrongAnswerCount }}</td>
-            <td>{{ row.correctAnswerCount }}</td>
-            <td>{{ formattedTime(row.totalTimeTakenInSeconds) }}</td>
-            <td>{{ row.skippedCount }}</td>
-            <td>{{ row.hintsUsedCount }}</td>
-          </tr>
-        </ng-template>
-      </p-table>
-    </p-panel>
+    <!-- Skill Mastery Breakdown Card -->
+    @if (skillBreakdown().length) {
+    <section class="glass-card skill-card">
+      <div class="card-header">
+        <div>
+          <div class="section-tag">
+            <i class="pi pi-bolt"></i>
+            <span>Skill Mastery</span>
+          </div>
+          <h3 class="card-title">Accuracy Rate by Skill</h3>
+        </div>
+      </div>
+      <div class="skill-grid">
+        @for (item of skillBreakdown(); track item.category) {
+        <div class="skill-item">
+          <div class="skill-info">
+            <span class="skill-name">{{ item.category }}</span>
+            <span class="skill-accuracy" [ngClass]="getAccuracyBadgeClass(item.accuracy)">
+              {{ item.accuracy }}%
+            </span>
+          </div>
+          <div class="progress-bar-bg">
+            <div class="progress-bar-fill" [style.width.%]="item.accuracy"
+              [ngClass]="getAccuracyBadgeClass(item.accuracy)"></div>
+          </div>
+          <div class="skill-sub">
+            <span>{{ item.count }} quiz{{ item.count > 1 ? 'zes' : '' }}</span>
+            <span>{{ item.totalQuestions }} questions</span>
+          </div>
+        </div>
+        }
+      </div>
+    </section>
+    }
+
+    <!-- Recent Quiz Attempts Table -->
+    <section class="glass-card table-card">
+      <div class="card-header table-header-flex">
+        <div>
+          <div class="section-tag">
+            <i class="pi pi-history"></i>
+            <span>Activity Log</span>
+          </div>
+          <h3 class="card-title">
+            Recent Quiz Attempts
+            @if (quizAttempts().length > 0) {
+            <span class="attempt-count-badge">({{ quizAttempts().length }} loaded)</span>
+            }
+          </h3>
+        </div>
+        <div class="table-search-box">
+          <label for="tableSearchInput" class="sr-only">Search category or date</label>
+          <i class="pi pi-search search-icon"></i>
+          <input id="tableSearchInput" type="text" placeholder="Search category or date..." [ngModel]="tableSearchQuery()"
+            (ngModelChange)="tableSearchQuery.set($event)" class="search-input" />
+          @if (tableSearchQuery()) {
+          <button type="button" class="clear-search" (click)="tableSearchQuery.set('')" aria-label="Clear search">
+            <i class="pi pi-times"></i>
+          </button>
+          }
+        </div>
+      </div>
+
+      <div class="table-responsive">
+        <p-table [value]="filteredQuizAttempts()" [tableStyle]="{ 'min-width': '100%' }" [rows]="5"
+          [paginator]="filteredQuizAttempts().length > 5" [rowsPerPageOptions]="[5, 10, 15, 20]"
+          (onPage)="onTablePage($event)" class="p-datatable-sm custom-table">
+          <ng-template pTemplate="header">
+            <tr>
+              <th scope="col">Category</th>
+              <th scope="col">Date</th>
+              <th scope="col">Total Qs</th>
+              <th scope="col">Correct</th>
+              <th scope="col">Wrong</th>
+              <th scope="col">Skipped</th>
+              <th scope="col">Time Taken</th>
+              <th scope="col">Score</th>
+            </tr>
+          </ng-template>
+
+          <ng-template pTemplate="body" let-row>
+            <tr class="table-row">
+              <td>
+                <span class="category-pill">{{ row.category || 'General' }}</span>
+              </td>
+              <td class="date-cell">
+                {{ row.attemptedDate || row.attempedDate | date:'mediumDate' : '—' }}
+              </td>
+              <td><strong>{{ row.totalQuestions }}</strong></td>
+              <td>
+                <span class="count-pill correct"><i class="pi pi-check"></i> {{ row.correctAnswerCount }}</span>
+              </td>
+              <td>
+                <span class="count-pill wrong"><i class="pi pi-times"></i> {{ row.wrongAnswerCount }}</span>
+              </td>
+              <td>{{ row.skippedCount || 0 }}</td>
+              <td>
+                <span class="time-badge"><i class="pi pi-clock"></i> {{ formattedTime(row.totalTimeTakenInSeconds) }}</span>
+              </td>
+              <td>
+                <span class="score-badge"><i class="pi pi-star-fill"></i> {{ row.totalScore }}</span>
+              </td>
+            </tr>
+          </ng-template>
+
+          <ng-template pTemplate="emptymessage">
+            <tr>
+              <td colspan="8" class="empty-table-state">
+                <div class="empty-box">
+                  @if (isLoadingAttempts()) {
+                  <i class="pi pi-spin pi-spinner empty-icon"></i>
+                  <p>Loading recent quiz attempts...</p>
+                  } @else {
+                  <i class="pi pi-inbox empty-icon"></i>
+                  <p>No quiz attempts found matching your query.</p>
+                  @if (!quizAttempts().length) {
+                  <button type="button" class="action-btn primary-btn btn-sm" (click)="onNewQuiz()">Start First Quiz</button>
+                  }
+                  }
+                </div>
+              </td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </div>
+    </section>
   </main>
 </div>
+
+<!-- Global Confirm Dialog for Locked Features -->
+<p-confirmDialog [style]="{width: '450px'}" styleClass="custom-confirm-dialog"></p-confirmDialog>
+
+<!-- Billing & Credit Usage History Modal -->
+<app-billing-history-modal [isOpen]="isBillingModalOpen()" (close)="isBillingModalOpen.set(false)" />

@@ -1,7 +1,7 @@
 <p-card>
   <section class="home-hero">
     <div class="hero-copy">
-      <p class="eyebrow">SkillPath for confident interview prep</p>
+      <p class="eyebrow">IMONBENCH for confident interview prep</p>
       <h1>Turn practice into momentum with a guided interview experience.</h1>
       <p class="hero-text">
         Mordenec helps you build confidence through focused quizzes, smart feedback, and a simple
@@ -9,18 +9,10 @@
       </p>
 
       <div class="hero-actions">
-        <p-button
-          label="Create account"
-          icon="pi pi-user-plus"
-          styleClass="p-button-rounded p-button-lg"
-          routerLink="/sign-up"
-        ></p-button>
-        <p-button
-          label="Log in"
-          icon="pi pi-sign-in"
-          styleClass="p-button-outlined p-button-rounded p-button-lg"
-          routerLink="/login"
-        ></p-button>
+        <p-button label="Create account" icon="pi pi-user-plus" styleClass="p-button-rounded p-button-lg"
+          routerLink="/sign-up"></p-button>
+        <p-button label="Log in" icon="pi pi-sign-in" styleClass="p-button-outlined p-button-rounded p-button-lg"
+          routerLink="/login"></p-button>
       </div>
 
       <div class="hero-highlights">
@@ -59,13 +51,13 @@
 
   <section class="feature-grid">
     @for (feature of features; track feature.title) {
-      <div class="feature-card">
-        <div class="feature-icon">
-          <i class="{{ feature.icon }}"></i>
-        </div>
-        <h3>{{ feature.title }}</h3>
-        <p>{{ feature.description }}</p>
+    <div class="feature-card">
+      <div class="feature-icon">
+        <i class="{{ feature.icon }}"></i>
       </div>
+      <h3>{{ feature.title }}</h3>
+      <p>{{ feature.description }}</p>
+    </div>
     }
   </section>
 </p-card>

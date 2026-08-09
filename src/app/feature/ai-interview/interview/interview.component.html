@@ -1,337 +1,306 @@
-<div class="interview-container surface-ground">
-  <!-- START SCREEN -->
+<div class="interview-container">
+
+  <!-- ══════════════════ START SCREEN ══════════════════ -->
   @if (!session()) {
-  <div class="max-h-screen flex items-center justify-center bg-gray-50 p-6">
-    <p-card class="w-full shadow-lg rounded-2xl">
-      <ng-template pTemplate="header">
-        <div class="bg-linear-to-r from-blue-600 to-indigo-600 text-white p-6 rounded-t-2xl">
-          <div class="flex items-center gap-3">
-            <div class="flex items-center justify-center w-12 h-12 rounded-full bg-white/20">
-              <i class="pi pi-android text-2xl"></i>
-            </div>
+  <div class="start-screen-wrapper">
+    <div class="start-card">
 
-            <div>
-              <h2 class="text-xl font-bold m-0">AI Interview Preparation</h2>
-
-              <p class="text-sm opacity-90 mt-1">Practice with your personal AI interviewer</p>
-            </div>
-          </div>
+      <!-- Header -->
+      <div class="start-card-header">
+        <div class="header-icon-ring">
+          <i class="pi pi-sparkles"></i>
         </div>
-      </ng-template>
-
-      <div class="flex flex-col gap-6 p-2">
-        <div class="text-gray-600">
-          Choose a topic, experience level, role and let AI generate interview questions, evaluate
-          your answers, and provide feedback.
+        <div>
+          <h2 class="header-title">AI Interview Practice</h2>
+          <p class="header-sub">Your personal AI interviewer is ready</p>
         </div>
+      </div>
 
-        <div class="grid grid-cols-3 gap-4">
-          <span>
-            <label for="experience" class="font-semibold text-gray-700"> Experience Level </label>
+      <!-- Body -->
+      <div class="start-card-body">
+        <p class="start-description">
+          Choose a topic, experience level, and role — then let AI generate interview
+          questions, evaluate your answers, and give personalised feedback.
+        </p>
+
+        <!-- Fields -->
+        <div class="fields-grid">
+          <div class="field-group">
+            <label class="field-label">Experience Level</label>
             <p-autoComplete [(ngModel)]="experienceLevel" [suggestions]="filteredExperienceLevels"
               (completeMethod)="search($event, experienceLevels, 'experienceLevel')" [dropdown]="true"
-              placeholder="Experience Level" class="w-full"></p-autoComplete>
-          </span>
-          <span>
-            <label for="userrole" class="font-semibold text-gray-700"> Role </label>
+              placeholder="e.g. Mid-level" class="w-full" appendTo="body">
+            </p-autoComplete>
+          </div>
+          <div class="field-group">
+            <label class="field-label">Your Role</label>
             <p-autoComplete [(ngModel)]="userRole" [suggestions]="filteredUserRoles"
-              (completeMethod)="search($event, userRoles, 'userRole')" [dropdown]="true" placeholder="Role"
-              class="w-full"></p-autoComplete>
-          </span>
-          <span>
-            <label class="font-semibold text-gray-700">Number of questions</label>
-            <p-select class="w-full rounded-xl border-slate-300 bg-white" [ngModel]="questionCount()"
-              (ngModelChange)="questionCount.set(+$event)" [options]="questionCountOptions">
+              (completeMethod)="search($event, userRoles, 'userRole')" [dropdown]="true"
+              placeholder="e.g. Frontend Developer" class="w-full" appendTo="body">
+            </p-autoComplete>
+          </div>
+          <div class="field-group">
+            <label class="field-label">Number of Questions</label>
+            <p-select class="w-full" [ngModel]="questionCount()"
+              (ngModelChange)="questionCount.set(+$event)" [options]="questionCountOptions" appendTo="body">
             </p-select>
-          </span>
+          </div>
         </div>
 
-        <div class="flex flex-col gap-2">
-          <label for="topic" class="font-semibold text-gray-700"> Interview Topic </label>
-
-          <input id="topic" pInputText class="w-full rounded-lg p-3"
-            placeholder="Example: Angular Signals, Java, SQL..." [ngModel]="topic()" (ngModelChange)="topic.set($event)"
-            (keydown.enter)="startInterview()" />
+        <div class="field-group">
+          <label for="topic" class="field-label">Interview Topic</label>
+          <div class="topic-input-wrapper">
+            <i class="pi pi-search topic-icon"></i>
+            <input id="topic" pInputText class="topic-input"
+              placeholder="e.g. Angular Signals, Java, System Design..."
+              [ngModel]="topic()" (ngModelChange)="topic.set($event)"
+              (keydown.enter)="startInterview()" />
+          </div>
         </div>
 
-        <p-button label="Start AI Interview" icon="pi pi-play" size="large" styleClass="w-full"
-          (click)="startInterview()" [disabled]="!topic().trim()">
-        </p-button>
+        <button type="button" pButton class="start-btn flex items-center justify-center gap-2" (click)="startInterview()" [disabled]="!topic().trim() || loading()">
+          @if (loading()) {
+            <i class="pi pi-spin pi-spinner"></i>
+            <span>Generating Questions...</span>
+          } @else {
+            <i class="pi pi-play"></i>
+            <span>Start AI Interview</span>
+            <span class="ml-2 px-2 py-0.5 rounded-full text-xs font-bold bg-amber-400/20 text-amber-300 border border-amber-400/30">
+              ⚡ {{ (questionCount() * 0.20).toFixed(2) }} Credits
+            </span>
+          }
+        </button>
 
-        <div class="grid grid-cols-3 gap-3 mt-4 text-center">
-          <div class="bg-blue-50 rounded-xl p-3">
-            <i class="pi pi-list text-blue-600"></i>
-
-            <p class="text-sm mt-2">AI Questions</p>
+        <!-- Feature Pills -->
+        <div class="feature-pills">
+          <div class="pill pill-blue">
+            <i class="pi pi-list"></i>
+            <span>AI Questions</span>
           </div>
-
-          <div class="bg-green-50 rounded-xl p-3">
-            <i class="pi pi-microphone text-green-600"></i>
-
-            <p class="text-sm mt-2">Voice Answer</p>
+          <div class="pill pill-green">
+            <i class="pi pi-microphone"></i>
+            <span>Voice Answer</span>
           </div>
-
-          <div class="bg-purple-50 rounded-xl p-3">
-            <i class="pi pi-chart-line text-purple-600"></i>
-
-            <p class="text-sm mt-2">AI Feedback</p>
+          <div class="pill pill-purple">
+            <i class="pi pi-chart-line"></i>
+            <span>Instant Feedback</span>
           </div>
         </div>
       </div>
-    </p-card>
+    </div>
   </div>
   }
 
-  <!-- INTERVIEW ACTIVE -->
+  <!-- ══════════════════ INTERVIEW ACTIVE ══════════════════ -->
   @if (session(); as session) {
   @if (!isFinished()) {
-  <div class="grid grid-cols-12 gap-6">
-    <!-- LEFT SIDE -->
-    <div class="col-span-12 lg:col-span-8">
-      <p-card class="shadow-md rounded-xl">
-        <ng-template pTemplate="header">
-          <div class="p-5">
-            <div class="flex justify-between items-center">
-              <div>
-                <span class="text-sm text-gray-500"> Question </span>
+  <div class="active-layout">
 
-                <h3 class="text-2xl font-bold m-0 mt-1">
-                  {{ results().length }}
-
-                  /
-
-                  {{ session.questions.length }}
-                </h3>
-              </div>
-
-              <p-tag severity="info" value="AI Interview"> </p-tag>
-            </div>
-
-            <p-progressBar class="mt-4" [value]="((session.currentQuestionIndex + 1) / session.questions.length) * 100">
-            </p-progressBar>
+    <!-- ── LEFT PANEL ── -->
+    <div class="main-panel">
+      <!-- Progress Header -->
+      <div class="progress-header">
+        <div class="progress-meta">
+          <span class="progress-label">Question</span>
+          <span class="progress-counter">{{ results().length + 1 }} / {{ session.questions.length }}</span>
+        </div>
+        <p-tag severity="info" value="AI Interview" />
+        <div class="progress-bar-wrap">
+          <div class="progress-bar-fill"
+            [style.width.%]="((session.currentQuestionIndex + 1) / session.questions.length) * 100">
           </div>
-        </ng-template>
+        </div>
+      </div>
 
-        @if (currentQuestion(); as question) {
-        <!-- AI QUESTION -->
-
-        <div class="bg-gray-100 rounded-xl p-5 border-l-4 border-blue-500 shadow-sm">
-          <div class="flex items-center gap-3 mb-4">
-            <div class="flex items-center justify-center w-10 h-10 rounded-full bg-blue-100">
-              <i class="pi pi-android text-blue-600 text-xl"></i>
-            </div>
-
-            <span class="font-bold text-lg"> AI Question </span>
-
-            <p-button icon="pi pi-volume-up" rounded text (click)="speakQuestion(question.question)">
-            </p-button>
+      @if (currentQuestion(); as question) {
+      <!-- AI Question Bubble -->
+      <div class="question-bubble">
+        <div class="question-bubble-header">
+          <div class="ai-avatar">
+            <i class="pi pi-android"></i>
           </div>
-
-          <p class="text-xl leading-relaxed text-gray-800">
-            {{ question.question }}
-          </p>
+          <span class="ai-label">AI Interviewer</span>
+          <p-button type="button" icon="pi pi-volume-up" [rounded]="true" [text]="true" severity="secondary"
+            (click)="speakQuestion(question.question)" />
         </div>
+        <p class="question-text">{{ question.question }}</p>
+      </div>
 
-        <!-- ANSWER -->
+      <!-- Answer Section -->
+      <div class="answer-input-area">
+        <label for="aiAnswerTextarea" class="input-label font-semibold">Your Answer</label>
+        <textarea id="aiAnswerTextarea" pInputTextarea class="answer-textarea" rows="4" [ngModel]="userAnswer()"
+          (ngModelChange)="userAnswer.set($event)"
+          [disabled]="evaluating() || isRecording()"
+          placeholder="Your spoken answer will appear here…">
+        </textarea>
+      </div>
 
-        <div class="mt-6">
-          <label class="font-semibold text-gray-700"> Your Answer </label>
-
-          <textarea pInputTextarea rows="6" class="w-full mt-2 rounded-lg resize-none" [value]="userAnswer()"
-            [readonly]="!isEditingAnswer()" placeholder="Your spoken answer will appear here...">
-                </textarea>
-        </div>
-
-        <!-- VOICE -->
-
-        @if (voiceState$ | async; as voice) {
-        <div class="flex items-center justify-center gap-3 bg-blue-50 rounded-xl p-4 mt-6">
-          @if (isRecording()) {
-          <p-button label="Stop Recording" icon="pi pi-stop-circle" severity="danger"
-            (click)="stopRecording()"></p-button>
-          } @else {
-          <p-button label="Start Speaking" icon="pi pi-microphone" (click)="startRecording()"
-            [disabled]="evaluating()"></p-button>
-          <p-button label="Evaluate Answer" icon="pi pi-check" severity="warn" (click)="stopRecordingAndEvaluate()"
-            [disabled]="evaluating() || !userAnswer().trim()"></p-button>
-          }
-        </div>
-
+      <!-- Voice Controls -->
+      @if (voiceState$ | async; as voice) {
+      <div class="voice-controls">
         @if (isRecording()) {
-        <div class="flex justify-center mt-4">
-          <p-tag severity="danger" icon="pi pi-microphone" value="Listening..."> </p-tag>
-        </div>
+        <p-button type="button" label="Stop Recording" icon="pi pi-stop-circle" severity="danger"
+          (click)="stopRecording()" />
+        } @else {
+        <p-button type="button" label="Start Speaking" icon="pi pi-microphone" (click)="startRecording()"
+          [disabled]="evaluating()" />
+        <p-button type="button" label="Evaluate Answer (⚡ 0.25 Credits)" icon="pi pi-check-circle" severity="warn"
+          (click)="stopRecordingAndEvaluate()"
+          [disabled]="evaluating() || !userAnswer().trim()" />
         }
-        }
+      </div>
 
-        <!-- EVALUATION -->
+      @if (isRecording()) {
+      <div class="recording-indicator">
+        <span class="recording-dot"></span>
+        <span>Listening… speak clearly and naturally</span>
+      </div>
+      }
+      }
 
-        @if (evaluating()) {
-        <div class="flex items-center justify-center gap-3 bg-purple-50 text-purple-800 rounded-xl p-4 mt-6">
-          <p-progressSpinner class="w-8 h-8"> </p-progressSpinner>
+      <!-- Evaluating Spinner -->
+      @if (evaluating()) {
+      <div class="evaluating-banner">
+        <p-progressSpinner class="spinner-sm" />
+        <span>AI is evaluating your answer…</span>
+      </div>
+      }
 
-          <span class="font-semibold"> AI is evaluating your answer... </span>
-        </div>
-        }
-
-        <!-- FEEDBACK -->
-
-        @if (currentResult(); as result) {
-        <p-divider></p-divider>
-
-        <div class="bg-white border rounded-xl p-5 shadow-sm">
-          <div class="flex items-center justify-between">
-            <div class="flex items-center gap-3">
-              <i class="pi pi-star-fill text-yellow-500 text-xl"></i>
-
-              <h3 class="text-xl font-bold">AI Feedback</h3>
-            </div>
-
-            <p-chip icon="pi pi-chart-line" [label]="result.score + ' / 10'"> </p-chip>
+      <!-- Feedback Card -->
+      @if (currentResult(); as result) {
+      <div class="feedback-card">
+        <div class="feedback-header">
+          <div class="feedback-title-row">
+            <i class="pi pi-star-fill feedback-star"></i>
+            <h3 class="feedback-title">AI Feedback</h3>
           </div>
-
-          <p class="leading-relaxed mt-4 text-gray-700">
-            {{ result.feedback }}
-          </p>
-
-          <div class="bg-gray-100 rounded-xl p-4 mt-5">
-            <h4 class="font-bold">
-              <i class="pi pi-lightbulb text-yellow-500 mr-2"></i>
-
-              Ideal Answer
-            </h4>
-
-            <p class="leading-relaxed mt-3">
-              {{ result.idealAnswer }}
-            </p>
-          </div>
-
-          <div class="flex justify-end mt-6">
-            <p-button label="Next Question" icon="pi pi-arrow-right" iconPos="right" (click)="nextQuestion()">
-            </p-button>
+          <div class="score-chip">
+            <i class="pi pi-chart-bar"></i>
+            {{ result.score }} / 10
           </div>
         </div>
-        }
-        }
-      </p-card>
+
+        <p class="feedback-text">{{ result.feedback }}</p>
+
+        <div class="ideal-answer-box">
+          <div class="ideal-answer-label">
+            <i class="pi pi-lightbulb"></i>
+            Ideal Answer
+          </div>
+          <p class="ideal-answer-text">{{ result.idealAnswer }}</p>
+        </div>
+
+        <div class="feedback-actions">
+          <p-button type="button" label="Next Question" icon="pi pi-arrow-right" iconPos="right"
+            (click)="nextQuestion()" />
+        </div>
+      </div>
+      }
+      }
     </div>
 
-    <!-- RIGHT SIDE -->
-
-    <div class="col-span-12 lg:col-span-4">
-      <p-panel header="Interview Tips" class="shadow-md" [toggleable]="true">
-        <div class="flex flex-col gap-4">
-          @for (tip of interviewTips; track tip) {
-          <div class="flex items-center gap-3">
-            <i class="pi pi-check-circle text-green-500"></i>
-
-            <span>
-              {{ tip }}
-            </span>
-          </div>
-          }
+    <!-- ── RIGHT PANEL ── -->
+    <div class="sidebar-panel">
+      <!-- Progress Widget -->
+      <div class="sidebar-widget">
+        <div class="widget-header">
+          <i class="pi pi-chart-pie widget-icon"></i>
+          <span>Progress</span>
         </div>
-      </p-panel>
-
-      <p-panel header="Progress" class="mt-5 shadow-md" [toggleable]="true">
-        <div class="flex flex-col items-center">
-          <div class="text-5xl font-bold text-primary">
-            {{ session.currentQuestionIndex + 1 }}
-
-            /
-
-            {{ session.questions.length }}
+        <div class="progress-ring-area">
+          <div class="big-counter">
+            {{ session.currentQuestionIndex + 1 }}<span class="counter-denom"> / {{ session.questions.length }}</span>
           </div>
-
-          <span class="text-gray-500 mt-2"> Questions Completed </span>
+          <span class="counter-label">Questions Done</span>
         </div>
-      </p-panel>
-      <!-- Previous Answers -->
-      <p-panel header="Completed Questions" class="mt-5 shadow-md" [toggleable]="true">
-        <div class="flex flex-col gap-3">
+      </div>
+
+      <!-- Completed Questions Widget -->
+      <div class="sidebar-widget">
+        <div class="widget-header">
+          <i class="pi pi-list-check widget-icon"></i>
+          <span>Completed</span>
+        </div>
+        <div class="completed-list">
           @for (result of results(); track result.question?.id) {
-          <div class="flex justify-between items-center bg-gray-50 rounded-lg p-3">
-            <div class="flex items-center gap-2">
-              <i class="pi pi-check-circle text-green-500"></i>
-
-              <span class="font-medium"> Q{{ result.question?.id }} </span>
+          <div class="completed-item">
+            <div class="completed-item-left">
+              <i class="pi pi-check-circle completed-check"></i>
+              <span class="completed-q">Q{{ result.question?.id }}</span>
             </div>
-
-            <p-chip [label]="result.score + '/10'"> </p-chip>
+            <div class="score-badge" [class]="result.score >= 7 ? 'score-good' : result.score >= 4 ? 'score-mid' : 'score-low'">
+              {{ result.score }}/10
+            </div>
           </div>
           }
-
           @if (results().length === 0) {
-          <p class="text-gray-500 text-center">No answers evaluated yet</p>
+          <p class="empty-state">No answers yet — start speaking!</p>
           }
         </div>
-      </p-panel>
+      </div>
+
+      <!-- Tips Widget -->
+      <div class="sidebar-widget tips-widget">
+        <div class="widget-header">
+          <i class="pi pi-lightbulb widget-icon widget-icon-amber"></i>
+          <span>Interview Tips</span>
+        </div>
+        <div class="tips-list">
+          @for (tip of interviewTips; track tip) {
+          <div class="tip-item">
+            <i class="pi pi-check tip-check"></i>
+            <span>{{ tip }}</span>
+          </div>
+          }
+        </div>
+      </div>
     </div>
   </div>
+
   } @else {
-  <!-- COMPLETE -->
-
-  <div class="min-h-screen flex items-center justify-center bg-gray-50 p-6">
-    <p-card class="w-full max-w-lg shadow-lg rounded-2xl">
-      <ng-template pTemplate="header">
-        <div class="bg-linear-to-r from-green-500 to-emerald-600 text-white p-6 rounded-t-2xl">
-          <div class="flex flex-col items-center text-center gap-3">
-            <div class="flex items-center justify-center w-20 h-20 rounded-full bg-white/20">
-              <i class="pi pi-check-circle text-5xl"></i>
-            </div>
-
-            <h2 class="text-2xl font-bold m-0">Interview Completed</h2>
-
-            <p class="text-sm opacity-90 m-0">Great work! Here is your AI assessment.</p>
-          </div>
+  <!-- ══════════════════ COMPLETE SCREEN ══════════════════ -->
+  <div class="complete-wrapper">
+    <div class="complete-card">
+      <div class="complete-header">
+        <div class="complete-icon-ring">
+          <i class="pi pi-check-circle"></i>
         </div>
-      </ng-template>
+        <h2 class="complete-title">Interview Complete! 🎉</h2>
+        <p class="complete-sub">Great work! Here's your AI assessment.</p>
+      </div>
 
-      <div class="flex flex-col items-center text-center gap-5 p-4">
-        <div class="text-gray-600 text-lg">
-          You completed your
-
-          <strong class="text-gray-900">
-            {{ session.topic }}
-          </strong>
-
-          interview.
-        </div>
+      <div class="complete-body">
+        <p class="complete-topic">
+          You completed your <strong>{{ session.topic }}</strong> interview.
+        </p>
 
         @if (finalScore(); as score) {
-        <div class="bg-gray-50 rounded-2xl p-5 shadow-inner">
-          <p-knob [ngModel]="score" [readonly]="true" [size]="150" valueTemplate="{value}%">
-          </p-knob>
-
-          <p class="font-semibold mt-3 text-gray-700">Overall Score</p>
+        <div class="score-display">
+          <p-knob [ngModel]="score" [readonly]="true" [size]="160" valueTemplate="{value}%" />
+          <p class="score-label">Overall Score</p>
         </div>
         }
 
-        <div class="grid grid-cols-3 gap-3 w-full mt-2">
-          <div class="bg-blue-50 rounded-xl p-3">
-            <i class="pi pi-comments text-blue-600 text-xl"> </i>
-
-            <p class="text-sm mt-2">Questions</p>
+        <div class="summary-pills">
+          <div class="summary-pill pill-blue">
+            <i class="pi pi-comments"></i>
+            <span>{{ session.questions.length }} Questions</span>
           </div>
-
-          <div class="bg-green-50 rounded-xl p-3">
-            <i class="pi pi-microphone text-green-600 text-xl"> </i>
-
-            <p class="text-sm mt-2">Voice</p>
+          <div class="summary-pill pill-green">
+            <i class="pi pi-microphone"></i>
+            <span>Voice Answers</span>
           </div>
-
-          <div class="bg-purple-50 rounded-xl p-3">
-            <i class="pi pi-chart-line text-purple-600 text-xl"> </i>
-
-            <p class="text-sm mt-2">AI Score</p>
+          <div class="summary-pill pill-purple">
+            <i class="pi pi-star"></i>
+            <span>AI Scored</span>
           </div>
         </div>
 
-        <p-button label="Start New Interview" icon="pi pi-refresh" size="large" styleClass="w-full"
-          (click)="endInterview()">
-        </p-button>
+        <p-button type="button" label="Start New Interview" icon="pi pi-refresh" size="large"
+          styleClass="w-full" (click)="endInterview()" />
       </div>
-    </p-card>
+    </div>
   </div>
   }
   }

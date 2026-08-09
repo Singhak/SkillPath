@@ -1,26 +1,19 @@
 <main class="app-shell">
   <p-toast />
-  <aside
-    class="sidebar"
-    [class.collapsed]="sidebarCollapsed()"
-    [class.mobile-open]="mobileMenuOpen()"
-  >
+  <aside class="sidebar" [class.collapsed]="sidebarCollapsed()" [class.mobile-open]="mobileMenuOpen()">
     <div class="sidebar-header">
       <div class="brand">
         <div class="brand-icon-wrapper">
-          <img src="assests/logo.png" alt="SkillPath Logo" class="brand-logo"/>
+          <img src="assests/logo.png" alt="IMONBENCH Logo" class="brand-logo" />
         </div>
         <div class="brand-text">
-          <span class="brand-title">{{title()}}</span>
-          <span class="brand-tag">AI</span>
+          <img src="assests/logo_with_test.png" alt="IMONBENCH Logo" class="w-45" />
+          <span class="brand-tag" [ngClass]="getPlanColorClass()">AI</span>
         </div>
       </div>
-      <button class="icon-button collapse-btn" type="button" (click)="toggleSidebar()" [title]="sidebarCollapsed() ? 'Expand sidebar' : 'Collapse sidebar'">
-        <i
-          class="pi"
-          [class.pi-chevron-left]="!sidebarCollapsed()"
-          [class.pi-chevron-right]="sidebarCollapsed()"
-        ></i>
+      <button class="icon-button collapse-btn" type="button" (click)="toggleSidebar()"
+        [title]="sidebarCollapsed() ? 'Expand sidebar' : 'Collapse sidebar'">
+        <i class="pi" [class.pi-chevron-left]="!sidebarCollapsed()" [class.pi-chevron-right]="sidebarCollapsed()"></i>
       </button>
     </div>
 
@@ -29,39 +22,24 @@
         <div class="section-header">
           <span>MAIN MENU</span>
         </div>
-        <a
-          class="nav-item"
-          [routerLink]="'/'"
-          routerLinkActive="active"
-          [routerLinkActiveOptions]="{ exact: true }"
-          [title]="sidebarCollapsed() ? 'Overview' : ''"
-        >
+        <a class="nav-item" [routerLink]="'/'" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }"
+          [title]="sidebarCollapsed() ? 'Overview' : ''">
           <div class="nav-icon-box">
             <i class="pi pi-home"></i>
           </div>
           <span class="nav-label">Overview</span>
           <div class="active-indicator"></div>
         </a>
-        <a
-          class="nav-item"
-          [routerLink]="'/quiz'"
-          routerLinkActive="active"
-          [routerLinkActiveOptions]="{ exact: true }"
-          [title]="sidebarCollapsed() ? 'Quizzes' : ''"
-        >
+        <a class="nav-item" [routerLink]="'/quiz'" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }"
+          [title]="sidebarCollapsed() ? 'Quizzes' : ''">
           <div class="nav-icon-box">
             <i class="pi pi-play"></i>
           </div>
           <span class="nav-label">Quizzes</span>
           <div class="active-indicator"></div>
         </a>
-        <a
-          class="nav-item"
-          [routerLink]="'/skills'"
-          routerLinkActive="active"
-          [routerLinkActiveOptions]="{ exact: true }"
-          [title]="sidebarCollapsed() ? 'Skills' : ''"
-        >
+        <a class="nav-item" [routerLink]="'/skills'" routerLinkActive="active"
+          [routerLinkActiveOptions]="{ exact: true }" [title]="sidebarCollapsed() ? 'Skills' : ''">
           <div class="nav-icon-box">
             <i class="pi pi-bolt"></i>
           </div>
@@ -74,18 +52,21 @@
         <div class="section-header">
           <span>PREPARATION</span>
         </div>
-        <a
-          class="nav-item"
-          [routerLink]="'/aiinterview'"
-          routerLinkActive="active"
-          [routerLinkActiveOptions]="{ exact: true }"
-          [title]="sidebarCollapsed() ? 'AI Interview' : ''"
-        >
+        <a class="nav-item" [routerLink]="'/aiinterview'" routerLinkActive="active"
+          [routerLinkActiveOptions]="{ exact: false }" [title]="sidebarCollapsed() ? 'AI Interview' : ''">
           <div class="nav-icon-box">
             <i class="pi pi-microchip-ai"></i>
           </div>
           <span class="nav-label">AI Interview</span>
           <span class="nav-badge">HOT</span>
+          <div class="active-indicator"></div>
+        </a>
+        <a class="nav-item" [routerLink]="'/interviewer-studio'" routerLinkActive="active"
+          [routerLinkActiveOptions]="{ exact: false }" [title]="sidebarCollapsed() ? 'Interviewer Studio' : ''">
+          <div class="nav-icon-box">
+            <i class="pi pi-users"></i>
+          </div>
+          <span class="nav-label">Interviewer Studio</span>
           <div class="active-indicator"></div>
         </a>
       </div>
@@ -94,15 +75,28 @@
         <div class="section-header">
           <span>SYSTEM</span>
         </div>
-        <a 
-          class="nav-item" 
-          href="#"
-          [title]="sidebarCollapsed() ? 'Settings' : ''"
-        >
+        <a class="nav-item" [routerLink]="'/settings'" routerLinkActive="active"
+          [routerLinkActiveOptions]="{ exact: true }" [title]="sidebarCollapsed() ? 'Settings' : ''">
           <div class="nav-icon-box">
             <i class="pi pi-cog"></i>
           </div>
           <span class="nav-label">Settings</span>
+          <div class="active-indicator"></div>
+        </a>
+        <a class="nav-item" [routerLink]="'/help'" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }"
+          [title]="sidebarCollapsed() ? 'Help & Guide' : ''">
+          <div class="nav-icon-box">
+            <i class="pi pi-question-circle"></i>
+          </div>
+          <span class="nav-label">Help & Guide</span>
+          <div class="active-indicator"></div>
+        </a>
+        <a class="nav-item" [routerLink]="'/about'" routerLinkActive="active"
+          [routerLinkActiveOptions]="{ exact: true }" [title]="sidebarCollapsed() ? 'About ImOnBench' : ''">
+          <div class="nav-icon-box">
+            <i class="pi pi-info-circle"></i>
+          </div>
+          <span class="nav-label">About Us</span>
           <div class="active-indicator"></div>
         </a>
       </div>
@@ -110,36 +104,50 @@
 
     <div class="sidebar-footer">
       @if(isAuthenticated()){
-        <div class="user-profile-card">
-          <div class="avatar-container">
-            <div class="avatar">{{ userInitials() }}</div>
-            <span class="online-status" title="Online"></span>
-          </div>
-          <div class="user-meta">
-            <strong class="user-name">{{ currentUser()?.name }}</strong>
-            <span class="user-role">Member</span>
-          </div>
-          <button class="logout-btn" (click)="logout()" title="Logout">
-            <i class="pi pi-sign-out"></i>
-          </button>
+      @if(remainingTrialDays() !== null) {
+      <div
+        class="bg-linear-to-br from-emerald-500/15 to-emerald-600/15 border border-emerald-500/20 rounded-xl p-2.5 mb-3 flex items-center">
+        <i class="pi pi-clock text-emerald-500 text-base mr-2"></i>
+        <span class="text-emerald-500 font-bold text-xs">{{ remainingTrialDays() }} Days Left</span>
+      </div>
+      }
+      <a class="nav-item h-9 px-3 mb-3 bg-linear-to-br from-amber-500/15 to-orange-600/15 border border-amber-500/20 rounded-xl flex items-center"
+        [routerLink]="'/pricing'" routerLinkActive="active" [title]="sidebarCollapsed() ? 'Upgrade Plan' : ''">
+        <i class="pi pi-bolt text-amber-500 text-base" [style.margin-right]="sidebarCollapsed() ? '0' : '8px'"></i>
+        <span class="nav-label text-amber-500 font-bold uppercase tracking-wider text-xs leading-none">Upgrade</span>
+      </a>
+      <div class="user-profile-card">
+        <div class="avatar-container">
+          <div class="avatar">{{ userInitials() }}</div>
+          <span class="online-status" [class.offline]="!isOnline()" [title]="isOnline() ? 'Online' : 'Offline'"></span>
         </div>
+        <div class="user-meta">
+          <strong class="user-name">{{ currentUser()?.name }}</strong>
+          <span class="user-role">Member</span>
+        </div>
+        <button class="logout-btn" type="button" (click)="logout()" title="Logout" aria-label="Logout">
+          <i class="pi pi-sign-out"></i>
+        </button>
+      </div>
       } @else {
-        <a class="nav-item login-item" [routerLink]="'/login'" routerLinkActive="active" [title]="sidebarCollapsed() ? 'Login' : ''">
-          <div class="nav-icon-box">
-            <i class="pi pi-sign-in"></i>
-          </div>
-          <span class="nav-label">Login</span>
-        </a>
+      <a class="nav-item login-item" [routerLink]="'/login'" routerLinkActive="active"
+        [title]="sidebarCollapsed() ? 'Login' : ''">
+        <div class="nav-icon-box">
+          <i class="pi pi-sign-in"></i>
+        </div>
+        <span class="nav-label">Login</span>
+      </a>
       }
     </div>
   </aside>
   @if (mobileMenuOpen()) {
-    <div class="mobile-backdrop" (click)="closeSidebar()"></div>
+  <div class="mobile-backdrop" role="button" aria-label="Close navigation menu" tabindex="0" (click)="closeSidebar()"
+    (keydown.enter)="closeSidebar()"></div>
   }
 
   <div class="content-shell">
     <div class="mobile-toolbar">
-      <button class="mobile-toggle" type="button" (click)="toggleSidebar()">
+      <button class="mobile-toggle" type="button" (click)="toggleSidebar()" aria-label="Toggle navigation menu">
         <i class="pi pi-bars"></i>
       </button>
     </div>
@@ -147,4 +155,42 @@
       <router-outlet />
     </div>
   </div>
+
+  <!-- Global Payment Processing Modal Overlay -->
+  @if (paymentService.isProcessingPayment()) {
+  <div
+    class="fixed inset-0 z-99999 flex flex-col items-center justify-center bg-slate-950/85 backdrop-blur-md transition-all duration-300 pointer-events-auto"
+    role="dialog" aria-modal="true" aria-labelledby="paymentProcessingTitle">
+    <div
+      class="bg-slate-900/95 border border-cyan-500/30 rounded-3xl p-8 max-w-md w-full mx-4 shadow-[0_0_50px_rgba(6,182,212,0.2)] flex flex-col items-center text-center relative overflow-hidden">
+      <!-- Glow background effects -->
+      <div class="absolute -top-12 -left-12 w-36 h-36 bg-cyan-500/20 rounded-full blur-3xl pointer-events-none"></div>
+      <div class="absolute -bottom-12 -right-12 w-36 h-36 bg-blue-500/20 rounded-full blur-3xl pointer-events-none">
+      </div>
+
+      <div class="relative mb-6">
+        <div
+          class="w-20 h-20 rounded-2xl bg-linear-to-tr from-cyan-500 via-blue-600 to-purple-600 flex items-center justify-center shadow-lg shadow-cyan-500/30 animate-pulse">
+          <i class="pi pi-credit-card text-4xl text-white" aria-hidden="true"></i>
+        </div>
+        <div
+          class="absolute -bottom-2 -right-2 w-8 h-8 rounded-full bg-slate-900 border border-slate-700 flex items-center justify-center shadow">
+          <i class="pi pi-spin pi-spinner text-cyan-400 text-base" aria-hidden="true"></i>
+        </div>
+      </div>
+
+      <h3 id="paymentProcessingTitle" class="text-2xl font-extrabold text-white mb-2 tracking-tight">Processing Payment
+      </h3>
+      <p class="text-sm text-slate-300 mb-6 leading-relaxed">
+        Connecting to secure payment gateway. Please complete your payment transaction...
+      </p>
+
+      <div
+        class="flex items-center gap-2.5 px-4 py-2.5 rounded-full bg-cyan-500/10 border border-cyan-500/25 text-cyan-400 text-xs font-semibold shadow-inner">
+        <i class="pi pi-shield text-sm"></i>
+        <span>Secure checkout in progress. Do not refresh or navigate away.</span>
+      </div>
+    </div>
+  </div>
+  }
 </main>

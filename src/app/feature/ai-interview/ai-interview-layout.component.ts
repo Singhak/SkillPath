@@ -8,18 +8,29 @@ import { ButtonModule } from 'primeng/button';
   standalone: true,
   imports: [RouterOutlet, ButtonModule],
   template: `
-    <div class="p-4">
+    <div class="ai-layout-host">
       @if (showBackButton) {
-        <p-button
-          label="Back"
-          icon="pi pi-arrow-left"
-          styleClass="p-button-text mb-4"
-          (click)="goBack()"
-        ></p-button>
+        <div class="ai-layout-back">
+          <p-button
+            label="Back to Interview Hub"
+            icon="pi pi-arrow-left"
+            severity="secondary"
+            text
+            (click)="goBack()"
+          ></p-button>
+        </div>
       }
       <router-outlet />
     </div>
   `,
+  styles: [`
+    .ai-layout-host {
+      min-height: 100%;
+    }
+    .ai-layout-back {
+      padding: 1rem 1.5rem 0;
+    }
+  `],
 })
 export class AiInterviewLayoutComponent {
   private location = inject(Location);

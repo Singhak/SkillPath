@@ -95,6 +95,12 @@ export class MockInterviewComponent {
   readonly successMessage = signal('');
   readonly loading = signal(false);
 
+  readonly creditCostConst = AI_CREDIT_COST;
+  readonly estimatedCreditCost = computed(() => {
+    if (this.source() === 'upload') return 0;
+    return Number((this.questionCount() * AI_CREDIT_COST.QUESTION_GENERATION).toFixed(2));
+  });
+
   constructor() {
 
     this.voiceState$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((state) => {
@@ -149,23 +155,39 @@ export class MockInterviewComponent {
 
     const role = this.userRole().trim() || 'Software Engineer';
     const experience = this.experienceLevel().trim() || 'Intermediate';
+    const count = Number(this.questionCount()) || 5;
 
-    if (!this.freeCredits() && !this.paidCredits) {
+    const requiredCredits = count * AI_CREDIT_COST.QUESTION_GENERATION;
+    const availableCredits = this.freeCredits() + this.paidCredits();
+
+    if (availableCredits < requiredCredits) {
       this.messageService.add({
         severity: 'error',
         summary: 'Error',
-        detail: 'Insufficient AI Credits',
+        detail: `Insufficient AI Credits. Generating ${count} question(s) requires ${requiredCredits} AI credit(s).`,
         life: 5000,
       });
       return;
     }
-    const count = Number(this.questionCount()) || 5;
+
+    this.loading.set(true);
     this.aiApiService
       .genrateFromTopic(topic, role, experience, count)
-      .pipe(takeUntilDestroyed(this.destroyRef))
+      .pipe(
+        finalize(() => this.loading.set(false)),
+        takeUntilDestroyed(this.destroyRef)
+      )
       .subscribe({
         next: (response) => {
-          const generatedQuestions = (response || []).slice(0, count).map((question, index) => ({
+          const rawQuestions = Array.isArray(response)
+            ? response
+            : (response as any)?.questions && Array.isArray((response as any).questions)
+            ? (response as any).questions
+            : response && typeof response === 'object' && (response as any).question
+            ? [response]
+            : [];
+
+          const generatedQuestions = rawQuestions.slice(0, count).map((question: any, index: number) => ({
             ...question,
             id: question.id ?? index + 1,
           }));
@@ -176,7 +198,7 @@ export class MockInterviewComponent {
           }
           this.startInterviewWithQuestions(generatedQuestions, topic);
           this.speakQuestion(generatedQuestions[0].question);
-          this.authService.decrementAiCredits(1).subscribe()
+          this.authService.refreshCreditsAndCoins().subscribe();
         },
         error: () => {
           this.errorMessage.set('Unable to generate questions right now. Please try again.');
@@ -274,9 +296,12 @@ export class MockInterviewComponent {
       return;
     }
     this.loading.set(true);
-    this.interviewService.sendForEvaluation(resultsWithAns).pipe(finalize(() => this.loading.set(false))).subscribe({
+    this.interviewService.sendForEvaluation(resultsWithAns).pipe(
+      finalize(() => this.loading.set(false)),
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe({
       next: (res) => {
-        this.authService.decrementAiCredits(evaluationCost).subscribe();
+        this.authService.refreshCreditsAndCoins().subscribe();
         this.endInterview();
       },
       error: (err) => {

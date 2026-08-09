@@ -1,8 +1,6 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { catchError, finalize, of, tap, throwError } from 'rxjs';
 
-import { GroqService } from './groq.service';
-
 import { InterviewResult } from '../models/interview-result.model';
 import { InterviewStore } from '../models/interview-store.model';
 import { InterviewSession } from '../models/interview-session.model';
@@ -90,9 +88,16 @@ export class InterviewService {
 
     return this.aiAPiService.genrateFromTopic(topic, userRole, experienceLevel, count).pipe(
       tap((response) => {
+        const questions = Array.isArray(response)
+          ? response
+          : (response as any)?.questions && Array.isArray((response as any).questions)
+          ? (response as any).questions
+          : response && typeof response === 'object' && (response as any).question
+          ? [response]
+          : [];
         const session: InterviewSession = {
           topic,
-          questions: response,
+          questions,
           currentQuestionIndex: 0,
           startedAt: new Date(),
         };

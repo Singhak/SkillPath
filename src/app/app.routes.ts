@@ -1,8 +1,17 @@
 import { Routes } from '@angular/router';
-import { LoginComponent } from './feature/login/login-component/login-component';
 import { authGuard } from './auth.guard';
 
 export const routes: Routes = [
+  {
+    path: '',
+    loadComponent: () => import('./feature/dashboard/dashboard').then((m) => m.Dashboard),
+    canActivate: [authGuard],
+  },
+  {
+    path: 'dashboard',
+    loadComponent: () => import('./feature/dashboard/dashboard').then((m) => m.Dashboard),
+    canActivate: [authGuard],
+  },
   {
     path: 'aiinterview',
     loadComponent: () =>
@@ -38,7 +47,6 @@ export const routes: Routes = [
             (m) => m.CreateInterviewComponent,
           ),
       },
-      // You can add more child routes here for practice, job-profile, etc.
     ],
   },
   {
@@ -51,20 +59,14 @@ export const routes: Routes = [
     canActivate: [authGuard],
   },
   {
-    path: 'dashboard',
-    loadComponent: () => import('./feature/dashboard/dashboard').then((m) => m.Dashboard),
-    canActivate: [authGuard],
-  },
-  {
-    path: '',
-    // loadComponent: () =>
-    //   import('./feature/home/home-page/home-page').then((m) => m.HomePageComponent),
-    loadComponent: () => import('./feature/dashboard/dashboard').then((m) => m.Dashboard),
+    path: 'settings',
+    loadComponent: () => import('./feature/settings/settings.component').then((m) => m.SettingsComponent),
     canActivate: [authGuard],
   },
   {
     path: 'login',
-    component: LoginComponent,
+    loadComponent: () =>
+      import('./feature/login/login-component/login-component').then((m) => m.LoginComponent),
   },
   {
     path: 'sign-up',
@@ -72,10 +74,61 @@ export const routes: Routes = [
       import('./feature/login/sign-up-component/sign-up-component').then((m) => m.SignUpComponent),
   },
   {
+    path: 'help',
+    loadComponent: () => import('./feature/help/help.component').then((m) => m.HelpComponent),
+  },
+  {
+    path: 'about',
+    loadComponent: () => import('./feature/about/about.component').then((m) => m.AboutComponent),
+  },
+  {
+    path: 'interviewer-studio',
+    loadComponent: () =>
+      import('./feature/interviewer-studio/interviewer-studio-layout').then(
+        (m) => m.InterviewerStudioLayoutComponent
+      ),
+    children: [
+      {
+        path: '',
+        loadComponent: () =>
+          import('./feature/interviewer-studio/wizard/studio-wizard').then(
+            (m) => m.StudioWizardComponent
+          ),
+      },
+      {
+        path: 'session',
+        loadComponent: () =>
+          import('./feature/interviewer-studio/copilot-session/copilot-session').then(
+            (m) => m.CopilotSessionComponent
+          ),
+      },
+      {
+        path: 'report',
+        loadComponent: () =>
+          import('./feature/interviewer-studio/candidate-report/candidate-report').then(
+            (m) => m.CandidateReportComponent
+          ),
+      },
+    ],
+    canActivate: [authGuard],
+  },
+  {
+    path: 'candidate-view',
+    loadComponent: () =>
+      import('./feature/interviewer-studio/candidate-view/candidate-view').then(
+        (m) => m.CandidateViewComponent
+      ),
+  },
+  {
     path: 'create',
     loadComponent: () =>
       import('./feature/ai-interview/jobposting/create-interview.component').then(
         (m) => m.CreateInterviewComponent,
       ),
+  },
+  {
+    path: 'pricing',
+    loadComponent: () =>
+      import('./feature/pricing/pricing.component').then((m) => m.PricingComponent),
   },
 ];

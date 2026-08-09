@@ -1,5 +1,6 @@
 import { CommonModule } from '@angular/common';
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, inject, OnInit, signal, DestroyRef } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
   FormBuilder,
   FormGroup,
@@ -31,6 +32,9 @@ import { InterviewQuestion } from '../../../core/models/interview-question.model
 import { InputTextModule } from 'primeng/inputtext';
 import { SelectModule } from 'primeng/select';
 
+import { UserResourceService } from '../../../core/services/user-resource.service';
+import { AuthService } from '../../../core/services/auth.service';
+
 type UploadMode = 'text' | 'upload';
 
 @Component({
@@ -56,13 +60,16 @@ type UploadMode = 'text' | 'upload';
 })
 export class CreateInterviewComponent implements OnInit {
   messageService = inject(MessageService);
-  private readonly router = inject(Router);
+  readonly router = inject(Router);
+  private readonly userResourceService = inject(UserResourceService);
+  readonly authService = inject(AuthService);
   readonly userRoles = USER_ROLES;
   readonly experienceLevels = EXPERIENCE_LEVELS;
   readonly stepstoFollow = INTERVIEW_STEPS;
 
   questionCountOptions = [5, 10, 15, 20];
   aiApiService = inject(AiApiService);
+  private readonly destroyRef = inject(DestroyRef);
 
   mode = signal<UploadMode>('text');
 
@@ -91,6 +98,15 @@ export class CreateInterviewComponent implements OnInit {
 
   ngOnInit(): void { }
 
+  get estimatedCredits(): string {
+    const count = parseInt(this.form.get('questionCount')?.value, 10) || 5;
+    return ((count * 0.20) + 1).toFixed(2);
+  }
+
+  navigateToPricing(): void {
+    this.router.navigate(['/pricing']);
+  }
+
   changeMode(mode: UploadMode) {
     this.mode.set(mode);
   }
@@ -108,6 +124,16 @@ export class CreateInterviewComponent implements OnInit {
   }
 
   generateQuestions() {
+    if (this.authService.currentPlan() === 'Silver') {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Upgrade Required',
+        detail: 'Job Profile Evaluation requires at least the Copper plan. Please upgrade your plan to access this feature.',
+      });
+      this.navigateToPricing();
+      return;
+    }
+
     if (this.mode() === 'text' && this.form.invalid) {
       this.form.markAllAsTouched();
       return;
@@ -127,16 +153,18 @@ export class CreateInterviewComponent implements OnInit {
           this.messageService.add({
             severity: 'error',
             summary: 'Error',
-            detail: 'Failed to generate questions. Please try again.',
+            detail: err.error?.message || err.error?.error || 'Failed to generate questions. Please try again.',
           });
           return throwError(() => err);
         }),
+        takeUntilDestroyed(this.destroyRef)
       )
       .subscribe((result: any) => {
         const questions = result?.['questions'] ?? [];
         this.technicalQuestions = questions.filter((q: any) => q.type === 'technical');
         this.behaviouralQuestions = questions.filter((q: any) => q.type === 'behavioral');
         this.scenarioQuestions = questions.filter((q: any) => q.type === 'scenario');
+        this.userResourceService.fetchCreditsAndCoins().subscribe({ error: () => {} });
         this.messageService.add({
           severity: 'success',
           summary: 'Success',
@@ -168,6 +196,15 @@ export class CreateInterviewComponent implements OnInit {
     }
     if (category == 'experienceLevel') this.filteredExperienceLevels = filtered;
     else if (category == 'userRole') this.filteredUserRoles = filtered;
+  }
+
+  getSeverity(level: string): 'success' | 'warn' | 'danger' | 'info' {
+    if (!level) return 'info';
+    const l = level.toLowerCase();
+    if (l.includes('easy') || l.includes('basic') || l.includes('beginner')) return 'success';
+    if (l.includes('medium') || l.includes('intermediate')) return 'warn';
+    if (l.includes('hard') || l.includes('advanced') || l.includes('expert')) return 'danger';
+    return 'info';
   }
 
   practiceGeneratedQuestions() {

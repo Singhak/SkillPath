@@ -7,6 +7,29 @@ export interface User {
   freeCredits?: string;
   lastCreditReset?: string | Date;
   paidCredits?: string;
+  bio?: string;
+  targetRole?: string;
+  phone?: string;
+  location?: string;
+  skills?: string[];
+  aiDifficulty?: 'beginner' | 'intermediate' | 'advanced';
+  emailNotifications?: boolean;
+  memberSince?: string;
+
+  // Gamification & Stage 3 additions
+  currentStreak?: number;
+  longestStreak?: number;
+  lastActivityDate?: string;
+  xpPoints?: number;
+  level?: number;
+
+  // Subscription additions
+  plan?: 'Silver' | 'Copper' | 'Gold';
+  subscriptionDate?: string | Date;
+  subscriptionExpiryDate?: string | Date;
+  isTrialActive?: boolean;
+  trialExpiryDate?: string | Date;
+  hasUsedTrial?: boolean;
 }
 
 export interface LoginResponse {

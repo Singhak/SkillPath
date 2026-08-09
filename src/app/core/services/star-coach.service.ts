@@ -1,0 +1,127 @@
+import { Injectable, signal, inject } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable, map, catchError, of } from 'rxjs';
+import { UserResourceService } from './user-resource.service';
+import { environment } from '../../environments/environment';
+
+export interface StarEvaluationResult {
+  overallScore: number;
+  situationScore: number;
+  taskScore: number;
+  actionScore: number;
+  resultScore: number;
+  situationFeedback: string;
+  taskFeedback: string;
+  actionFeedback: string;
+  resultFeedback: string;
+  overallFeedback?: string;
+  improvedAnswerSuggestion: string;
+  evaluationMode: 'instant' | 'ai_groq';
+}
+
+@Injectable({
+  providedIn: 'root',
+})
+export class StarCoachService {
+  private readonly http = inject(HttpClient);
+  private readonly userResourceService = inject(UserResourceService);
+  private readonly apiUrl = `${environment.apiUrl}/ai-evaluations/star`;
+
+  readonly latestEvaluation = signal<StarEvaluationResult | null>(null);
+  readonly isEvaluatingWithAi = signal<boolean>(false);
+
+  /**
+   * Alias method for backward compatibility
+   */
+  evaluateBehavioralAnswer(question: string, answerText: string): StarEvaluationResult {
+    return this.evaluateInstant(question, answerText);
+  }
+
+  /**
+   * Fast Instant Logic Evaluation (Free, 0 Credits)
+   */
+  evaluateInstant(question: string, answerText: string): StarEvaluationResult {
+    const text = answerText.toLowerCase();
+
+    const hasSituation = text.includes('when') || text.includes('project') || text.includes('team') || text.includes('company') || text.includes('faced');
+    const hasTask = text.includes('goal') || text.includes('task') || text.includes('needed') || text.includes('responsible') || text.includes('objective');
+    const hasAction = text.includes('i implemented') || text.includes('i built') || text.includes('i created') || text.includes('i decided') || text.includes('action') || text.includes('solved');
+    const hasResult = text.includes('result') || text.includes('percent') || text.includes('%') || text.includes('improved') || text.includes('delivered') || text.includes('outcome');
+
+    const situationScore = hasSituation ? 90 : 55;
+    const taskScore = hasTask ? 88 : 60;
+    const actionScore = hasAction ? 92 : 65;
+    const resultScore = hasResult ? 95 : 50;
+
+    const overallScore = Math.round((situationScore + taskScore + actionScore + resultScore) / 4);
+
+    const result: StarEvaluationResult = {
+      overallScore,
+      situationScore,
+      taskScore,
+      actionScore,
+      resultScore,
+      situationFeedback: hasSituation
+        ? 'Well-defined context and environment setup.'
+        : 'Briefly state the background context, company scale, or specific problem scenario.',
+      taskFeedback: hasTask
+        ? 'Clear description of your specific responsibility.'
+        : 'Explicitly define what your exact goal or objective was in that situation.',
+      actionFeedback: hasAction
+        ? 'Excellent focus on your direct individual actions and engineering decisions.'
+        : 'Use "I" statements to highlight what YOU specifically built or executed.',
+      resultFeedback: hasResult
+        ? 'Outstanding quantitative outcome and metric impact provided!'
+        : 'Add measurable results (e.g. "improved load time by 40%", "delivered 2 weeks ahead of schedule").',
+      overallFeedback: 'Instant heuristic evaluation complete. Select AI evaluation for deeper AI feedback.',
+      improvedAnswerSuggestion: `Structure your answer with: 1) Situation: "In my previous role at...", 2) Task: "My goal was to...", 3) Action: "I designed and implemented...", 4) Result: "This achieved a 35% performance boost."`,
+      evaluationMode: 'instant',
+    };
+
+    this.latestEvaluation.set(result);
+    return result;
+  }
+
+  /**
+   * Deep AI STAR Evaluation via Backend API (Deducts 1 AI Credit)
+   */
+  evaluateWithGroqAi(question: string, answerText: string): Observable<StarEvaluationResult> {
+    this.isEvaluatingWithAi.set(true);
+
+    return this.http.post<any>(this.apiUrl, { question, answer: answerText }).pipe(
+      map((res) => {
+        if (res && res.creditsDeducted) {
+          this.userResourceService.fetchCreditsAndCoins().subscribe({ error: () => {} });
+        }
+        const sitScore = res.situationScore || 85;
+        const tskScore = res.taskScore || 80;
+        const actScore = res.actionScore || 90;
+        const rstScore = res.resultScore || 75;
+
+        const result: StarEvaluationResult = {
+          overallScore: res.overallScore || Math.round((sitScore + tskScore + actScore + rstScore) / 4),
+          situationScore: sitScore,
+          taskScore: tskScore,
+          actionScore: actScore,
+          resultScore: rstScore,
+          situationFeedback: res.situationFeedback || (sitScore >= 80 ? 'Well-articulated context and environment setup.' : 'Expand on company scale, problem complexity, or scenario.'),
+          taskFeedback: res.taskFeedback || (tskScore >= 80 ? 'Clear description of your assigned responsibilities.' : 'Detail your precise objectives and key deliverables.'),
+          actionFeedback: res.actionFeedback || (actScore >= 80 ? 'Strong focus on personal engineering actions.' : 'Focus on specific tools, decisions, and personal execution.'),
+          resultFeedback: res.resultFeedback || (rstScore >= 80 ? 'Quantifiable outcome and business impact metrics provided.' : 'Include concrete metrics (e.g., % performance gain, revenue saved).'),
+          overallFeedback: res.starFeedback || res.overallFeedback || '',
+          improvedAnswerSuggestion: res.improvedAnswer || res.improvedAnswerSuggestion || 'Focus on highlighting quantified production metrics.',
+          evaluationMode: 'ai_groq',
+        };
+
+        this.latestEvaluation.set(result);
+        this.isEvaluatingWithAi.set(false);
+        return result;
+      }),
+      catchError(() => {
+        const fallback = this.evaluateInstant(question, answerText);
+        this.isEvaluatingWithAi.set(false);
+        return of(fallback);
+      })
+    );
+  }
+}

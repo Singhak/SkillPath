@@ -1,0 +1,978 @@
+@if (isOpen) {
+  <div
+    [class]="isDark ? 'bg-black/75' : 'bg-slate-900/40'"
+    class="fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-md animate-fadeIn"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="billingModalTitle"
+  >
+    <div
+      [class]="
+        isDark
+          ? 'bg-slate-900 border-slate-800 text-slate-100'
+          : 'bg-white border-slate-200 text-slate-800 shadow-2xl'
+      "
+      class="relative w-full max-w-4xl max-h-[90vh] border rounded-2xl shadow-2xl overflow-hidden flex flex-col transition-colors duration-300"
+    >
+      <!-- Header -->
+      <div
+        [class]="isDark ? 'bg-slate-950/60 border-slate-800' : 'bg-slate-50 border-slate-200'"
+        class="px-6 py-5 border-b flex items-center justify-between transition-colors"
+      >
+        <div class="flex items-center gap-3">
+          <div
+            [class]="
+              isDark
+                ? 'bg-cyan-500/20 border-cyan-500/30 text-cyan-400'
+                : 'bg-cyan-100 border-cyan-300 text-cyan-700'
+            "
+            class="p-2.5 rounded-xl border"
+          >
+            <svg
+              aria-hidden="true"
+              xmlns="http://www.w3.org/2000/svg"
+              class="w-6 h-6"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+          </div>
+          <div>
+            <h2
+              id="billingModalTitle"
+              [class]="isDark ? 'text-white' : 'text-slate-900'"
+              class="text-xl font-bold tracking-tight"
+            >
+              Billing & Credit Activity
+            </h2>
+            <p [class]="isDark ? 'text-slate-400' : 'text-slate-500'" class="text-xs">
+              Detailed purchase invoices and free/paid credit usage audit
+            </p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2">
+          @if (false) {
+            <!--//Payment gateway not integrated so disabled-->
+            <button
+              type="button"
+              (click)="showRestorePanel = !showRestorePanel"
+              [class]="
+                showRestorePanel
+                  ? 'bg-amber-500 text-white shadow-lg shadow-amber-500/20'
+                  : isDark
+                    ? 'bg-slate-800 text-amber-400 hover:bg-slate-700 border-slate-700'
+                    : 'bg-amber-50 text-amber-700 hover:bg-amber-100 border-amber-200'
+              "
+              class="px-3.5 py-2 rounded-xl text-xs font-bold border transition-all flex items-center gap-1.5 cursor-pointer"
+            >
+              <svg
+                aria-hidden="true"
+                xmlns="http://www.w3.org/2000/svg"
+                class="w-4 h-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                />
+              </svg>
+              <span>Restore Purchase</span>
+            </button>
+          }
+          <button
+            type="button"
+            (click)="closeModal()"
+            aria-label="Close billing modal"
+            [class]="
+              isDark
+                ? 'text-slate-400 hover:text-white hover:bg-slate-800'
+                : 'text-slate-500 hover:text-slate-900 hover:bg-slate-100'
+            "
+            class="p-2 rounded-lg transition-colors cursor-pointer"
+          >
+            <svg
+              aria-hidden="true"
+              xmlns="http://www.w3.org/2000/svg"
+              class="w-5 h-5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M6 18L18 6M6 6l12 12"
+              />
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Restore Purchase Banner / Panel -->
+      @if (showRestorePanel) {
+        <div
+          [class]="
+            isDark
+              ? 'bg-amber-950/40 border-amber-500/30 text-amber-200'
+              : 'bg-amber-50 border-amber-200 text-amber-900'
+          "
+          class="px-6 py-4 border-b space-y-3 transition-all animate-fadeIn"
+        >
+          @if (false) {
+            <div class="flex items-start justify-between">
+              <div>
+                <div class="flex items-center gap-2 font-bold text-sm">
+                  <span
+                    class="px-2 py-0.5 rounded text-[10px] uppercase font-extrabold bg-amber-500 text-black"
+                    >Technical Glitch Recovery</span
+                  >
+                  <span>Restore Missing Purchase</span>
+                </div>
+                <p class="text-xs opacity-90 mt-1">
+                  If money was deducted or a transaction got stuck during payment, click
+                  <strong>Auto-Scan</strong> or enter your
+                  <strong>Order ID / Payment ID</strong> below.
+                </p>
+              </div>
+            </div>
+          }
+          <div class="flex flex-wrap items-center gap-3">
+            <button
+              type="button"
+              [disabled]="isRestoring"
+              (click)="triggerAutoRestore()"
+              class="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-black text-xs font-bold transition-all shadow-md flex items-center gap-2 cursor-pointer disabled:opacity-50"
+            >
+              @if (isRestoring) {
+                <div
+                  class="w-3.5 h-3.5 border-2 border-black border-t-transparent rounded-full animate-spin"
+                  aria-hidden="true"
+                ></div>
+                <span>Scanning Payment Gateways...</span>
+              } @else {
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="w-4 h-4"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M13 10V3L4 14h7v7l9-11h-7z"
+                  />
+                </svg>
+                <span>Auto-Scan & Restore</span>
+              }
+            </button>
+
+            <div class="flex items-center gap-2 flex-1 min-w-65">
+              <label for="manual_order_id" class="sr-only">Order or Payment ID</label>
+              <input
+                type="text"
+                id="manual_order_id"
+                [(ngModel)]="manualOrderId"
+                aria-label="Enter Order ID or Payment ID"
+                placeholder="Enter Order ID (e.g. order_xxx) or Payment ID (e.g. pay_xxx)"
+                [class]="
+                  isDark
+                    ? 'bg-slate-900 border-slate-700 text-white placeholder-slate-500'
+                    : 'bg-white border-slate-300 text-slate-900 placeholder-slate-400'
+                "
+                class="px-3.5 py-2 rounded-xl border text-xs flex-1 outline-none focus:ring-2 focus:ring-amber-500/50 font-mono"
+              />
+
+              <button
+                type="button"
+                [disabled]="isRestoring || !manualOrderId.trim()"
+                (click)="triggerManualRestore()"
+                class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-400 border border-slate-700 text-xs font-bold transition-all cursor-pointer disabled:opacity-50"
+              >
+                Verify & Restore
+              </button>
+            </div>
+          </div>
+
+          @if (restoreMessage) {
+            <div
+              [class]="
+                isDark
+                  ? 'bg-slate-900/90 border-slate-700 text-cyan-300'
+                  : 'bg-white border-slate-200 text-slate-800'
+              "
+              class="p-3 rounded-xl border text-xs font-medium flex items-center justify-between"
+            >
+              <span>{{ restoreMessage }}</span>
+              <span class="text-[10px] text-amber-400 font-mono"
+                >⚡ Protected against double-accounting</span
+              >
+            </div>
+          }
+        </div>
+      }
+
+      <!-- Current Balance Stats Banner -->
+      <div
+        [class]="isDark ? 'bg-slate-950/80 border-slate-800/80' : 'bg-slate-50/80 border-slate-200'"
+        class="px-6 py-4 border-b grid grid-cols-1 sm:grid-cols-3 gap-3 transition-colors"
+      >
+        <!-- Free Credits -->
+        <div
+          [class]="
+            isDark ? 'bg-slate-900/90 border-slate-800' : 'bg-white border-emerald-200 shadow-sm'
+          "
+          class="border rounded-xl p-3.5 flex items-center justify-between"
+        >
+          <div>
+            <p [class]="isDark ? 'text-emerald-400' : 'text-emerald-600'" class="text-xs font-bold">
+              Free Credits
+            </p>
+            <p
+              [class]="isDark ? 'text-white' : 'text-slate-900'"
+              class="text-xl font-extrabold mt-0.5"
+            >
+              {{ userResources.freeCredits() | number: '1.1-2' }}
+            </p>
+          </div>
+          <span
+            [class]="
+              isDark
+                ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+                : 'bg-emerald-100 text-emerald-800 border-emerald-300'
+            "
+            class="px-2.5 py-1 text-[11px] font-bold rounded-full border"
+            >Daily Refreshed</span
+          >
+        </div>
+
+        <!-- Paid Credits -->
+        <div
+          [class]="
+            isDark ? 'bg-slate-900/90 border-slate-800' : 'bg-white border-cyan-200 shadow-sm'
+          "
+          class="border rounded-xl p-3.5 flex items-center justify-between"
+        >
+          <div>
+            <p [class]="isDark ? 'text-cyan-400' : 'text-cyan-600'" class="text-xs font-bold">
+              Paid Credits
+            </p>
+            <p
+              [class]="isDark ? 'text-white' : 'text-slate-900'"
+              class="text-xl font-extrabold mt-0.5"
+            >
+              {{ userResources.paidCredits() | number: '1.1-2' }}
+            </p>
+          </div>
+          <span
+            [class]="
+              isDark
+                ? 'bg-cyan-500/10 text-cyan-400 border-cyan-500/20'
+                : 'bg-cyan-100 text-cyan-800 border-cyan-300'
+            "
+            class="px-2.5 py-1 text-[11px] font-bold rounded-full border"
+            >Never Expires</span
+          >
+        </div>
+
+        <!-- Total Credits -->
+        <div
+          [class]="
+            isDark ? 'bg-slate-900/90 border-slate-800' : 'bg-white border-purple-200 shadow-sm'
+          "
+          class="border rounded-xl p-3.5 flex items-center justify-between"
+        >
+          <div>
+            <p [class]="isDark ? 'text-purple-400' : 'text-purple-600'" class="text-xs font-bold">
+              Total Credits Available
+            </p>
+            <p
+              [class]="isDark ? 'text-white' : 'text-slate-900'"
+              class="text-xl font-extrabold mt-0.5"
+            >
+              {{ userResources.freeCredits() + userResources.paidCredits() | number: '1.1-2' }}
+            </p>
+          </div>
+          <span
+            [class]="
+              isDark
+                ? 'bg-purple-500/10 text-purple-400 border-purple-500/20'
+                : 'bg-purple-100 text-purple-800 border-purple-300'
+            "
+            class="px-2.5 py-1 text-[11px] font-bold rounded-full border"
+            >Free + Paid</span
+          >
+        </div>
+      </div>
+
+      <!-- Navigation Tabs -->
+      <div
+        [class]="isDark ? 'border-slate-800 bg-slate-950/30' : 'border-slate-200 bg-slate-100/50'"
+        class="px-6 border-b flex items-center justify-between transition-colors"
+      >
+        <div role="tablist" class="flex items-center gap-4">
+          <button
+            type="button"
+            id="credit-ledger-tab"
+            role="tab"
+            [attr.aria-selected]="activeTab === 'credits'"
+            aria-controls="credit-ledger-panel"
+            (click)="switchTab('credits')"
+            [class]="
+              activeTab === 'credits'
+                ? isDark
+                  ? 'border-cyan-400 text-cyan-400 font-semibold'
+                  : 'border-cyan-600 text-cyan-700 font-extrabold'
+                : isDark
+                  ? 'border-transparent text-slate-400 hover:text-slate-200'
+                  : 'border-transparent text-slate-600 hover:text-slate-900'
+            "
+            class="py-3 px-1 border-b-2 text-sm transition-all flex items-center gap-2 cursor-pointer"
+          >
+            <svg
+              aria-hidden="true"
+              xmlns="http://www.w3.org/2000/svg"
+              class="w-4 h-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 012-2h2a2 2 0 012-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+              />
+            </svg>
+            Credit Usage Ledger
+            <span
+              [class]="isDark ? 'bg-slate-800 text-slate-300' : 'bg-slate-200 text-slate-700'"
+              class="ml-1 px-2 py-0.5 text-[11px] font-bold rounded-full"
+              >{{ totalCreditCount }}</span
+            >
+          </button>
+
+          <button
+            type="button"
+            id="purchase-history-tab"
+            role="tab"
+            [attr.aria-selected]="activeTab === 'purchases'"
+            aria-controls="purchase-history-panel"
+            (click)="switchTab('purchases')"
+            [class]="
+              activeTab === 'purchases'
+                ? isDark
+                  ? 'border-cyan-400 text-cyan-400 font-semibold'
+                  : 'border-cyan-600 text-cyan-700 font-extrabold'
+                : isDark
+                  ? 'border-transparent text-slate-400 hover:text-slate-200'
+                  : 'border-transparent text-slate-600 hover:text-slate-900'
+            "
+            class="py-3 px-1 border-b-2 text-sm transition-all flex items-center gap-2 cursor-pointer"
+          >
+            <svg
+              aria-hidden="true"
+              xmlns="http://www.w3.org/2000/svg"
+              class="w-4 h-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M3 10h18M7 15h1m4 0h1m-7 4h12a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
+              />
+            </svg>
+            Purchase History
+            <span
+              [class]="isDark ? 'bg-slate-800 text-slate-300' : 'bg-slate-200 text-slate-700'"
+              class="ml-1 px-2 py-0.5 text-[11px] font-bold rounded-full"
+              >{{ totalPurchaseCount }}</span
+            >
+          </button>
+        </div>
+
+        <button
+          type="button"
+          aria-label="Toggle restore panel"
+          (click)="showRestorePanel = !showRestorePanel"
+          class="text-xs text-amber-400 hover:underline flex items-center gap-1 font-semibold cursor-pointer"
+        >
+          <span>Need help restoring a glitch?</span>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="w-3.5 h-3.5"
+            fill="none"
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M9 5l7 7-7 7"
+            />
+          </svg>
+        </button>
+      </div>
+
+      <!-- Content Body -->
+      <div class="flex-1 overflow-y-auto p-6 space-y-4">
+        @if (isLoading) {
+          <div
+            [class]="isDark ? 'text-slate-400' : 'text-slate-500'"
+            class="py-16 text-center space-y-3"
+          >
+            <div
+              class="inline-block w-8 h-8 border-3 border-cyan-500 border-t-transparent rounded-full animate-spin"
+              aria-hidden="true"
+            ></div>
+            <p class="text-sm font-medium">Loading activity logs...</p>
+          </div>
+        } @else {
+          <!-- TAB 1: CREDIT LEDGER -->
+          @if (activeTab === 'credits') {
+            @if (creditItems.length === 0) {
+              <div
+                [class]="
+                  isDark
+                    ? 'bg-slate-950/40 border-slate-800 text-slate-400'
+                    : 'bg-slate-50 border-slate-200 text-slate-600'
+                "
+                class="py-16 text-center rounded-xl border"
+              >
+                <svg
+                  aria-hidden="true"
+                  xmlns="http://www.w3.org/2000/svg"
+                  [class]="isDark ? 'text-slate-600' : 'text-slate-400'"
+                  class="w-12 h-12 mx-auto mb-3"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="1.5"
+                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                  />
+                </svg>
+                <p
+                  [class]="isDark ? 'text-slate-300' : 'text-slate-800'"
+                  class="text-base font-bold"
+                >
+                  No credit usage logs yet
+                </p>
+                <p [class]="isDark ? 'text-slate-500' : 'text-slate-500'" class="text-xs mt-1">
+                  Start using AI interview tools to track your dynamic credit deductions!
+                </p>
+              </div>
+            } @else {
+              <div
+                id="credit-ledger-panel"
+                role="tabpanel"
+                [attr.aria-labelledby]="'credit-ledger-tab'"
+                [class]="
+                  isDark
+                    ? 'border-slate-800 bg-slate-950/40'
+                    : 'border-slate-200 bg-white shadow-sm'
+                "
+                class="overflow-x-auto rounded-xl border"
+              >
+                <table class="w-full text-left text-xs">
+                  <thead
+                    [class]="
+                      isDark
+                        ? 'bg-slate-900/80 text-slate-400 border-slate-800'
+                        : 'bg-slate-100 text-slate-700 border-slate-200'
+                    "
+                    class="uppercase tracking-wider font-extrabold border-b"
+                  >
+                    <tr>
+                      <th class="px-4 py-3">Date & Time</th>
+                      <th class="px-4 py-3">Feature / Description</th>
+                      <th class="px-4 py-3 text-right">Amount</th>
+                      <th class="px-4 py-3 text-center">Usage Breakdown (Free vs Paid)</th>
+                      <th class="px-4 py-3 text-right">Remaining Balances</th>
+                    </tr>
+                  </thead>
+                  <tbody
+                    [class]="isDark ? 'divide-slate-800/60' : 'divide-slate-200'"
+                    class="divide-y"
+                  >
+                    @for (item of creditItems; track item.id || $index) {
+                      <tr
+                        [class]="isDark ? 'hover:bg-slate-800/40' : 'hover:bg-slate-50'"
+                        class="transition-colors"
+                      >
+                        <!-- Date & Time -->
+                        <td
+                          [class]="isDark ? 'text-slate-400' : 'text-slate-500'"
+                          class="px-4 py-3.5 whitespace-nowrap font-mono text-[11px]"
+                        >
+                          {{ item.createdAt | date: 'short' }}
+                        </td>
+
+                        <!-- Feature Name -->
+                        <td
+                          [class]="isDark ? 'text-white' : 'text-slate-900'"
+                          class="px-4 py-3.5 font-bold"
+                        >
+                          <div class="flex items-center gap-2">
+                            @if (item.type === 'DEDUCTION') {
+                              <span
+                                class="w-2 h-2 rounded-full bg-amber-400"
+                                aria-hidden="true"
+                              ></span>
+                            } @else if (item.type === 'PURCHASE') {
+                              <span
+                                class="w-2 h-2 rounded-full bg-emerald-400"
+                                aria-hidden="true"
+                              ></span>
+                            } @else {
+                              <span
+                                class="w-2 h-2 rounded-full bg-cyan-400"
+                                aria-hidden="true"
+                              ></span>
+                            }
+                            <span>{{ item.feature }}</span>
+                          </div>
+                        </td>
+
+                        <!-- Credits Amount -->
+                        <td
+                          class="px-4 py-3.5 text-right font-mono font-extrabold whitespace-nowrap"
+                        >
+                          @if (item.creditsAmount > 0) {
+                            <span [class]="isDark ? 'text-emerald-400' : 'text-emerald-600'"
+                              >+{{ item.creditsAmount | number: '1.1-2' }}</span
+                            >
+                          } @else {
+                            <span [class]="isDark ? 'text-rose-400' : 'text-rose-600'">{{
+                              item.creditsAmount | number: '1.1-2'
+                            }}</span>
+                          }
+                        </td>
+
+                        <!-- Free vs Paid Segregation -->
+                        <td class="px-4 py-3.5 text-center whitespace-nowrap">
+                          <div
+                            [class]="
+                              isDark
+                                ? 'bg-slate-900 border-slate-800'
+                                : 'bg-slate-100 border-slate-300'
+                            "
+                            class="inline-flex items-center gap-1.5 border px-2.5 py-1 rounded-lg"
+                          >
+                            <span
+                              [class]="isDark ? 'text-emerald-400' : 'text-emerald-700'"
+                              class="font-extrabold"
+                              >Free: {{ item.freeCreditsUsed | number: '1.1-2' }}</span
+                            >
+                            <span [class]="isDark ? 'text-slate-600' : 'text-slate-400'">|</span>
+                            <span
+                              [class]="isDark ? 'text-cyan-400' : 'text-cyan-700'"
+                              class="font-extrabold"
+                              >Paid: {{ item.paidCreditsUsed | number: '1.1-2' }}</span
+                            >
+                          </div>
+                        </td>
+
+                        <!-- Balances After -->
+                        <td
+                          [class]="isDark ? 'text-slate-400' : 'text-slate-500'"
+                          class="px-4 py-3.5 text-right font-mono text-[11px] whitespace-nowrap"
+                        >
+                          Free:
+                          <span
+                            [class]="isDark ? 'text-emerald-300' : 'text-emerald-700'"
+                            class="font-bold"
+                            >{{ item.freeBalanceAfter | number: '1.1-2' }}</span
+                          >
+                          | Paid:
+                          <span
+                            [class]="isDark ? 'text-cyan-300' : 'text-cyan-700'"
+                            class="font-bold"
+                            >{{ item.paidBalanceAfter | number: '1.1-2' }}</span
+                          >
+                        </td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+
+                <!-- Credit Ledger Pagination Controls -->
+                @if (totalCreditCount > 0) {
+                  <div
+                    [class]="
+                      isDark
+                        ? 'bg-slate-900/80 border-slate-800 text-slate-400'
+                        : 'bg-slate-50 border-slate-200 text-slate-600'
+                    "
+                    class="px-4 py-3 border-t flex items-center justify-between text-xs transition-colors"
+                  >
+                    <span>
+                      Showing
+                      <strong [class]="isDark ? 'text-slate-200' : 'text-slate-800'">{{
+                        creditStartIndex
+                      }}</strong>
+                      to
+                      <strong [class]="isDark ? 'text-slate-200' : 'text-slate-800'">{{
+                        creditEndIndex
+                      }}</strong>
+                      of
+                      <strong [class]="isDark ? 'text-slate-200' : 'text-slate-800'">{{
+                        totalCreditCount
+                      }}</strong>
+                      records
+                    </span>
+
+                    <div class="flex items-center gap-2">
+                      <button
+                        type="button"
+                        (click)="prevCreditPage()"
+                        [disabled]="creditPage === 1 || isTableLoading"
+                        [class]="
+                          isDark
+                            ? 'bg-slate-800 text-slate-300 hover:bg-slate-700 border-slate-700 disabled:opacity-40'
+                            : 'bg-slate-100 text-slate-700 hover:bg-slate-200 border-slate-300 disabled:opacity-40'
+                        "
+                        class="p-1.5 rounded-lg border transition-colors cursor-pointer disabled:cursor-not-allowed flex items-center justify-center"
+                        title="Previous page"
+                        aria-label="Previous credit ledger page"
+                      >
+                        <svg
+                          aria-hidden="true"
+                          xmlns="http://www.w3.org/2000/svg"
+                          class="w-4 h-4"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M15 19l-7-7 7-7"
+                          />
+                        </svg>
+                      </button>
+
+                      <span class="px-2 font-semibold">
+                        Page {{ creditPage }} of {{ totalCreditPages }}
+                      </span>
+
+                      <button
+                        type="button"
+                        (click)="nextCreditPage()"
+                        [disabled]="creditPage === totalCreditPages || isTableLoading"
+                        [class]="
+                          isDark
+                            ? 'bg-slate-800 text-slate-300 hover:bg-slate-700 border-slate-700 disabled:opacity-40'
+                            : 'bg-slate-100 text-slate-700 hover:bg-slate-200 border-slate-300 disabled:opacity-40'
+                        "
+                        class="p-1.5 rounded-lg border transition-colors cursor-pointer disabled:cursor-not-allowed flex items-center justify-center"
+                        title="Next page"
+                        aria-label="Next credit ledger page"
+                      >
+                        <svg
+                          aria-hidden="true"
+                          xmlns="http://www.w3.org/2000/svg"
+                          class="w-4 h-4"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M9 5l7 7-7 7"
+                          />
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+                }
+              </div>
+            }
+          }
+
+          <!-- TAB 2: PURCHASE HISTORY -->
+          @if (activeTab === 'purchases') {
+            @if (purchaseItems.length === 0) {
+              <div
+                [class]="
+                  isDark
+                    ? 'bg-slate-950/40 border-slate-800 text-slate-400'
+                    : 'bg-slate-50 border-slate-200 text-slate-600'
+                "
+                class="py-16 text-center rounded-xl border"
+              >
+                <svg
+                  aria-hidden="true"
+                  xmlns="http://www.w3.org/2000/svg"
+                  [class]="isDark ? 'text-slate-600' : 'text-slate-400'"
+                  class="w-12 h-12 mx-auto mb-3"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="1.5"
+                    d="M3 10h18M7 15h1m4 0h1m-7 4h12a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
+                  />
+                </svg>
+                <p
+                  [class]="isDark ? 'text-slate-300' : 'text-slate-800'"
+                  class="text-base font-bold"
+                >
+                  No purchase records found
+                </p>
+                <p [class]="isDark ? 'text-slate-500' : 'text-slate-500'" class="text-xs mt-1">
+                  Upgrade your plan or buy credits to view purchase receipts here!
+                </p>
+              </div>
+            } @else {
+              <div
+                id="purchase-history-panel"
+                role="tabpanel"
+                [attr.aria-labelledby]="'purchase-history-tab'"
+                [class]="
+                  isDark
+                    ? 'border-slate-800 bg-slate-950/40'
+                    : 'border-slate-200 bg-white shadow-sm'
+                "
+                class="overflow-x-auto rounded-xl border"
+              >
+                <table class="w-full text-left text-xs">
+                  <thead
+                    [class]="
+                      isDark
+                        ? 'bg-slate-900/80 text-slate-400 border-slate-800'
+                        : 'bg-slate-100 text-slate-700 border-slate-200'
+                    "
+                    class="uppercase tracking-wider font-extrabold border-b"
+                  >
+                    <tr>
+                      <th class="px-4 py-3">Date</th>
+                      <th class="px-4 py-3">Item Purchased</th>
+                      <th class="px-4 py-3">Provider</th>
+                      <th class="px-4 py-3 text-right">Amount Paid</th>
+                      <th class="px-4 py-3 text-center">Credits Added</th>
+                      <th class="px-4 py-3 text-center">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody
+                    [class]="isDark ? 'divide-slate-800/60' : 'divide-slate-200'"
+                    class="divide-y"
+                  >
+                    @for (p of purchaseItems; track p.id || $index) {
+                      <tr
+                        [class]="isDark ? 'hover:bg-slate-800/40' : 'hover:bg-slate-50'"
+                        class="transition-colors"
+                      >
+                        <td
+                          [class]="isDark ? 'text-slate-400' : 'text-slate-500'"
+                          class="px-4 py-3.5 whitespace-nowrap font-mono text-[11px]"
+                        >
+                          {{ p.createdAt | date: 'mediumDate' }}
+                        </td>
+                        <td
+                          [class]="isDark ? 'text-white' : 'text-slate-900'"
+                          class="px-4 py-3.5 font-bold"
+                        >
+                          {{ p.itemName }}
+                        </td>
+                        <td class="px-4 py-3.5 uppercase text-[10px] tracking-wider">
+                          <span
+                            [class]="
+                              isDark
+                                ? 'bg-slate-800 border-slate-700 text-slate-300'
+                                : 'bg-slate-100 border-slate-300 text-slate-700'
+                            "
+                            class="px-2 py-0.5 rounded border font-mono font-bold"
+                            >{{ p.provider }}</span
+                          >
+                        </td>
+                        <td
+                          [class]="isDark ? 'text-emerald-400' : 'text-emerald-600'"
+                          class="px-4 py-3.5 text-right font-mono font-extrabold text-sm"
+                        >
+                          {{ p.currency === 'USD' ? '$' : '₹' }}{{ getAmount(p) | number: '1.2-2' }}
+                        </td>
+                        <td
+                          [class]="isDark ? 'text-cyan-400' : 'text-cyan-600'"
+                          class="px-4 py-3.5 text-center font-mono font-bold"
+                        >
+                          +{{ p.creditsAdded }}
+                        </td>
+                        <td class="px-4 py-3.5 text-center">
+                          <span
+                            [class]="
+                              p.status === 'SUCCESS'
+                                ? isDark
+                                  ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
+                                  : 'bg-emerald-100 text-emerald-800 border-emerald-300'
+                                : isDark
+                                  ? 'bg-amber-500/10 text-amber-400 border-amber-500/30'
+                                  : 'bg-amber-100 text-amber-800 border-amber-300'
+                            "
+                            class="px-2.5 py-1 text-[10px] font-extrabold uppercase rounded-full border"
+                          >
+                            {{ p.status }}
+                          </span>
+                        </td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+
+                <!-- Purchase History Pagination Controls -->
+                @if (totalPurchaseCount > 0) {
+                  <div
+                    [class]="
+                      isDark
+                        ? 'bg-slate-900/80 border-slate-800 text-slate-400'
+                        : 'bg-slate-50 border-slate-200 text-slate-600'
+                    "
+                    class="px-4 py-3 border-t flex items-center justify-between text-xs transition-colors"
+                  >
+                    <span>
+                      Showing
+                      <strong [class]="isDark ? 'text-slate-200' : 'text-slate-800'">{{
+                        purchaseStartIndex
+                      }}</strong>
+                      to
+                      <strong [class]="isDark ? 'text-slate-200' : 'text-slate-800'">{{
+                        purchaseEndIndex
+                      }}</strong>
+                      of
+                      <strong [class]="isDark ? 'text-slate-200' : 'text-slate-800'">{{
+                        totalPurchaseCount
+                      }}</strong>
+                      records
+                    </span>
+
+                    <div class="flex items-center gap-2">
+                      <button
+                        type="button"
+                        (click)="prevPurchasePage()"
+                        [disabled]="purchasePage === 1 || isTableLoading"
+                        [class]="
+                          isDark
+                            ? 'bg-slate-800 text-slate-300 hover:bg-slate-700 border-slate-700 disabled:opacity-40'
+                            : 'bg-slate-100 text-slate-700 hover:bg-slate-200 border-slate-300 disabled:opacity-40'
+                        "
+                        class="p-1.5 rounded-lg border transition-colors cursor-pointer disabled:cursor-not-allowed flex items-center justify-center"
+                        title="Previous page"
+                        aria-label="Previous purchase history page"
+                      >
+                        <svg
+                          aria-hidden="true"
+                          xmlns="http://www.w3.org/2000/svg"
+                          class="w-4 h-4"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M15 19l-7-7 7-7"
+                          />
+                        </svg>
+                      </button>
+
+                      <span class="px-2 font-semibold">
+                        Page {{ purchasePage }} of {{ totalPurchasePages }}
+                      </span>
+
+                      <button
+                        type="button"
+                        (click)="nextPurchasePage()"
+                        [disabled]="purchasePage === totalPurchasePages || isTableLoading"
+                        [class]="
+                          isDark
+                            ? 'bg-slate-800 text-slate-300 hover:bg-slate-700 border-slate-700 disabled:opacity-40'
+                            : 'bg-slate-100 text-slate-700 hover:bg-slate-200 border-slate-300 disabled:opacity-40'
+                        "
+                        class="p-1.5 rounded-lg border transition-colors cursor-pointer disabled:cursor-not-allowed flex items-center justify-center"
+                        title="Next page"
+                        aria-label="Next purchase history page"
+                      >
+                        <svg
+                          aria-hidden="true"
+                          xmlns="http://www.w3.org/2000/svg"
+                          class="w-4 h-4"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M9 5l7 7-7 7"
+                          />
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+                }
+              </div>
+            }
+          }
+        }
+      </div>
+
+      <!-- Footer -->
+      <div
+        [class]="
+          isDark
+            ? 'border-slate-800 bg-slate-950/60 text-slate-400'
+            : 'border-slate-200 bg-slate-50 text-slate-600'
+        "
+        class="px-6 py-4 border-t flex items-center justify-between text-xs transition-colors"
+      >
+        <span class="flex items-center gap-1.5 font-medium">
+          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" aria-hidden="true"></span>
+          Authoritative Credit Audit active
+        </span>
+        <button
+          type="button"
+          (click)="closeModal()"
+          [class]="
+            isDark
+              ? 'bg-slate-800 hover:bg-slate-700 text-white'
+              : 'bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold'
+          "
+          class="px-5 py-2 rounded-xl transition-colors cursor-pointer"
+        >
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+}

@@ -1,0 +1,337 @@
+<div class="help-container">
+  <!-- Hero Section -->
+  <header class="help-hero">
+    <div class="hero-content">
+      <div class="hero-badge">
+        <i class="pi pi-question-circle"></i>
+        <span>HELP CENTER & USER GUIDE</span>
+      </div>
+      <h1 class="hero-title">How to Use <span class="gradient-text">IMONBENCH AI</span></h1>
+      <p class="hero-subtitle">
+        Your complete guide to mastering AI interviews, analyzing job descriptions, taking technical quizzes, and
+        tracking your career readiness.
+      </p>
+
+      <!-- Instant Search Bar -->
+      <div class="search-box">
+        <label for="helpSearchInput" class="sr-only">Search help center</label>
+        <i class="pi pi-search search-icon"></i>
+        <input id="helpSearchInput" type="text" class="search-input"
+          placeholder="Search features, use cases, or FAQs (e.g. 'resume', 'score', 'star method', 'theme')..."
+          [ngModel]="searchQuery()" (ngModelChange)="searchQuery.set($event)" />
+        @if (searchQuery()) {
+        <button type="button" class="clear-search-btn" (click)="clearSearch()" title="Clear search"
+          aria-label="Clear search">
+          <i class="pi pi-times"></i>
+        </button>
+        }
+      </div>
+
+      <!-- Quick Section Jump Navigation -->
+      <nav class="quick-nav">
+        <button type="button" class="quick-nav-btn" [class.active]="activeSection() === 'overview'"
+          (click)="selectSection('overview')">
+          <i class="pi pi-compass"></i> Overview
+        </button>
+        <button type="button" class="quick-nav-btn" [class.active]="activeSection() === 'workflow'"
+          (click)="selectSection('workflow')">
+          <i class="pi pi-sitemap"></i> Workflow Chart
+        </button>
+        <button type="button" class="quick-nav-btn" [class.active]="activeSection() === 'features'"
+          (click)="selectSection('features')">
+          <i class="pi pi-th-large"></i> Feature Guides
+        </button>
+        <button type="button" class="quick-nav-btn" [class.active]="activeSection() === 'comparison'"
+          (click)="selectSection('comparison')">
+          <i class="pi pi-table"></i> Feature Matrix
+        </button>
+        <button type="button" class="quick-nav-btn" [class.active]="activeSection() === 'star'"
+          (click)="selectSection('star')">
+          <i class="pi pi-star"></i> STAR Method
+        </button>
+        <button type="button" class="quick-nav-btn" [class.active]="activeSection() === 'faq'"
+          (click)="selectSection('faq')">
+          <i class="pi pi-comments"></i> FAQs
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Interactive Visual Workflow Chart Section -->
+  <section class="section-card workflow-section">
+    <div class="section-header">
+      <div class="section-icon-box">
+        <i class="pi pi-sitemap"></i>
+      </div>
+      <div>
+        <h2 class="section-title">Application Workflow & Architecture</h2>
+        <p class="section-desc">Understand how IMONBENCH AI processes job postings and elevates your interview
+          performance end-to-end.</p>
+      </div>
+    </div>
+
+    <!-- Visual SVG Flowchart -->
+    <div class="svg-diagram-wrapper">
+      <svg class="workflow-svg" viewBox="0 0 950 160" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- Connecting Line Background -->
+        <path d="M 80 80 L 870 80" stroke="var(--help-card-border, #cbd5e1)" stroke-width="4" stroke-dasharray="8 8" />
+        <!-- Dynamic Gradient Connecting Glow Line -->
+        <path d="M 80 80 L 870 80" stroke="url(#flowGradient)" stroke-width="3" />
+
+        <defs>
+          <linearGradient id="flowGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stop-color="#6366f1" />
+            <stop offset="50%" stop-color="#a855f7" />
+            <stop offset="100%" stop-color="#10b981" />
+          </linearGradient>
+        </defs>
+      </svg>
+
+      <!-- Interactive Flow Nodes Overlay -->
+      <div class="flow-nodes-container">
+        @for (node of workflowNodes; track node.step) {
+        <div class="flow-node-card">
+          <div class="node-step-circle">
+            <i [class]="node.icon"></i>
+          </div>
+          <span class="node-badge">{{ node.badge }}</span>
+          <h4 class="node-title">{{ node.title }}</h4>
+          <p class="node-desc">{{ node.desc }}</p>
+        </div>
+        }
+      </div>
+    </div>
+  </section>
+
+  <!-- Category Filter Pills for Features -->
+  <div class="category-filter-bar">
+    <span class="filter-label"><i class="pi pi-filter"></i> Filter Category:</span>
+    <button type="button" class="filter-pill" [class.active]="activeCategory() === 'all'"
+      (click)="setCategoryFilter('all')">
+      All Features ({{ features.length }})
+    </button>
+    <button type="button" class="filter-pill" [class.active]="activeCategory() === 'interview'"
+      (click)="setCategoryFilter('interview')">
+      <i class="pi pi-microchip-ai"></i> AI Interview & JD (2)
+    </button>
+    <button type="button" class="filter-pill" [class.active]="activeCategory() === 'learning'"
+      (click)="setCategoryFilter('learning')">
+      <i class="pi pi-book"></i> Learning & Quizzes (2)
+    </button>
+    <button type="button" class="filter-pill" [class.active]="activeCategory() === 'analytics'"
+      (click)="setCategoryFilter('analytics')">
+      <i class="pi pi-chart-line"></i> Analytics & Skills (2)
+    </button>
+    <button type="button" class="filter-pill" [class.active]="activeCategory() === 'customization'"
+      (click)="setCategoryFilter('customization')">
+      <i class="pi pi-sliders-h"></i> Settings & Theme (1)
+    </button>
+  </div>
+
+  <!-- Detailed Feature Cards Section (Use Cases & How-To Instructions) -->
+  <section class="features-grid">
+    @for (feature of filteredFeatures(); track feature.id) {
+    <article class="feature-detail-card" [id]="feature.id">
+      <!-- Feature Card Header -->
+      <div class="card-top">
+        <div class="feature-header-main">
+          <div class="feature-icon-box">
+            <i [class]="feature.icon"></i>
+          </div>
+          <div>
+            <div class="badge-row">
+              <span class="feature-badge" [class.hot]="feature.badgeType === 'hot'"
+                [class.primary]="feature.badgeType === 'primary'" [class.success]="feature.badgeType === 'success'"
+                [class.info]="feature.badgeType === 'info'">
+                {{ feature.badge }}
+              </span>
+              <span class="time-badge"><i class="pi pi-clock"></i> {{ feature.timeCommitment }}</span>
+            </div>
+            <h2 class="feature-title">{{ feature.title }}</h2>
+          </div>
+        </div>
+        <a [routerLink]="feature.route" class="action-btn">
+          Open Feature <i class="pi pi-arrow-right"></i>
+        </a>
+      </div>
+
+      <p class="feature-description">{{ feature.description }}</p>
+
+      <!-- Use Cases Block -->
+      <div class="use-cases-box">
+        <h3 class="box-subtitle">
+          <i class="pi pi-check-circle text-success"></i> When to Use This (Use Cases)
+        </h3>
+        <ul class="use-cases-list">
+          @for (useCase of feature.useCases; track useCase) {
+          <li>
+            <i class="pi pi-angle-right check-icon"></i>
+            <span>{{ useCase }}</span>
+          </li>
+          }
+        </ul>
+      </div>
+
+      <!-- Step-by-Step Instructions Block -->
+      <div class="howto-box">
+        <h3 class="box-subtitle">
+          <i class="pi pi-list text-primary"></i> Step-by-Step Instructions (How to Use)
+        </h3>
+        <div class="steps-grid">
+          @for (s of feature.howToSteps; track s.step) {
+          <div class="step-card">
+            <div class="step-header">
+              <span class="step-number">{{ s.step }}</span>
+              <div class="step-icon"><i [class]="s.icon"></i></div>
+            </div>
+            <h4 class="step-title">{{ s.title }}</h4>
+            <p class="step-detail">{{ s.detail }}</p>
+          </div>
+          }
+        </div>
+      </div>
+
+      <!-- Pro Tip & Expected Output Footer -->
+      <div class="card-footer-meta">
+        <div class="meta-box pro-tip-box">
+          <div class="meta-header"><i class="pi pi-lightbulb"></i> PRO TIP</div>
+          <p>{{ feature.proTip }}</p>
+        </div>
+        <div class="meta-box output-box">
+          <div class="meta-header"><i class="pi pi-flag"></i> EXPECTED OUTPUT</div>
+          <p>{{ feature.expectedOutput }}</p>
+        </div>
+      </div>
+    </article>
+    } @empty {
+    <div class="empty-state">
+      <i class="pi pi-search empty-icon"></i>
+      <h3>No matching features found</h3>
+      <p>Try searching for a different keyword like "interview", "quiz", "resume", or "theme".</p>
+      <button type="button" class="btn-secondary" (click)="clearSearch()">Reset Search</button>
+    </div>
+    }
+  </section>
+
+  <!-- Feature Comparison Matrix Chart Section -->
+  <section class="section-card comparison-section">
+    <div class="section-header">
+      <div class="section-icon-box">
+        <i class="pi pi-table"></i>
+      </div>
+      <div>
+        <h2 class="section-title">Feature Comparison Matrix</h2>
+        <p class="section-desc">Quickly compare input methods, time commitments, and target outputs across all core
+          modules.</p>
+      </div>
+    </div>
+
+    <div class="table-responsive">
+      <table class="comparison-table">
+        <thead>
+          <tr>
+            <th>Module Name</th>
+            <th>Time Required</th>
+            <th>Input Required</th>
+            <th>Output / Assessment</th>
+            <th>Best Recommended Use Case</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (item of featureComparison; track item.feature) {
+          <tr>
+            <td class="feature-cell">
+              <i [class]="item.icon"></i>
+              <strong>{{ item.feature }}</strong>
+            </td>
+            <td><span class="pill-tag time-tag">{{ item.time }}</span></td>
+            <td>{{ item.input }}</td>
+            <td><span class="pill-tag output-tag">{{ item.output }}</span></td>
+            <td>{{ item.useCase }}</td>
+          </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- STAR Method Masterclass Section -->
+  <section class="section-card star-section">
+    <div class="section-header">
+      <div class="section-icon-box star-icon-box">
+        <i class="pi pi-star"></i>
+      </div>
+      <div>
+        <h2 class="section-title">STAR Technique Guide for Interviews</h2>
+        <p class="section-desc">IMONBENCH AI grades your behavioral and scenario answers based on the STAR framework.
+          Here is how to structure your answers for maximum points.</p>
+      </div>
+    </div>
+
+    <div class="star-grid">
+      @for (star of starFramework; track star.letter) {
+      <div class="star-card">
+        <div class="star-letter">{{ star.letter }}</div>
+        <h3 class="star-title">{{ star.title }}</h3>
+        <p class="star-desc">{{ star.desc }}</p>
+        <div class="star-example">
+          <span class="example-label">Example:</span>
+          <p>{{ star.example }}</p>
+        </div>
+      </div>
+      }
+    </div>
+  </section>
+
+  <!-- Searchable FAQ Section -->
+  <section class="section-card faq-section">
+    <div class="section-header">
+      <div class="section-icon-box">
+        <i class="pi pi-comments"></i>
+      </div>
+      <div>
+        <h2 class="section-title">Frequently Asked Questions</h2>
+        <p class="section-desc">Got questions about AI evaluation, file uploads, audio voice practice, or privacy? Find
+          quick answers here.</p>
+      </div>
+    </div>
+
+    <div class="faq-accordion">
+      @for (faq of filteredFaqs(); track faq.id) {
+      <div class="faq-item" [class.expanded]="expandedFaqId() === faq.id">
+        <button type="button" class="faq-question-btn" [attr.aria-expanded]="expandedFaqId() === faq.id"
+          (click)="toggleFaq(faq.id)">
+          <span class="faq-question">{{ faq.question }}</span>
+          <i class="pi" [class.pi-chevron-down]="expandedFaqId() !== faq.id"
+            [class.pi-chevron-up]="expandedFaqId() === faq.id"></i>
+        </button>
+        @if (expandedFaqId() === faq.id) {
+        <div class="faq-answer-body">
+          <p>{{ faq.answer }}</p>
+        </div>
+        }
+      </div>
+      } @empty {
+      <div class="empty-state">
+        <p>No FAQs match your search query "{{ searchQuery() }}".</p>
+      </div>
+      }
+    </div>
+  </section>
+
+  <!-- Call to Action Banner -->
+  <section class="cta-banner">
+    <div class="cta-content">
+      <h2>Ready to Test Your Skill Readiness?</h2>
+      <p>Launch your personalized AI Mock Interview now and get immediate feedback on your answers.</p>
+      <div class="cta-actions">
+        <a routerLink="/aiinterview" class="btn-primary cta-btn">
+          <i class="pi pi-microchip-ai"></i> Start AI Interview
+        </a>
+        <a routerLink="/quiz" class="btn-secondary cta-btn">
+          <i class="pi pi-play"></i> Take a Quick Quiz
+        </a>
+      </div>
+    </div>
+  </section>
+</div>

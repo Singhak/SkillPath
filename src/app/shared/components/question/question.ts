@@ -56,18 +56,18 @@ export class QuestionComponent {
 
     if (isSubmitted) {
       if (isCorrect) {
-        return 'border-2 border-emerald-500 bg-emerald-50/90 text-emerald-950 font-medium shadow-sm';
+        return 'option-card option-card--correct border-2 border-emerald-500 bg-emerald-50/90 text-emerald-950 font-medium shadow-sm';
       }
       if (isSelected && !isCorrect) {
-        return 'border-2 border-red-500 bg-red-50/90 text-red-950 font-medium shadow-sm';
+        return 'option-card option-card--wrong border-2 border-red-500 bg-red-50/90 text-red-950 font-medium shadow-sm';
       }
-      return 'border border-slate-200 bg-slate-50/50 text-slate-400 opacity-60';
+      return 'option-card border border-slate-200 bg-slate-50/50 text-slate-400 opacity-60';
     }
 
     if (isSelected) {
-      return 'border-2 border-emerald-600 bg-emerald-50/40 text-slate-900 font-medium shadow-sm cursor-pointer';
+      return 'option-card option-card--selected font-medium shadow-sm cursor-pointer';
     }
 
-    return 'border border-slate-200 bg-white hover:border-emerald-300 hover:bg-slate-50/80 text-slate-700 cursor-pointer';
+    return 'option-card border border-slate-200 cursor-pointer';
   }
 }

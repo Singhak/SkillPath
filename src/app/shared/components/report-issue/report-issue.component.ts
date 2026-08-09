@@ -17,16 +17,16 @@ import { ReportIssue } from './report-issue.model';
   templateUrl: './report-issue.component.html',
 })
 export class ReportIssueComponent {
-  reportIssueService = inject(ReportIssueService);
-  authService = inject(AuthService);
-  messanger = inject(MessageService);
+  readonly reportIssueService = inject(ReportIssueService);
+  readonly authService = inject(AuthService);
+  readonly messanger = inject(MessageService);
 
-  displayDialog = this.reportIssueService.displayDialog;
-  report = this.reportIssueService.report;
-  isReporting = this.reportIssueService.isReporting;
-  config = this.reportIssueService.config;
+  readonly displayDialog = this.reportIssueService.displayDialog;
+  readonly report = this.reportIssueService.report;
+  readonly isReporting = this.reportIssueService.isReporting;
+  readonly config = this.reportIssueService.config;
 
-  submitReport() {
+  submitReport(): void {
     const currentReport = this.report();
     if (!currentReport.description?.trim() || !currentReport.issueType) {
       this.messanger.add({
@@ -48,7 +48,7 @@ export class ReportIssueComponent {
     this.reportIssueService.submitReport(finalReport);
   }
 
-  closeDialog() {
+  closeDialog(): void {
     this.reportIssueService.closeDialog();
   }
 }

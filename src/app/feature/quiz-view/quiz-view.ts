@@ -1,14 +1,15 @@
-import { Component, computed, effect, inject, OnDestroy, OnInit, signal } from '@angular/core';
+import { Component, computed, effect, inject, OnDestroy, OnInit, signal, DestroyRef } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { ActivatedRoute } from '@angular/router';
 import { TagModule } from 'primeng/tag';
 import { ButtonModule } from 'primeng/button';
-import { CardModule } from 'primeng/card';
 import { SelectModule } from 'primeng/select';
 import { MultiSelectModule } from 'primeng/multiselect';
 import { MessageService } from 'primeng/api';
 import { QuizStatsService } from '../service/quiz-stats.service';
 import { AuthService } from '../../core/services/auth.service';
 import { Timer } from '../../shared/services/timer';
-import { QuizSummaryComponent } from '../service/quiz-summary';
+import { QuizSummaryComponent } from '../service/quiz-summary/quiz-summary';
 import { Category } from '../../core/models/category.model';
 import { FormsModule } from '@angular/forms';
 import { Question } from '../../shared/components/question/question.model';
@@ -17,6 +18,7 @@ import { DialogModule } from 'primeng/dialog';
 import { TextareaModule } from 'primeng/textarea';
 import { CommonModule } from '@angular/common';
 import { ReportIssueService } from '../../core/services/report-issue.service';
+import { GamificationService } from '../../core/services/gamification.service';
 import { ReportIssueComponent } from '../../shared/components/report-issue/report-issue.component';
 import { CatrgoryApiService } from '../../core/services/apis/category-api.service';
 import { QuestionApiService } from '../../core/services/apis/question-api.service';
@@ -28,7 +30,6 @@ import { UserApiService } from '../../core/services/apis/user-api.service';
     QuestionComponent,
     TagModule,
     ButtonModule,
-    CardModule,
     QuizSummaryComponent,
     SelectModule,
     MultiSelectModule,
@@ -45,14 +46,16 @@ import { UserApiService } from '../../core/services/apis/user-api.service';
 })
 export class QuizView implements OnInit, OnDestroy {
   // region Service Injections
-  questionApiService = inject(QuestionApiService);
-  messanger = inject(MessageService);
-  quizStatsService = inject(QuizStatsService);
-  categoryApiService = inject(CatrgoryApiService);
-  userService = inject(UserApiService);
-  authService = inject(AuthService);
-  reportIssueService = inject(ReportIssueService);
-  timer = inject(Timer);
+  readonly questionApiService = inject(QuestionApiService);
+  readonly messanger = inject(MessageService);
+  readonly quizStatsService = inject(QuizStatsService);
+  readonly categoryApiService = inject(CatrgoryApiService);
+  readonly userService = inject(UserApiService);
+  readonly authService = inject(AuthService);
+  private readonly reportIssueService = inject(ReportIssueService);
+  private readonly route = inject(ActivatedRoute);
+  readonly timer = inject(Timer);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly questionCountOptions = [5, 10, 15];
   readonly questionCount = signal<number>(15);
@@ -85,6 +88,7 @@ export class QuizView implements OnInit, OnDestroy {
   userAttempsCount = signal(0);
 
   // UI state
+  isLoading = signal<boolean>(false);
   isSubmited = signal<boolean>(false);
   isQuizFinished = signal(false);
   isFinishing = signal(false);
@@ -111,8 +115,18 @@ export class QuizView implements OnInit, OnDestroy {
 
   // region Data Loading and Setup
   private loadInitialData(): void {
-    this.categoryApiService.getCategory().subscribe((categories) => {
+    this.categoryApiService.getCategory().pipe(takeUntilDestroyed(this.destroyRef)).subscribe((categories) => {
       this.allCategories.set(categories);
+      this.route.queryParams.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(params => {
+        const categoryQuery = params['category'];
+        if (categoryQuery) {
+          const matchedCategory = categories.find(c => c.category.toLowerCase() === categoryQuery.toLowerCase());
+          if (matchedCategory) {
+            this.selectedCategory.set(matchedCategory.category);
+            this.onCategoryChange();
+          }
+        }
+      });
     });
   }
 
@@ -120,20 +134,34 @@ export class QuizView implements OnInit, OnDestroy {
     const category = this.selectedCategory();
     const subCategories = this.selectedSubCategories();
     if (category) {
+      this.isLoading.set(true);
       this.questionApiService
         .getQuestions({ category, subCategory: subCategories, questionCount: this.questionCount() })
-        .subscribe((quize) => {
-          this.quizStatsService.quizId.set(quize.quizId);
-          this.quizes.set(quize?.questions ?? []);
-          this.quizesCount.set(quize?.questions.length ?? 0);
-          if (quize?.questions.length > 0) {
-            this.startQuestion(0);
-          }
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe({
+          next: (quize) => {
+            this.quizStatsService.quizId.set(quize.quizId);
+            this.quizes.set(quize?.questions ?? []);
+            this.quizesCount.set(quize?.questions.length ?? 0);
+            if (quize?.questions.length > 0) {
+              this.startQuestion(0);
+            }
+            this.isLoading.set(false);
+          },
+          error: () => {
+            this.isLoading.set(false);
+            this.messanger.add({
+              severity: 'error',
+              summary: 'Error',
+              detail: 'Failed to load quiz questions. Please try again.',
+              life: 5000,
+            });
+          },
         });
     }
   }
 
-  private startQuestion(index: number) {
+  private startQuestion(index: number): void {
     const question = this.quizes()[index];
     this.currentQuiz.set(question);
     this.currentQuizIndex.set(index);
@@ -159,7 +187,7 @@ export class QuizView implements OnInit, OnDestroy {
   }
 
   // Handles both "Next" and "Skip"
-  onNextClick() {
+  onNextClick(): void {
     if (this.currentQuizIndex() + 1 < this.quizesCount()) {
       // If not submitted, it's a skip
       if (!this.isSubmited()) {
@@ -167,7 +195,9 @@ export class QuizView implements OnInit, OnDestroy {
       }
       this.startQuestion(this.currentQuizIndex() + 1);
     } else {
-      if (this.isFinishing()) return;
+      if (this.isFinishing()) {
+        return;
+      }
 
       // Last question was answered/skipped, finish the quiz
       if (!this.isSubmited()) {
@@ -185,9 +215,11 @@ export class QuizView implements OnInit, OnDestroy {
     }
   }
 
-  onSubmitClick() {
-    console.log(this.selectedAnswer());
-    if (!this.selectedAnswer()?.trim()?.length) return;
+  onSubmitClick(): void {
+
+    if (!this.selectedAnswer()?.trim()?.length) {
+      return;
+    }
     this.isSubmited.set(true);
     const quiz = this.currentQuiz();
     const selected = this.selectedAnswer();
@@ -217,7 +249,7 @@ export class QuizView implements OnInit, OnDestroy {
     this.timer.stop();
   }
 
-  onCloseSummary() {
+  onCloseSummary(): void {
     // Reset the entire quiz state to go back to the selection screen.
     this.quizes.set([]);
     this.quizesCount.set(0);
@@ -232,14 +264,14 @@ export class QuizView implements OnInit, OnDestroy {
     this.quizStatsService.reset();
   }
 
-  onRestartQuiz() {
+  onRestartQuiz(): void {
     this.quizStatsService.reset();
     this.isQuizFinished.set(false);
     this.numberOfCorrectAns = 0;
     this.startQuestion(0);
   }
 
-  onHintClick() {
+  onHintClick(): void {
     const hintCost = 2;
     if (this.coins() >= hintCost) {
       const currentQuizHints = this.currentQuiz()?.hints;
@@ -261,7 +293,7 @@ export class QuizView implements OnInit, OnDestroy {
     }
   }
 
-  showReportDialog() {
+  showReportDialog(): void {
     this.reportIssueService.showDialog({
       title: 'Report an Issue with this Question',
       issueTypes: ['Question', 'Options', 'Explanation', 'Answer', 'Other'],
@@ -273,25 +305,34 @@ export class QuizView implements OnInit, OnDestroy {
   }
   // endregion
 
+  private readonly gamificationService = inject(GamificationService);
+
   // region Private Helpers
-  private updateStats() {
+  private updateStats(): void {
+    this.gamificationService.recordActivity('quiz');
     //update coins before close
     const coinsEarned = this.quizStatsService.correctAnswerCount() * 5; // we are not deduting the hint use coins since those already deduted
     const newTotalCoins = this.authService.userCoins() + coinsEarned;
-    this.userService
-      .updateUser(this.authService.currentUser().id, { coins: newTotalCoins, totalQuizAttempted: this.userAttempsCount() + 1 })
-      .subscribe({
-        next: () => {
-          this.authService.updateCoins(newTotalCoins);
-          this.isQuizFinished.set(true);
-          this.isFinishing.set(false);
-        },
-        error: () => {
-          this.authService.updateCoins(newTotalCoins);
-          this.isQuizFinished.set(true);
-          this.isFinishing.set(false);
-        }
-      });
+    const userId = this.authService.currentUser()?.id;
+    if (userId) {
+      this.userService
+        .updateUser(userId, { coins: newTotalCoins, totalQuizAttempted: this.userAttempsCount() + 1 })
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe({
+          next: () => {
+            this.authService.updateCoins(newTotalCoins);
+            this.isQuizFinished.set(true);
+            this.isFinishing.set(false);
+          },
+          error: () => {
+            this.isQuizFinished.set(true);
+            this.isFinishing.set(false);
+          }
+        });
+    } else {
+      this.isQuizFinished.set(true);
+      this.isFinishing.set(false);
+    }
     //update stats
     this.quizStatsService.createQuestionStats();
     this.quizStatsService.updateQuizStats();

@@ -16,11 +16,11 @@ export class AuthService {
   private readonly authTokenKey = 'authToken';
   private readonly refreshTokenKey = 'refreshToken';
 
-  private platformId = inject(PLATFORM_ID);
-  private router = inject(Router);
-  private userResourceService = inject(UserResourceService);
+  private readonly platformId = inject(PLATFORM_ID);
+  private readonly router = inject(Router);
+  private readonly userResourceService = inject(UserResourceService);
 
-  private _currentUser = signal<User | null>(null);
+  private readonly _currentUser = signal<User | null>(null);
 
 
   readonly currentUser = this._currentUser.asReadonly();
@@ -28,6 +28,7 @@ export class AuthService {
   readonly freeCredits = this.userResourceService.freeCredits;
   readonly paidCredits = this.userResourceService.paidCredits;
   readonly isAuthenticated = computed(() => !!this._currentUser());
+  readonly currentPlan = computed(() => this._currentUser()?.plan || 'Silver');
 
   constructor() {
     if (isPlatformBrowser(this.platformId)) {
@@ -38,8 +39,7 @@ export class AuthService {
         this._currentUser.set(user);
         this.userResourceService.initialize(user);
       } else {
-        // Ensure resources are cleared if no user
-        this.userResourceService.initialize(null);
+        localStorage.removeItem(this.currentUserKey);
       }
 
       effect(() => {
@@ -61,36 +61,67 @@ export class AuthService {
   }
 
   logout(): void {
+    if (isPlatformBrowser(this.platformId)) {
+      // 1. Save UI preferences to preserve across sessions (e.g. Theme settings)
+      const themeMode = localStorage.getItem('app_theme_mode');
+      const themeAccent = localStorage.getItem('app_theme_accent');
+      const themeDensity = localStorage.getItem('app_theme_density');
+
+      // 2. Clear all local storage & session storage
+      localStorage.clear();
+      sessionStorage.clear();
+
+      // 3. Restore preserved UI preferences
+      if (themeMode) localStorage.setItem('app_theme_mode', themeMode);
+      if (themeAccent) localStorage.setItem('app_theme_accent', themeAccent);
+      if (themeDensity) localStorage.setItem('app_theme_density', themeDensity);
+    }
+
     this._currentUser.set(null);
-    localStorage.removeItem(this.authTokenKey);
-    localStorage.removeItem(this.refreshTokenKey);
     this.userResourceService.clear();
     this.router.navigate(['/login']);
   }
 
-  updateCoins(newCoinTotal: number): Observable<User | null> {
-    return this.userResourceService.updateCoins(this.currentUser().id, newCoinTotal).pipe(
-      tap((updatedUser) => {
-        const user = updatedUser as User;
-        this._currentUser.set(user);
+  updateCoins(newCoinTotal: number): void {
+    const user = this._currentUser();
+    if (user && user.id) {
+      this.userResourceService.updateCoins(user.id, newCoinTotal).subscribe({
+        error: () => {
+          this.userResourceService.updateUserCredits({ coins: newCoinTotal });
+        }
+      });
+    } else {
+      this.userResourceService.updateUserCredits({ coins: newCoinTotal });
+    }
+  }
+
+  refreshCreditsAndCoins(): Observable<{ coinsRes: { coins: number }; creditsRes: { freeCredits: string; paidCredits: string } }> {
+    return this.userResourceService.fetchCreditsAndCoins();
+  }
+
+  decrementAiCredits(amount: number): Observable<{ message: string, freeCredits: string, paidCredits: string }> {
+    return this.userResourceService.decrementAiCredits(amount).pipe(
+      tap(() => {
+        const user = this._currentUser();
         if (user) {
-          this.userResourceService.updateFromUser(user);
+          this._currentUser.set(user);
         }
       }),
     );
   }
 
-  decrementAiCredits(amount: number): Observable<{ message: string, freeCredits: string, paidCredits: string }> {
-    return this.userResourceService.decrementAiCredits(amount).pipe(
-      tap((updatedUser) => {
-        const user = this._currentUser();
-        if (user) {
-          user.freeCredits = updatedUser.freeCredits;
-          user.paidCredits = updatedUser.paidCredits;
-          this._currentUser.set(user);
-          this.userResourceService.updateFromUser(user);
-        }
-      }),
-    );
+  buyAiCreditsWithCoins(amount: number): Observable<{ message: string, coins: number, freeCredits: string, paidCredits: string }> {
+    return this.userResourceService.buyAiCreditsWithCoins(amount);
+  }
+
+  updateUserProfile(updatedData: Partial<User>): void {
+    const current = this._currentUser();
+    if (current) {
+      const merged = { ...current, ...updatedData };
+      this._currentUser.set(merged);
+      if (isPlatformBrowser(this.platformId)) {
+        localStorage.setItem(this.currentUserKey, JSON.stringify(merged));
+      }
+    }
   }
 }

@@ -1,78 +1,235 @@
-<div class="p-4 sm:p-6 lg:p-8">
-  <p-card class="max-w-6xl mx-auto">
-    @if (!currentQuiz()) {
-    <div class="p-4">
-      <h2 class="text-2xl font-bold mb-2">Start a New Quiz</h2>
-      <p class="text-slate-500 mb-6">Select a category and sub-categories to begin.</p>
-      <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4 items-end">
-        <span>
-          <label for="category">Category</label>
-          <p-select class="w-full rounded-xl border-slate-300 bg-white" inputId="category" [options]="categories()"
-            [(ngModel)]="selectedCategory" (onChange)="onCategoryChange()" placeholder="Select a Category"></p-select>
-        </span>
-        <span>
-          <label for="subcategories">Sub-Categories</label>
-          <p-multiSelect class="w-full rounded-xl border-slate-300 bg-white" inputId="subcategories"
-            [options]="subCategories()" [(ngModel)]="selectedSubCategories" placeholder="Select Sub-Categories"
-            [style]="{ width: '100%' }"></p-multiSelect>
-        </span>
-        <span>
-          <label>Number of questions</label>
-          <p-select class="w-full rounded-xl border-slate-300 bg-white" [ngModel]="questionCount()"
-            (ngModelChange)="questionCount.set(+$event)" [options]="questionCountOptions"></p-select>
-        </span>
-        <p-button label="Start Quiz" icon="pi pi-play" (onClick)="fetchQuiz()"
-          [disabled]="!selectedCategory()"></p-button>
+<!-- Setup Screen -->
+@if (!currentQuiz()) {
+<div class="quiz-setup-wrapper">
+  <div class="quiz-setup-card">
+
+    <!-- Header -->
+    <div class="setup-header">
+      <div class="setup-icon-wrap">
+        <i class="pi pi-bolt setup-icon"></i>
       </div>
+      <h1 class="setup-title">Start a New Quiz</h1>
+      <p class="setup-subtitle">Choose your topic and challenge yourself to level up your skills</p>
     </div>
-    } @else {
-    <!-- Quiz Header -->
-    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b pb-4 mb-6">
-      <div>
-        <div class="flex items-center gap-2.5 mb-1">
-          <span class="text-sm font-medium text-slate-500">
-            Question {{ currentQuizIndex() + 1 }} of {{ quizes().length }}
-          </span>
-          <span class="inline-flex items-center gap-1 text-xs font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
-            <i class="pi pi-check-circle text-emerald-600 text-xs"></i>
-            +5 Coins / Correct
-          </span>
-        </div>
-        <div class="text-xl font-semibold text-slate-800">
-          {{ currentQuiz()?.category }} - {{ currentQuiz()?.subCategory }}
-        </div>
+
+    <!-- Form -->
+    <div class="setup-form">
+      <div class="form-field">
+        <label class="field-label" for="category">
+          <i class="pi pi-tag"></i> Category
+        </label>
+        <p-select
+          class="field-select"
+          inputId="category"
+          [options]="categories()"
+          [(ngModel)]="selectedCategory"
+          (onChange)="onCategoryChange()"
+          placeholder="Select a Category"
+          appendTo="body">
+        </p-select>
       </div>
-      <div class="flex items-center gap-3 flex-wrap">
-        <p-button [label]="timer.time()" icon="pi pi-clock" severity="info" [outlined]="false" [disabled]="true" />
-        <p-button [label]="coins().toString()" icon="pi pi-bitcoin" severity="warn" [outlined]="false"
-          [disabled]="true" />
-        <p-button [label]="'Hint (' + availableHints() + ')'" icon="pi pi-lightbulb" severity="help" [outlined]="false"
-          (click)="onHintClick()" [disabled]="isSubmited() || availableHints() === 0" />
-        <p-button label="Report" icon="pi pi-flag" severity="warn" (click)="showReportDialog()"></p-button>
+
+      <div class="form-field">
+        <label class="field-label" for="subcategories">
+          <i class="pi pi-list"></i> Sub-Categories
+        </label>
+        <p-multiSelect
+          class="field-select"
+          inputId="subcategories"
+          [options]="subCategories()"
+          [(ngModel)]="selectedSubCategories"
+          placeholder="Select Sub-Categories"
+          [style]="{ width: '100%' }"
+          appendTo="body">
+        </p-multiSelect>
+      </div>
+
+      <div class="form-field">
+        <label class="field-label" for="questionCountSelect">
+          <i class="pi pi-question-circle"></i> Number of Questions
+        </label>
+        <p-select
+          class="field-select"
+          inputId="questionCountSelect"
+          [ngModel]="questionCount()"
+          (ngModelChange)="questionCount.set(+$event)"
+          [options]="questionCountOptions"
+          appendTo="body">
+        </p-select>
       </div>
     </div>
 
-    <!-- Question -->
-    <app-quiz [quiz]="currentQuiz()" [index]="currentQuizIndex()" [hintIndex]="hintIndex()"
-      [(selectedAnswer)]="selectedAnswer" [showExplanation]="isSubmited()"></app-quiz>
+    <!-- Start Button -->
+    <button
+      type="button"
+      class="start-btn"
+      [class.start-btn--disabled]="!selectedCategory() || isLoading()"
+      [disabled]="!selectedCategory() || isLoading()"
+      (click)="fetchQuiz()">
+      @if (isLoading()) {
+        <i class="pi pi-spin pi-spinner"></i>
+        <span>Loading Quiz...</span>
+      } @else {
+        <i class="pi pi-play-circle"></i>
+        <span>Launch Quiz</span>
+      }
+    </button>
 
-    <!-- Footer -->
-    <div class="flex justify-end items-center mt-6 p-4 bg-slate-50 rounded-xl border border-slate-100">
-      <div class="flex gap-3">
-        <p-button label="Skip" icon="pi pi-fast-forward" iconPos="right" severity="secondary" (click)="onNextClick()"
-          [disabled]="isSubmited()">
-        </p-button>
-        <p-button label="Submit" icon="pi pi-check" iconPos="right" severity="success" (click)="onSubmitClick()"
-          [disabled]="!selectedAnswer().length || isSubmited()">
-        </p-button>
-        <p-button label="Next" icon="pi pi-arrow-right" iconPos="right" severity="info" [disabled]="!isSubmited()"
-          (click)="onNextClick()">
-        </p-button>
-      </div>
+    <!-- Footer tips -->
+    <div class="setup-tips">
+      <span class="tip-item tip-item--hint"><i class="pi pi-lightbulb"></i> Use hints wisely</span>
+      <span class="tip-item tip-item--coins"><i class="pi pi-bitcoin"></i> Earn 5 coins per correct</span>
+      <span class="tip-item tip-item--timer"><i class="pi pi-clock"></i> Timer tracks your speed</span>
     </div>
-    }
-  </p-card>
+  </div>
 </div>
-<app-quiz-summary [visible]="isQuizFinished()" [totalQuestions]="quizesCount()" (close)="onCloseSummary()"
-  (restart)="onRestartQuiz()"></app-quiz-summary>
+
+} @else {
+<!-- Active Quiz Screen -->
+<div class="quiz-active-wrapper">
+
+  <!-- Progress Bar -->
+  <div class="quiz-progress-bar">
+    <div
+      class="quiz-progress-fill"
+      [style.width.%]="((currentQuizIndex() + 1) / quizes().length) * 100">
+    </div>
+  </div>
+
+  <div class="quiz-main-card">
+
+    <!-- Quiz Header -->
+    <div class="quiz-header">
+      <div class="quiz-meta">
+        <div class="question-counter">
+          <span class="counter-label">Question</span>
+          <span class="counter-value">{{ currentQuizIndex() + 1 }}<span class="counter-total"> / {{ quizes().length }}</span></span>
+        </div>
+        <div class="quiz-topic">
+          <i class="pi pi-folder-open"></i>
+          <span>{{ currentQuiz()?.category }} — {{ currentQuiz()?.subCategory }}</span>
+        </div>
+        <div class="coin-reward-badge">
+          <i class="pi pi-check-circle"></i>
+          <span>+5 Coins per correct</span>
+        </div>
+      </div>
+
+      <div class="quiz-actions">
+        <div class="stat-pill stat-pill--timer" title="Time Elapsed">
+          <div class="stat-pill-icon-wrap timer-icon-wrap">
+            <i class="pi pi-clock stat-pill-icon"></i>
+          </div>
+          <div class="stat-pill-content">
+            <span class="stat-pill-value">{{ timer.time() }}</span>
+          </div>
+        </div>
+
+        <div class="stat-pill stat-pill--coins" title="Coins Earned">
+          <div class="stat-pill-icon-wrap coin-icon-wrap">
+            <i class="pi pi-bitcoin stat-pill-icon"></i>
+          </div>
+          <div class="stat-pill-content">
+            <span class="stat-pill-value">{{ coins() }}</span>
+            <span class="stat-pill-unit">Coins</span>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          class="action-btn action-btn--hint"
+          (click)="onHintClick()"
+          [disabled]="isSubmited() || availableHints() === 0"
+          [class.action-btn--disabled]="isSubmited() || availableHints() === 0"
+          title="Use a hint (costs 2 coins)">
+          <i class="pi pi-lightbulb"></i>
+          <span>Hint ({{ availableHints() }})</span>
+        </button>
+
+        <button
+          type="button"
+          class="action-btn action-btn--report"
+          (click)="showReportDialog()"
+          title="Report issue with question">
+          <i class="pi pi-flag"></i>
+          <span>Report</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Question Component -->
+    <div class="quiz-question-area">
+      <app-quiz
+        [quiz]="currentQuiz()"
+        [index]="currentQuizIndex()"
+        [hintIndex]="hintIndex()"
+        [(selectedAnswer)]="selectedAnswer"
+        [showExplanation]="isSubmited()">
+      </app-quiz>
+    </div>
+
+    <!-- Footer Controls -->
+    <div class="quiz-footer">
+      <div class="footer-left">
+        <div class="progress-dots">
+          @for (q of quizes(); track $index) {
+            <span
+              class="progress-dot"
+              [class.progress-dot--done]="$index < currentQuizIndex()"
+              [class.progress-dot--current]="$index === currentQuizIndex()">
+            </span>
+          }
+        </div>
+      </div>
+      <div class="footer-actions">
+        <button
+          type="button"
+          class="footer-btn footer-btn--skip"
+          [disabled]="isSubmited() || isFinishing()"
+          [class.footer-btn--disabled]="isSubmited() || isFinishing()"
+          (click)="onNextClick()">
+          @if (isFinishing() && !isSubmited()) {
+            <i class="pi pi-spin pi-spinner"></i>
+            <span>Loading Summary...</span>
+          } @else {
+            <span>Skip</span>
+            <i class="pi pi-fast-forward"></i>
+          }
+        </button>
+        <button
+          type="button"
+          class="footer-btn footer-btn--submit"
+          [disabled]="!selectedAnswer().length || isSubmited() || isFinishing()"
+          [class.footer-btn--disabled]="!selectedAnswer().length || isSubmited() || isFinishing()"
+          (click)="onSubmitClick()">
+          <span>Submit</span>
+          <i class="pi pi-check"></i>
+        </button>
+        <button
+          type="button"
+          class="footer-btn footer-btn--next"
+          [disabled]="!isSubmited() || isFinishing()"
+          [class.footer-btn--disabled]="!isSubmited() || isFinishing()"
+          (click)="onNextClick()">
+          @if (isFinishing() && isSubmited()) {
+            <i class="pi pi-spin pi-spinner"></i>
+            <span>Loading Summary...</span>
+          } @else {
+            <span>{{ currentQuizIndex() + 1 === quizes().length ? 'Finish' : 'Next' }}</span>
+            <i class="pi" [class.pi-check-circle]="currentQuizIndex() + 1 === quizes().length" [class.pi-arrow-right]="currentQuizIndex() + 1 !== quizes().length"></i>
+          }
+        </button>
+      </div>
+    </div>
+
+  </div>
+</div>
+}
+
+<app-quiz-summary
+  [visible]="isQuizFinished()"
+  [totalQuestions]="quizesCount()"
+  (close)="onCloseSummary()"
+  (restart)="onRestartQuiz()">
+</app-quiz-summary>
 <app-report-issue></app-report-issue>

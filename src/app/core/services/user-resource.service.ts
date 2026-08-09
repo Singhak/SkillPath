@@ -1,5 +1,6 @@
 import { Injectable, signal, inject } from '@angular/core';
-import { Observable, of, throwError } from 'rxjs';
+import { Observable, forkJoin, of, throwError } from 'rxjs';
+import { tap, catchError } from 'rxjs/operators';
 import { User } from '../models/user.model';
 import { UserApiService } from './apis/user-api.service';
 
@@ -20,27 +21,60 @@ export class UserResourceService {
   initialize(user: User | null): void {
     if (user) {
       this._userCoins.set(user.coins ?? 0);
-      this._paidCredits.set(Number.parseFloat(user.paidCredits ?? "0"));
-      this.checkAndResetFreeCredits(user);
+      if (user.freeCredits !== undefined && user.freeCredits !== null) {
+        const parsedFree = typeof user.freeCredits === 'number' ? user.freeCredits : Number.parseFloat(user.freeCredits.toString());
+        if (!Number.isNaN(parsedFree)) {
+          this._freeCredits.set(parsedFree);
+        }
+      }
+      if (user.paidCredits !== undefined && user.paidCredits !== null) {
+        const parsedPaid = typeof user.paidCredits === 'number' ? user.paidCredits : Number.parseFloat(user.paidCredits.toString());
+        if (!Number.isNaN(parsedPaid)) {
+          this._paidCredits.set(parsedPaid);
+        }
+      }
+      this.fetchCreditsAndCoins().subscribe({ error: () => { } });
     } else {
-      this._userCoins.set(0);
-      this._freeCredits.set(0);
-      this._paidCredits.set(0);
+      this.clear();
     }
+  }
+
+  /**
+   * Fetch authoritative AI credits and coin balance from backend API.
+   * Runs whenever credits/coins are consumed, earned, or bought.
+   */
+  fetchCreditsAndCoins(): Observable<{ coinsRes: { coins: number }; creditsRes: { freeCredits: string; paidCredits: string } }> {
+    return forkJoin({
+      coinsRes: this.userService.getCoins().pipe(
+        catchError(() => of({ coins: this._userCoins() }))
+      ),
+      creditsRes: this.userService.getAiCredits().pipe(
+        catchError(() => of({ freeCredits: this._freeCredits().toString(), paidCredits: this._paidCredits().toString() }))
+      ),
+    }).pipe(
+      tap(({ coinsRes, creditsRes }) => {
+        if (coinsRes && coinsRes.coins !== undefined) {
+          this._userCoins.set(coinsRes.coins);
+        }
+        if (creditsRes) {
+          if (creditsRes.freeCredits !== null && creditsRes.freeCredits !== undefined) {
+            this._freeCredits.set(Number.parseFloat(creditsRes.freeCredits));
+          }
+          if (creditsRes.paidCredits !== null && creditsRes.paidCredits !== undefined) {
+            this._paidCredits.set(Number.parseFloat(creditsRes.paidCredits));
+          }
+        }
+      })
+    );
   }
 
   updateCoins(id: number | string, newCoinTotal: number): Observable<User> {
-    return this.userService.updateUser(id, { coins: newCoinTotal });
-  }
-
-  private checkAndResetFreeCredits(user: User): void {
-    if (!user.id) {
-      return;
-    }
-    this.userService.getAiCredits().subscribe((res) => {
-      this._freeCredits.set(Number.parseFloat(res.freeCredits ?? "0"));
-      this._paidCredits.set(Number.parseFloat(res.paidCredits ?? "0"));
-    })
+    this._userCoins.set(newCoinTotal);
+    return this.userService.updateUser(id, { coins: newCoinTotal }).pipe(
+      tap(() => {
+        this.fetchCreditsAndCoins().subscribe({ error: () => { } });
+      })
+    );
   }
 
   decrementAiCredits(amount: number): Observable<{ message: string, freeCredits: string, paidCredits: string }> {
@@ -53,20 +87,75 @@ export class UserResourceService {
     const freeCreditsToUse = Math.min(currentFreeCredits, amount);
     const paidCreditsToUse = amount - freeCreditsToUse;
 
-    const newFreeCredits = currentFreeCredits - freeCreditsToUse;
-    const newPaidCredits = currentPaidCredits - paidCreditsToUse;
+    this._freeCredits.set(currentFreeCredits - freeCreditsToUse);
+    this._paidCredits.set(currentPaidCredits - paidCreditsToUse);
 
-    this._freeCredits.set(newFreeCredits);
-    this._paidCredits.set(newPaidCredits);
-
-    // Persist the change to the database
-    return this.userService.updateUseCredit(amount);
+    // Persist deduction to DB and execute fetch query for credits & coins
+    return this.userService.updateUseCredit(amount).pipe(
+      tap((res) => {
+        if (res) {
+          this.updateUserCredits({ freeCredits: res.freeCredits, paidCredits: res.paidCredits, refetch: true });
+        } else {
+          this.fetchCreditsAndCoins().subscribe({ error: () => { } });
+        }
+      })
+    );
   }
 
-  updateFromUser(user: User): void {
-    this._userCoins.set(user.coins ?? 0);
-    this._freeCredits.set(Number.parseFloat(user.freeCredits ?? "0"));
-    this._paidCredits.set(Number.parseFloat(user.paidCredits ?? "0"));
+  buyAiCreditsWithCoins(amount: number): Observable<{ message: string, coins: number, freeCredits: string, paidCredits: string }> {
+    return this.userService.buyAiCreditsWithCoins(amount).pipe(
+      tap((res) => {
+        this.updateUserCredits({
+          coins: res.coins,
+          freeCredits: res.freeCredits,
+          paidCredits: res.paidCredits,
+          refetch: true,
+        });
+      })
+    );
+  }
+
+  updateUserCredits({
+    freeCredits = null,
+    paidCredits = null,
+    coins = null,
+    refetch = true,
+  }: {
+    freeCredits?: string | number | null;
+    paidCredits?: string | number | null;
+    coins?: number | null;
+    refetch?: boolean;
+  }): void {
+    if (coins != null && !Number.isNaN(coins)) {
+      this._userCoins.set(coins);
+    }
+    if (freeCredits != null) {
+      const parsed = typeof freeCredits === 'number' ? freeCredits : Number.parseFloat(freeCredits);
+      if (!Number.isNaN(parsed)) this._freeCredits.set(parsed);
+    }
+    if (paidCredits != null) {
+      const parsed = typeof paidCredits === 'number' ? paidCredits : Number.parseFloat(paidCredits);
+      if (!Number.isNaN(parsed)) this._paidCredits.set(parsed);
+    }
+    if (refetch) {
+      this.fetchCreditsAndCoins().subscribe({ error: () => { } });
+    }
+  }
+
+  addFreeCredits(freeCredits: number): Observable<User> {
+    return this.userService.addFreeCredits(freeCredits).pipe(
+      tap(() => {
+        this.fetchCreditsAndCoins().subscribe({ error: () => { } });
+      })
+    );
+  }
+
+  addPaidCredits(paidCredits: number): Observable<User> {
+    return this.userService.addPaidCredits(paidCredits).pipe(
+      tap(() => {
+        this.fetchCreditsAndCoins().subscribe({ error: () => { } });
+      })
+    );
   }
 
   clear(): void {
@@ -74,4 +163,13 @@ export class UserResourceService {
     this._freeCredits.set(0);
     this._paidCredits.set(0);
   }
+
+  startFreeTrial(): Observable<{ message?: string; plan?: 'Silver' | 'Copper' | 'Gold'; isTrialActive?: boolean; trialExpiryDate?: string; user?: User }> {
+    return this.userService.startFreeTrial().pipe(
+      tap(() => {
+        this.fetchCreditsAndCoins().subscribe({ error: () => { } });
+      })
+    );
+  }
 }
+

@@ -42,3 +42,13 @@ __screenshots__/
 # System files
 .DS_Store
 Thumbs.db
+.github/copilot-instructions.md
+.github/instructions/testing.instructions.md
+TODO.md
+temp.txt
+table.md
+mock_data.json
+Feature.md
+src/app/shared/services/network.service.2ts
+*.md
+*.php
