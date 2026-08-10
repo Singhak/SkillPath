@@ -254,6 +254,71 @@
         </div>
       </div>
 
+      <!-- Resume Data Available Sync Banner -->
+      @if (hasResumeData()) {
+        <div class="section-card resume-sync-banner fade-in">
+          <div class="resume-sync-header">
+            <div class="resume-sync-left">
+              <div class="resume-sync-badge-icon">
+                <i class="pi pi-file-import"></i>
+              </div>
+              <div class="resume-sync-info">
+                <div class="resume-sync-title-row">
+                  <h3>Parsed Resume Available</h3>
+                  <span class="file-name-chip">
+                    <i class="pi pi-paperclip text-xs"></i>
+                    {{ savedResume()?.fileName || 'Uploaded Resume' }}
+                  </span>
+                </div>
+                <p class="resume-sync-desc">
+                  Sync skills, bio, phone number, and candidate info directly to your profile. Existing info is skipped by default.
+                </p>
+                <div class="resume-meta-pills">
+                  @if (savedResume()?.extractedSkills?.length) {
+                    <span class="meta-pill">
+                      <i class="pi pi-code"></i>
+                      {{ savedResume()?.extractedSkills?.length }} Skills
+                      @if (newSkillsCount() > 0) {
+                        <strong class="new-tag">+{{ newSkillsCount() }} new</strong>
+                      }
+                    </span>
+                  }
+                  @if (savedResume()?.phone) {
+                    <span class="meta-pill">
+                      <i class="pi pi-phone"></i>
+                      {{ savedResume()?.phone }}
+                    </span>
+                  }
+                  @if (savedResume()?.suggestedRoles?.length) {
+                    <span class="meta-pill">
+                      <i class="pi pi-briefcase"></i>
+                      {{ savedResume()?.suggestedRoles?.[0] }}
+                    </span>
+                  }
+                  @if (savedResume()?.summaryBio) {
+                    <span class="meta-pill">
+                      <i class="pi pi-align-left"></i>
+                      Bio Available
+                    </span>
+                  }
+                </div>
+              </div>
+            </div>
+
+            <div class="resume-sync-actions">
+              <button type="button" class="sync-quick-btn" (click)="quickSyncResume(skipExisting())">
+                <i class="pi pi-bolt"></i>
+                <span>Quick Sync Profile</span>
+              </button>
+              <button type="button" class="sync-options-btn" (click)="openSyncModal()">
+                <i class="pi pi-sliders-h"></i>
+                <span>Sync Options</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      }
+
       <div class="section-card">
         <div class="section-title-box">
           <div class="title-icon">
@@ -913,6 +978,135 @@
       </div>
     </section>
   }
+  <!-- Resume Data Sync Options Modal -->
+  @if (isSyncModalOpen()) {
+    <div class="modal-backdrop fade-in" (click)="closeSyncModal()">
+      <div class="modal-card resume-sync-modal" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <div class="modal-title-box">
+            <i class="pi pi-sync text-accent text-xl"></i>
+            <div>
+              <h3>Sync Resume Data with Profile</h3>
+              <p class="modal-subtitle">Choose details from parsed resume ({{ savedResume()?.fileName }})</p>
+            </div>
+          </div>
+          <button type="button" class="modal-close-btn" (click)="closeSyncModal()">
+            <i class="pi pi-times"></i>
+          </button>
+        </div>
+
+        <div class="modal-body">
+          <!-- Skip Existing Option Toggle -->
+          <div class="skip-option-box">
+            <label class="skip-checkbox-label">
+              <input type="checkbox" [checked]="skipExisting()" (change)="skipExisting.set(!skipExisting())" />
+              <span class="custom-chk"></span>
+              <div class="skip-text-meta">
+                <strong>Skip existing profile info (Recommended)</strong>
+                <span>Only fill fields that are empty and merge new skills without replacing existing data.</span>
+              </div>
+            </label>
+          </div>
+
+          <div class="sync-field-list">
+            <!-- Tech Stack & Skills -->
+            <div class="sync-field-item" [class.disabled]="!savedResume()?.extractedSkills?.length">
+              <label class="field-chk-label">
+                <input type="checkbox" [checked]="syncSkills()" (change)="syncSkills.set(!syncSkills())" [disabled]="!savedResume()?.extractedSkills?.length" />
+                <span class="custom-chk"></span>
+                <div class="field-info">
+                  <span class="field-name"><i class="pi pi-code"></i> Tech Stack & Skills</span>
+                  <span class="field-preview">{{ savedResume()?.extractedSkills?.join(', ') || 'No skills found in resume' }}</span>
+                </div>
+              </label>
+              @if (newSkillsCount() > 0) {
+                <span class="field-badge text-emerald">+{{ newSkillsCount() }} new</span>
+              } @else if (savedResume()?.extractedSkills?.length) {
+                <span class="field-badge text-slate">All exist</span>
+              }
+            </div>
+
+            <!-- Phone Number -->
+            <div class="sync-field-item" [class.disabled]="!savedResume()?.phone">
+              <label class="field-chk-label">
+                <input type="checkbox" [checked]="syncPhone()" (change)="syncPhone.set(!syncPhone())" [disabled]="!savedResume()?.phone" />
+                <span class="custom-chk"></span>
+                <div class="field-info">
+                  <span class="field-name"><i class="pi pi-phone"></i> Phone Number</span>
+                  <span class="field-preview">{{ savedResume()?.phone || 'Not found in resume' }}</span>
+                </div>
+              </label>
+              @if (phone()) {
+                <span class="field-badge" [class.text-amber]="!skipExisting()" [class.text-slate]="skipExisting()">
+                  {{ skipExisting() ? 'Will Skip (Exists)' : 'Will Overwrite' }}
+                </span>
+              }
+            </div>
+
+            <!-- Professional Bio -->
+            <div class="sync-field-item" [class.disabled]="!savedResume()?.summaryBio">
+              <label class="field-chk-label">
+                <input type="checkbox" [checked]="syncBio()" (change)="syncBio.set(!syncBio())" [disabled]="!savedResume()?.summaryBio" />
+                <span class="custom-chk"></span>
+                <div class="field-info">
+                  <span class="field-name"><i class="pi pi-align-left"></i> Professional Summary / Bio</span>
+                  <span class="field-preview">{{ savedResume()?.summaryBio || 'Not found in resume' }}</span>
+                </div>
+              </label>
+              @if (bio()) {
+                <span class="field-badge" [class.text-amber]="!skipExisting()" [class.text-slate]="skipExisting()">
+                  {{ skipExisting() ? 'Will Skip (Exists)' : 'Will Overwrite' }}
+                </span>
+              }
+            </div>
+
+            <!-- Target Role -->
+            <div class="sync-field-item" [class.disabled]="!savedResume()?.suggestedRoles?.length">
+              <label class="field-chk-label">
+                <input type="checkbox" [checked]="syncTargetRole()" (change)="syncTargetRole.set(!syncTargetRole())" [disabled]="!savedResume()?.suggestedRoles?.length" />
+                <span class="custom-chk"></span>
+                <div class="field-info">
+                  <span class="field-name"><i class="pi pi-briefcase"></i> Target Job Role</span>
+                  <span class="field-preview">{{ savedResume()?.suggestedRoles?.[0] || 'Not found in resume' }}</span>
+                </div>
+              </label>
+              @if (targetRole()) {
+                <span class="field-badge" [class.text-amber]="!skipExisting()" [class.text-slate]="skipExisting()">
+                  {{ skipExisting() ? 'Will Skip (Exists)' : 'Will Overwrite' }}
+                </span>
+              }
+            </div>
+
+            <!-- Full Name -->
+            <div class="sync-field-item" [class.disabled]="!savedResume()?.candidateName">
+              <label class="field-chk-label">
+                <input type="checkbox" [checked]="syncName()" (change)="syncName.set(!syncName())" [disabled]="!savedResume()?.candidateName" />
+                <span class="custom-chk"></span>
+                <div class="field-info">
+                  <span class="field-name"><i class="pi pi-user"></i> Full Name</span>
+                  <span class="field-preview">{{ savedResume()?.candidateName || 'Not found in resume' }}</span>
+                </div>
+              </label>
+              @if (name()) {
+                <span class="field-badge" [class.text-amber]="!skipExisting()" [class.text-slate]="skipExisting()">
+                  {{ skipExisting() ? 'Will Skip (Exists)' : 'Will Overwrite' }}
+                </span>
+              }
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn-cancel" (click)="closeSyncModal()">Cancel</button>
+          <button type="button" class="btn-apply-sync" (click)="applySelectedSync()">
+            <i class="pi pi-check"></i>
+            <span>Apply Resume Sync</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
   <!-- Billing & Credit Usage History Modal -->
   <app-billing-history-modal [isOpen]="isBillingModalOpen()" (close)="isBillingModalOpen.set(false)" />
 </div>

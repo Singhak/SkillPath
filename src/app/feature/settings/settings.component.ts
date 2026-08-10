@@ -7,6 +7,7 @@ import { SelectModule } from 'primeng/select';
 import { AuthService } from '../../core/services/auth.service';
 import { UserApiService } from '../../core/services/apis/user-api.service';
 import { ThemeService, ThemeMode, AccentColor, UiDensity } from '../../core/services/theme.service';
+import { ResumeParserService } from '../../core/services/resume-parser.service';
 import { User } from '../../core/models/user.model';
 import { AI_CREDIT_COST } from '../../shared/constants';
 import { BillingHistoryModalComponent } from '../../shared/components/billing-history-modal/billing-history-modal.component';
@@ -24,11 +25,40 @@ export class SettingsComponent {
   readonly authService = inject(AuthService);
   private readonly userApiService = inject(UserApiService);
   private readonly locationApiService = inject(LocationApiService);
+  readonly resumeParserService = inject(ResumeParserService);
   private readonly messageService = inject(MessageService);
 
   readonly activeTab = signal<'appearance' | 'profile' | 'preferences' | 'account'>('appearance');
   readonly creditCosts = AI_CREDIT_COST;
   readonly isBillingModalOpen = signal<boolean>(false);
+
+  // Resume Sync Signals
+  readonly savedResume = computed(() => this.resumeParserService.parsedResume());
+  readonly isSyncModalOpen = signal<boolean>(false);
+  readonly skipExisting = signal<boolean>(true); // Skip fields that already have data by default
+  readonly syncSkills = signal<boolean>(true);
+  readonly syncBio = signal<boolean>(true);
+  readonly syncPhone = signal<boolean>(true);
+  readonly syncTargetRole = signal<boolean>(true);
+  readonly syncName = signal<boolean>(true);
+
+  readonly hasResumeData = computed(() => {
+    const r = this.savedResume();
+    return !!r && (
+      (r.extractedSkills && r.extractedSkills.length > 0) ||
+      !!r.summaryBio ||
+      !!r.phone ||
+      !!r.candidateName ||
+      (r.suggestedRoles && r.suggestedRoles.length > 0)
+    );
+  });
+
+  readonly newSkillsCount = computed(() => {
+    const r = this.savedResume();
+    if (!r || !r.extractedSkills) return 0;
+    const current = this.skills().map((s) => s.toLowerCase().trim());
+    return r.extractedSkills.filter((s) => !current.includes(s.toLowerCase().trim())).length;
+  });
 
   // User Profile Signals
   readonly currentUser = this.authService.currentUser;
@@ -197,6 +227,7 @@ export class SettingsComponent {
 
   constructor() {
     this.loadCountries();
+    this.resumeParserService.loadSavedResume();
 
     // Reactively synchronize profile signals whenever currentUser updates
     effect(() => {
@@ -564,5 +595,160 @@ export class SettingsComponent {
         life: 3500,
       });
     }, 800);
+  }
+
+  // Resume Profile Sync Methods
+  openSyncModal(): void {
+    this.isSyncModalOpen.set(true);
+  }
+
+  closeSyncModal(): void {
+    this.isSyncModalOpen.set(false);
+  }
+
+  quickSyncResume(skipExistingFields: boolean = true): void {
+    const resume = this.savedResume();
+    if (!resume) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'No Resume Found',
+        detail: 'No parsed resume data available to sync.',
+        life: 3000,
+      });
+      return;
+    }
+
+    const syncedItems: string[] = [];
+
+    // 1. Sync Skills (merge unique)
+    if (resume.extractedSkills && resume.extractedSkills.length > 0) {
+      const currentSkillsLower = this.skills().map((s) => s.toLowerCase().trim());
+      const newSkills = resume.extractedSkills.filter((s) => !currentSkillsLower.includes(s.toLowerCase().trim()));
+      if (newSkills.length > 0) {
+        this.skills.set([...this.skills(), ...newSkills]);
+        syncedItems.push(`${newSkills.length} new skill(s)`);
+      }
+    }
+
+    // 2. Sync Phone Number (Skip if already exists unless specified)
+    if (resume.phone && resume.phone.trim()) {
+      if (!this.phone().trim() || !skipExistingFields) {
+        this.phone.set(resume.phone.trim());
+        syncedItems.push('phone number');
+      }
+    }
+
+    // 3. Sync Professional Bio / Summary
+    if (resume.summaryBio && resume.summaryBio.trim()) {
+      if (!this.bio().trim() || !skipExistingFields) {
+        this.bio.set(resume.summaryBio.trim());
+        syncedItems.push('professional summary');
+      }
+    }
+
+    // 4. Sync Target Role
+    if (resume.suggestedRoles && resume.suggestedRoles.length > 0 && resume.suggestedRoles[0].trim()) {
+      if (!this.targetRole().trim() || !skipExistingFields) {
+        this.targetRole.set(resume.suggestedRoles[0].trim());
+        syncedItems.push('target role');
+      }
+    }
+
+    // 5. Sync Candidate Name
+    if (resume.candidateName && resume.candidateName.trim()) {
+      if (!this.name().trim() || !skipExistingFields) {
+        this.name.set(resume.candidateName.trim());
+        syncedItems.push('name');
+      }
+    }
+
+    if (syncedItems.length > 0) {
+      this.messageService.add({
+        severity: 'success',
+        summary: 'Resume Data Synced!',
+        detail: `Updated: ${syncedItems.join(', ')}. Click "Save Profile Details" to persist.`,
+        life: 4500,
+      });
+    } else {
+      this.messageService.add({
+        severity: 'info',
+        summary: 'Profile Info Preserved',
+        detail: skipExistingFields
+          ? 'Existing profile information was kept. Uncheck "Skip existing info" in options to overwrite.'
+          : 'All resume fields already match your current profile details.',
+        life: 4500,
+      });
+    }
+  }
+
+  applySelectedSync(): void {
+    const resume = this.savedResume();
+    if (!resume) {
+      this.closeSyncModal();
+      return;
+    }
+
+    const skip = this.skipExisting();
+    const syncedItems: string[] = [];
+
+    // Sync Skills if checked
+    if (this.syncSkills() && resume.extractedSkills && resume.extractedSkills.length > 0) {
+      const currentSkillsLower = this.skills().map((s) => s.toLowerCase().trim());
+      const newSkills = resume.extractedSkills.filter((s) => !currentSkillsLower.includes(s.toLowerCase().trim()));
+      if (newSkills.length > 0) {
+        this.skills.set([...this.skills(), ...newSkills]);
+        syncedItems.push(`${newSkills.length} new skill(s)`);
+      }
+    }
+
+    // Sync Phone if checked
+    if (this.syncPhone() && resume.phone && resume.phone.trim()) {
+      if (!this.phone().trim() || !skip) {
+        this.phone.set(resume.phone.trim());
+        syncedItems.push('phone number');
+      }
+    }
+
+    // Sync Bio if checked
+    if (this.syncBio() && resume.summaryBio && resume.summaryBio.trim()) {
+      if (!this.bio().trim() || !skip) {
+        this.bio.set(resume.summaryBio.trim());
+        syncedItems.push('professional bio');
+      }
+    }
+
+    // Sync Target Role if checked
+    if (this.syncTargetRole() && resume.suggestedRoles && resume.suggestedRoles.length > 0) {
+      if (!this.targetRole().trim() || !skip) {
+        this.targetRole.set(resume.suggestedRoles[0].trim());
+        syncedItems.push('target role');
+      }
+    }
+
+    // Sync Name if checked
+    if (this.syncName() && resume.candidateName && resume.candidateName.trim()) {
+      if (!this.name().trim() || !skip) {
+        this.name.set(resume.candidateName.trim());
+        syncedItems.push('name');
+      }
+    }
+
+    this.closeSyncModal();
+
+    if (syncedItems.length > 0) {
+      this.messageService.add({
+        severity: 'success',
+        summary: 'Selected Resume Fields Synced!',
+        detail: `Updated: ${syncedItems.join(', ')}. Click "Save Profile Details" to persist.`,
+        life: 4500,
+      });
+    } else {
+      this.messageService.add({
+        severity: 'info',
+        summary: 'No Fields Changed',
+        detail: 'Selected fields were skipped because profile already has existing info.',
+        life: 4000,
+      });
+    }
   }
 }
