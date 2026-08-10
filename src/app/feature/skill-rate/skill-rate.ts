@@ -28,6 +28,7 @@ export interface SkillPerformanceRow {
   attempts: number;
   alignment: 'High Match' | 'Underestimating' | 'Overestimating' | 'Needs Quiz';
   isFromResume?: boolean;
+  ratingSource: 'SELF' | 'SYSTEM' | 'UNRATED';
 }
 
 @Component({
@@ -81,7 +82,11 @@ export class SkillRate implements OnInit {
 
   // Resume skill integration
   readonly parsedResume = this.resumeParserService.parsedResume;
-  readonly resumeSkills = computed(() => this.parsedResume()?.extractedSkills || []);
+  readonly rawResumeSkills = computed(() => this.parsedResume()?.extractedSkills || []);
+  readonly resumeSkills = computed(() => {
+    const deletedSet = this.deletedSkillNames();
+    return this.rawResumeSkills().filter((s) => !deletedSet.has(this.normalizeKey(s)));
+  });
 
   // Delete modal state
   readonly showDeleteConfirm = signal<boolean>(false);
@@ -129,7 +134,9 @@ export class SkillRate implements OnInit {
   });
 
   readonly averageSelfRating = computed(() => {
-    const ratings = this.skillRatings().filter((entry) => entry.type?.toLowerCase() === 'self');
+    const ratings = this.skillRatings().filter((entry) =>
+      entry.type?.toLowerCase() === 'self' || entry.type?.toLowerCase() === 'system'
+    );
     if (!ratings.length) {
       return 0;
     }
@@ -156,9 +163,9 @@ export class SkillRate implements OnInit {
   });
 
   readonly skillPerformanceRows = computed<SkillPerformanceRow[]>(() => {
-    const ratingMap = new Map<string, number>();
+    const ratingEntryMap = new Map<string, Rating>();
     this.skillRatings().forEach((entry) => {
-      ratingMap.set(this.normalizeKey(entry.category), entry.rating);
+      ratingEntryMap.set(this.normalizeKey(entry.category), entry);
     });
 
     const quizRatingMap = new Map<string, number>();
@@ -177,22 +184,38 @@ export class SkillRate implements OnInit {
 
     const resumeSkillKeys = new Set(this.resumeSkills().map((s) => this.normalizeKey(s)));
     const deletedSet = this.deletedSkillNames();
-    const keys = new Set<string>([...ratingMap.keys(), ...performanceMap.keys(), ...resumeSkillKeys]);
+    const keys = new Set<string>([...ratingEntryMap.keys(), ...performanceMap.keys(), ...resumeSkillKeys]);
 
     return Array.from(keys)
       .filter((key) => !deletedSet.has(key))
       .map((key) => {
+        const existingRatingEntry = ratingEntryMap.get(key);
         const skillName =
-          this.skillRatings().find((entry) => this.normalizeKey(entry.category) === key)?.category ||
+          existingRatingEntry?.category ||
           this.resumeSkills().find((s) => this.normalizeKey(s) === key) ||
           this.titleCase(key);
         const quizMetrics = performanceMap.get(key);
 
-        const selfRating = ratingMap.get(key) || 0;
+        const selfRating = existingRatingEntry ? existingRatingEntry.rating : 0;
         const quizRating = quizRatingMap.get(key) || 0;
         const quizScore = quizMetrics ? Math.round(quizMetrics.score / quizMetrics.attempts) : 0;
         const attempts = quizMetrics?.attempts || 0;
         const isFromResume = resumeSkillKeys.has(key);
+
+        // Determine rating source: SYSTEM vs SELF vs UNRATED
+        let ratingSource: 'SELF' | 'SYSTEM' | 'UNRATED' = 'UNRATED';
+        if (existingRatingEntry) {
+          const typeUpper = (existingRatingEntry.type || '').toUpperCase();
+          if (typeUpper === 'SYSTEM' || typeUpper === 'RESUME') {
+            ratingSource = 'SYSTEM';
+          } else if (typeUpper === 'SELF') {
+            ratingSource = 'SELF';
+          } else {
+            ratingSource = 'SELF';
+          }
+        } else if (isFromResume) {
+          ratingSource = 'SYSTEM';
+        }
 
         let alignment: 'High Match' | 'Underestimating' | 'Overestimating' | 'Needs Quiz' = 'Needs Quiz';
         if (quizRating > 0 && selfRating > 0) {
@@ -214,6 +237,7 @@ export class SkillRate implements OnInit {
           attempts,
           alignment,
           isFromResume,
+          ratingSource,
         };
       });
   });
@@ -380,11 +404,11 @@ export class SkillRate implements OnInit {
         this.messageService.add({
           severity: 'success',
           summary: 'Rating Updated',
-          detail: `Rating for ${skillName} updated to ${newRating}/5 ⭐`,
+          detail: `Rating for ${skillName} updated to ${newRating}/5 ⭐ (Self-Assessed)`,
         });
         this.skillRatings.update((entries) => {
           const updatedEntries = entries.filter(
-            (entry) => this.normalizeKey(entry.category) !== key || entry.type?.toLowerCase() !== 'self',
+            (entry) => this.normalizeKey(entry.category) !== key
           );
           return [...updatedEntries, nextEntry];
         });
@@ -443,7 +467,7 @@ export class SkillRate implements OnInit {
           this.messageService.add({
             severity: 'success',
             summary: 'Skill Updated',
-            detail: `Updated "${newName}" to ${rating}/5 ⭐`,
+            detail: `Updated "${newName}" to ${rating}/5 ⭐ (Self-Assessed)`,
           });
 
           // Un-delete if new key was previously deleted
@@ -537,7 +561,7 @@ export class SkillRate implements OnInit {
   }
 
   syncResumeSkills(): void {
-    const extracted = this.resumeSkills();
+    const extracted = this.rawResumeSkills();
     if (!extracted.length) {
       this.messageService.add({
         severity: 'warn',
@@ -560,7 +584,7 @@ export class SkillRate implements OnInit {
 
       if (!existingKeys.has(key)) {
         addedCount++;
-        const nextEntry: Rating = { category: skill, rating: 4, type: 'SELF' };
+        const nextEntry: Rating = { category: skill, rating: 4, type: 'SYSTEM' };
         this.ratingApiService.createorUpdateSelfRating(nextEntry).pipe(
           takeUntilDestroyed(this.destroyRef)
         ).subscribe({
@@ -578,7 +602,7 @@ export class SkillRate implements OnInit {
       this.messageService.add({
         severity: 'success',
         summary: 'Resume Skills Synced',
-        detail: `Added ${addedCount} skill(s) extracted from your resume.`,
+        detail: `Added ${addedCount} skill(s) extracted from your resume as System-rated.`,
       });
     } else {
       this.messageService.add({
@@ -627,7 +651,9 @@ export class SkillRate implements OnInit {
         lastValueFrom(this.quizApiService.getQuizAttempts()),
       ]);
 
-      const selfRatings = ratings.filter((entry: Rating) => entry.type?.toLowerCase() === 'self');
+      const selfRatings = ratings.filter((entry: Rating) =>
+        entry.type?.toLowerCase() === 'self' || entry.type?.toLowerCase() === 'system' || entry.type?.toLowerCase() === 'resume'
+      );
       const skillNames = Array.from(
         new Set([
           ...selfRatings.map((entry: Rating) => entry.category),

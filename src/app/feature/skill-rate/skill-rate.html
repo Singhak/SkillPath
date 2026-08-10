@@ -123,7 +123,7 @@
           </div>
           <h3 class="card-title">Skills Extracted from {{ parsedResume()?.fileName || 'Resume' }}</h3>
           <p class="resume-desc">
-            We extracted <strong>{{ resumeSkills().length }} skills</strong> from your uploaded resume. Sync them to your matrix or edit/delete them anytime.
+            We extracted <strong>{{ resumeSkills().length }} skills</strong> from your uploaded resume as System-rated. Sync them or edit/delete them anytime.
           </p>
         </div>
         <button type="button" class="action-btn sync-btn" (click)="syncResumeSkills()">
@@ -354,22 +354,22 @@
       <div class="matrix-legend-bar">
         <span class="legend-title"><i class="pi pi-info-circle"></i> Badge Legend:</span>
         <div class="legend-items">
-          <span class="legend-item"><span class="source-tag resume-source"><i class="pi pi-file-pdf"></i> Resume</span> Extracted from CV</span>
+          <span class="legend-item"><span class="source-badge system-source"><i class="pi pi-desktop"></i> System</span> AI Resume Rated</span>
+          <span class="legend-item"><span class="source-badge self-source"><i class="pi pi-user"></i> Self</span> User Rated / Edited</span>
           <span class="legend-item"><span class="alignment-badge badge-match"><i class="pi pi-check-circle"></i> High Match</span> Self = Quiz</span>
           <span class="legend-item"><span class="alignment-badge badge-neutral"><i class="pi pi-minus-circle"></i> Needs Quiz</span> No Quiz Taken</span>
-          <span class="legend-item"><span class="alignment-badge badge-under"><i class="pi pi-arrow-up-right"></i> Underestimating</span> Quiz > Self</span>
-          <span class="legend-item"><span class="alignment-badge badge-over"><i class="pi pi-arrow-down-right"></i> Overestimating</span> Self > Quiz</span>
         </div>
       </div>
 
       <div class="table-responsive">
-        <p-table [value]="filteredSkillPerformanceRows()" [tableStyle]="{ 'min-width': '100%' }" [rows]="8"
-          [paginator]="filteredSkillPerformanceRows().length > 8" class="p-datatable-sm custom-table">
+        <p-table [value]="filteredSkillPerformanceRows()" [tableStyle]="{ 'min-width': '100%' }" [rows]="5"
+          [paginator]="filteredSkillPerformanceRows().length > 5" class="p-datatable-sm custom-table">
           <ng-template pTemplate="header">
             <tr>
               <th>Skill</th>
-              <th pTooltip="Your self-assessed confidence level (1-5 stars). Click any star to change.">Self Rating (Click to Update)</th>
+              <th pTooltip="Your confidence rating (1-5 stars). Click any star to change to Self-rated.">Rating (Click to Update)</th>
               <th pTooltip="Calculated rating from actual quiz scores.">Quiz Rating</th>
+              <th pTooltip="Rating source: System (Resume AI) vs Self (User edited).">Rated By</th>
               <th pTooltip="Number of quiz attempts for this skill.">Attempts</th>
               <th pTooltip="Comparison between self-rating and quiz performance.">Alignment</th>
               <th style="width: 160px; text-align: center;">Actions</th>
@@ -392,7 +392,7 @@
               <!-- Interactive Star Rating Column -->
               <td>
                 <div class="interactive-rating-container">
-                  <div class="stars-interactive" pTooltip="Click a star to update rating">
+                  <div class="stars-interactive" pTooltip="Click a star to update rating to Self">
                     @for (star of [1,2,3,4,5]; track star) {
                     <button type="button" class="star-btn" [class.active]="star <= row.selfRating"
                       (click)="updateRatingDirectly(row.skill, star)"
@@ -420,6 +420,21 @@
                 </div>
                 } @else {
                 <span class="unrated-tag">No Quizzes</span>
+                }
+              </td>
+
+              <!-- Rated By Column (System vs Self) -->
+              <td>
+                @if (row.ratingSource === 'SYSTEM') {
+                <span class="source-badge system-source" pTooltip="Auto-rated by AI resume parser. Click stars to switch to Self-rated.">
+                  <i class="pi pi-desktop"></i> System
+                </span>
+                } @else if (row.ratingSource === 'SELF') {
+                <span class="source-badge self-source" pTooltip="Rated or updated directly by you">
+                  <i class="pi pi-user"></i> Self
+                </span>
+                } @else {
+                <span class="unrated-tag">Unrated</span>
                 }
               </td>
 
@@ -466,7 +481,7 @@
 
           <ng-template pTemplate="emptymessage">
             <tr>
-              <td colspan="6" class="empty-table-state">
+              <td colspan="7" class="empty-table-state">
                 <div class="empty-box">
                   <i class="pi pi-inbox empty-icon"></i>
                   <p>No skills found matching your current filter.</p>
