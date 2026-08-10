@@ -55,7 +55,7 @@ export class SettingsComponent {
 
   readonly newSkillsCount = computed(() => {
     const r = this.savedResume();
-    if (!r || !r.extractedSkills) return 0;
+    if (!r?.extractedSkills) return 0;
     const current = this.skills().map((s) => s.toLowerCase().trim());
     return r.extractedSkills.filter((s) => !current.includes(s.toLowerCase().trim())).length;
   });
@@ -259,7 +259,7 @@ export class SettingsComponent {
       next: (data) => {
         this.countriesList.set(data || []);
         this.isLoadingCountries.set(false);
-        const locToParse = userLocation !== undefined ? userLocation : (this.currentUser()?.location || '');
+        const locToParse = userLocation ?? (this.currentUser()?.location || '');
         if (locToParse) {
           this.parseAndSetLocation(locToParse);
         }

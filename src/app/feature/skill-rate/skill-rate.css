@@ -886,17 +886,104 @@ html.dark .star-btn.active {
 }
 
 @media (max-width: 960px) {
+  .skill-page-wrapper {
+    padding: 1rem 0.75rem;
+  }
+
   .field-row {
     grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .button-group, .button-group .primary-btn {
+    width: 100%;
+  }
+
+  .action-btn.primary-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .card-header.table-header-flex {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
   }
 
   .table-actions-header {
+    width: 100%;
     flex-direction: column;
     align-items: stretch;
+    gap: 0.75rem;
   }
 
   .filter-chips {
+    width: 100%;
     overflow-x: auto;
-    padding-bottom: 0.25rem;
+    padding-bottom: 0.35rem;
+    white-space: nowrap;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .table-search-box {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .matrix-legend-bar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .legend-items {
+    gap: 0.5rem;
+    flex-wrap: wrap;
   }
 }
+
+@media (max-width: 640px) {
+  .skill-page-wrapper {
+    padding: 0.75rem 0.5rem;
+  }
+
+  .guide-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .resume-sync-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  .sync-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .quick-chips-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .interactive-rating-container {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.35rem;
+  }
+
+  .row-actions {
+    flex-wrap: wrap;
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 480px) {
+  :host ::ng-deep .p-dialog {
+    width: 94vw !important;
+    margin: 0 0.5rem;
+  }
+}
+
