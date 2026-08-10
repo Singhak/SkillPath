@@ -68,11 +68,28 @@ export class Dashboard implements OnInit {
 
   readonly userName = computed(() => this.authService.currentUser()?.name || 'Learner');
 
+  readonly salutation = computed(() => {
+    const hour = new Date().getHours();
+    if (hour >= 5 && hour < 12) {
+      return 'Good morning';
+    } else if (hour >= 12 && hour < 17) {
+      return 'Good afternoon';
+    } else {
+      return 'Good evening';
+    }
+  });
+
   readonly totalAiCredits = computed(
     () => (this.authService.freeCredits() ?? 0) + (this.authService.paidCredits() ?? 0),
   );
 
   readonly totalCoins = computed(() => this.authService.userCoins());
+  readonly profileCompletion = computed(() => this.authService.profileCompletion());
+  readonly missingFields = computed(() => this.authService.missingProfileFields());
+
+  onGoToProfile(): void {
+    this.router.navigate(['/settings'], { queryParams: { tab: 'profile' } });
+  }
 
   readonly filteredQuizAttempts = computed(() => {
     const query = this.tableSearchQuery().toLowerCase().trim();
@@ -80,7 +97,7 @@ export class Dashboard implements OnInit {
     if (!query) return attempts;
     return attempts.filter(
       (item) =>
-        (item.category && item.category.toLowerCase().includes(query)) ||
+        (item.category?.toLowerCase().includes(query)) ||
         (item.attempedDate && new Date(item.attempedDate).toLocaleDateString().includes(query)),
     );
   });

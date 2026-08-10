@@ -8,6 +8,7 @@ import { AuthService } from '../../core/services/auth.service';
 import { UserApiService } from '../../core/services/apis/user-api.service';
 import { ThemeService, ThemeMode, AccentColor, UiDensity } from '../../core/services/theme.service';
 import { ResumeParserService } from '../../core/services/resume-parser.service';
+import { ActivatedRoute } from '@angular/router';
 import { User } from '../../core/models/user.model';
 import { AI_CREDIT_COST } from '../../shared/constants';
 import { BillingHistoryModalComponent } from '../../shared/components/billing-history-modal/billing-history-modal.component';
@@ -27,6 +28,7 @@ export class SettingsComponent {
   private readonly locationApiService = inject(LocationApiService);
   readonly resumeParserService = inject(ResumeParserService);
   private readonly messageService = inject(MessageService);
+  private readonly route = inject(ActivatedRoute);
 
   readonly activeTab = signal<'appearance' | 'profile' | 'preferences' | 'account'>('appearance');
   readonly creditCosts = AI_CREDIT_COST;
@@ -160,12 +162,14 @@ export class SettingsComponent {
   });
 
   readonly profileCompletion = computed(() => {
-    let score = 20; // Default for account creation
+    let score = 0;
     if (this.name().trim()) score += 20;
     if (this.currentUser()?.emailId || this.currentUser()?.email || this.email().trim()) score += 20;
     if (this.targetRole().trim()) score += 15;
     if (this.bio().trim()) score += 15;
     if (this.getFormattedLocation().trim()) score += 10;
+    if (this.phone().trim()) score += 10;
+    if (this.skills().length > 0) score += 10;
     return Math.min(100, score);
   });
 
@@ -228,6 +232,14 @@ export class SettingsComponent {
   constructor() {
     this.loadCountries();
     this.resumeParserService.loadSavedResume();
+
+    // Support direct navigation to specific settings tab via query parameter (e.g. ?tab=profile)
+    this.route.queryParams.subscribe((params) => {
+      const tab = params['tab'];
+      if (tab && ['appearance', 'profile', 'preferences', 'account'].includes(tab)) {
+        this.activeTab.set(tab as 'appearance' | 'profile' | 'preferences' | 'account');
+      }
+    });
 
     // Reactively synchronize profile signals whenever currentUser updates
     effect(() => {
@@ -631,7 +643,7 @@ export class SettingsComponent {
     }
 
     // 2. Sync Phone Number (Skip if already exists unless specified)
-    if (resume.phone && resume.phone.trim()) {
+    if (resume.phone?.trim()) {
       if (!this.phone().trim() || !skipExistingFields) {
         this.phone.set(resume.phone.trim());
         syncedItems.push('phone number');
@@ -639,7 +651,7 @@ export class SettingsComponent {
     }
 
     // 3. Sync Professional Bio / Summary
-    if (resume.summaryBio && resume.summaryBio.trim()) {
+    if (resume.summaryBio?.trim()) {
       if (!this.bio().trim() || !skipExistingFields) {
         this.bio.set(resume.summaryBio.trim());
         syncedItems.push('professional summary');
@@ -655,7 +667,7 @@ export class SettingsComponent {
     }
 
     // 5. Sync Candidate Name
-    if (resume.candidateName && resume.candidateName.trim()) {
+    if (resume.candidateName?.trim()) {
       if (!this.name().trim() || !skipExistingFields) {
         this.name.set(resume.candidateName.trim());
         syncedItems.push('name');
@@ -702,7 +714,7 @@ export class SettingsComponent {
     }
 
     // Sync Phone if checked
-    if (this.syncPhone() && resume.phone && resume.phone.trim()) {
+    if (this.syncPhone() && resume.phone?.trim()) {
       if (!this.phone().trim() || !skip) {
         this.phone.set(resume.phone.trim());
         syncedItems.push('phone number');
@@ -710,7 +722,7 @@ export class SettingsComponent {
     }
 
     // Sync Bio if checked
-    if (this.syncBio() && resume.summaryBio && resume.summaryBio.trim()) {
+    if (this.syncBio() && resume.summaryBio?.trim()) {
       if (!this.bio().trim() || !skip) {
         this.bio.set(resume.summaryBio.trim());
         syncedItems.push('professional bio');
@@ -726,7 +738,7 @@ export class SettingsComponent {
     }
 
     // Sync Name if checked
-    if (this.syncName() && resume.candidateName && resume.candidateName.trim()) {
+    if (this.syncName() && resume.candidateName?.trim()) {
       if (!this.name().trim() || !skip) {
         this.name.set(resume.candidateName.trim());
         syncedItems.push('name');

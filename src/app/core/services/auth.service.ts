@@ -32,6 +32,35 @@ export class AuthService {
   readonly isAuthenticated = computed(() => !!this._currentUser());
   readonly currentPlan = computed(() => this._currentUser()?.plan || 'Silver');
 
+  readonly profileCompletion = computed(() => {
+    const user = this._currentUser();
+    if (!user) return 0;
+
+    let score = 0;
+    if (user.name && user.name.trim()) score += 20;
+    if ((user.emailId && user.emailId.trim()) || (user.email && user.email.trim())) score += 20;
+    if (user.targetRole && user.targetRole.trim()) score += 15;
+    if (user.bio && user.bio.trim()) score += 15;
+    if (user.location && user.location.trim()) score += 10;
+    if (user.phone && user.phone.trim()) score += 10;
+    if (user.skills && user.skills.length > 0) score += 10;
+
+    return Math.min(100, score);
+  });
+
+  readonly missingProfileFields = computed(() => {
+    const user = this._currentUser();
+    if (!user) return [];
+    const missing: string[] = [];
+    if (!user.name || !user.name.trim()) missing.push('Full Name');
+    if (!user.targetRole || !user.targetRole.trim()) missing.push('Target Role');
+    if (!user.bio || !user.bio.trim()) missing.push('Bio');
+    if (!user.phone || !user.phone.trim()) missing.push('Phone');
+    if (!user.location || !user.location.trim()) missing.push('Location');
+    if (!user.skills || user.skills.length === 0) missing.push('Skills');
+    return missing;
+  });
+
   constructor() {
     if (isPlatformBrowser(this.platformId)) {
       // Load user from localStorage on initialization
