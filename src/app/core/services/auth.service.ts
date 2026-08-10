@@ -37,13 +37,13 @@ export class AuthService {
     if (!user) return 0;
 
     let score = 0;
-    if (user.name && user.name.trim()) score += 20;
-    if ((user.emailId && user.emailId.trim()) || (user.email && user.email.trim())) score += 20;
-    if (user.targetRole && user.targetRole.trim()) score += 15;
-    if (user.bio && user.bio.trim()) score += 15;
-    if (user.location && user.location.trim()) score += 10;
-    if (user.phone && user.phone.trim()) score += 10;
-    if (user.skills && user.skills.length > 0) score += 10;
+    if (user.name?.trim()) score += 20;
+    if ((user.emailId?.trim()) || (user.email?.trim())) score += 20;
+    if (user.targetRole?.trim()) score += 15;
+    if (user.bio?.trim()) score += 15;
+    if (user.location?.trim()) score += 10;
+    if (user.phone?.trim()) score += 10;
+    if (user.skills?.length > 0) score += 10;
 
     return Math.min(100, score);
   });
@@ -52,12 +52,12 @@ export class AuthService {
     const user = this._currentUser();
     if (!user) return [];
     const missing: string[] = [];
-    if (!user.name || !user.name.trim()) missing.push('Full Name');
-    if (!user.targetRole || !user.targetRole.trim()) missing.push('Target Role');
-    if (!user.bio || !user.bio.trim()) missing.push('Bio');
-    if (!user.phone || !user.phone.trim()) missing.push('Phone');
-    if (!user.location || !user.location.trim()) missing.push('Location');
-    if (!user.skills || user.skills.length === 0) missing.push('Skills');
+    if (!user.name?.trim()) missing.push('Full Name');
+    if (!user.targetRole?.trim()) missing.push('Target Role');
+    if (!user.bio?.trim()) missing.push('Bio');
+    if (!user.phone?.trim()) missing.push('Phone');
+    if (!user.location?.trim()) missing.push('Location');
+    if (!user.skills?.length) missing.push('Skills');
     return missing;
   });
 
@@ -115,7 +115,7 @@ export class AuthService {
 
   updateCoins(newCoinTotal: number): void {
     const user = this._currentUser();
-    if (user && user.id) {
+    if (user?.id) {
       this.userResourceService.updateCoins(user.id, newCoinTotal).subscribe({
         error: () => {
           this.userResourceService.updateUserCredits({ coins: newCoinTotal });
