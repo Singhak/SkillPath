@@ -351,6 +351,29 @@ html.dark {
   }
 }
 
+.location-p-select {
+  width: 100%;
+}
+
+.location-p-select.p-select {
+  width: 100%;
+  border-radius: 12px;
+  background: var(--card-bg, #ffffff);
+  border: 1px solid var(--border-color, #cbd5e1);
+  transition: all 0.2s ease;
+}
+
+.location-p-select.p-select .p-select-label {
+  padding-left: 2.4rem !important;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--body-text-color, #0f172a);
+}
+
+.location-p-select.p-select .p-select-label.p-placeholder {
+  color: var(--text-muted, #94a3b8);
+}
+
 /* ==========================================================================
    GLOBAL DARK MODE OVERRIDES FOR ALL PRIMENG OVERLAY PANELS APPENDED TO BODY
    ========================================================================== */

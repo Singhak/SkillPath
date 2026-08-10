@@ -29,18 +29,18 @@ export class LocationApiService {
   private readonly apiUrl = `${environment.apiUrl}/location`;
 
   getCountries(): Observable<Country[]> {
-    return this.http.get<Country[]>(`${this.apiUrl}/countries`);
+    return this.http.get<Country[]>(`${this.apiUrl}/countries?fields=name,iso2`);
   }
 
   getStatesByCountry(countryCode: string): Observable<State[]> {
-    return this.http.get<State[]>(`${this.apiUrl}/countries/${countryCode}/states`);
+    return this.http.get<State[]>(`${this.apiUrl}/countries/${countryCode}/states?fields=name,iso2`);
   }
 
   getCitiesByState(countryCode: string, stateCode: string): Observable<City[]> {
-    return this.http.get<City[]>(`${this.apiUrl}/countries/${countryCode}/states/${stateCode}/cities`);
+    return this.http.get<City[]>(`${this.apiUrl}/countries/${countryCode}/states/${stateCode}/cities?fields=name`);
   }
 
   getCitiesByCountry(countryCode: string): Observable<City[]> {
-    return this.http.get<City[]>(`${this.apiUrl}/countries/${countryCode}/cities`);
+    return this.http.get<City[]>(`${this.apiUrl}/countries/${countryCode}/cities?fields=name`);
   }
 }

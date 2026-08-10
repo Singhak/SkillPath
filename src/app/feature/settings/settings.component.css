@@ -1166,52 +1166,6 @@
   align-items: center;
 }
 
-.location-p-select {
-  width: 100%;
-}
-
-::ng-deep .location-p-select.p-select {
-  width: 100%;
-  border-radius: 12px;
-  background: var(--card-bg, #ffffff);
-  border: 1px solid var(--border-color, #cbd5e1);
-  transition: all 0.2s ease;
-}
-
-::ng-deep .location-p-select.p-select .p-select-label {
-  padding-left: 2.4rem !important;
-  font-size: 0.9rem;
-  font-weight: 500;
-  color: var(--body-text-color, #0f172a);
-}
-
-::ng-deep .location-p-select.p-select .p-select-label.p-placeholder {
-  color: var(--text-muted, #94a3b8);
-}
-
-.form-select {
-  appearance: none;
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  cursor: pointer;
-  padding-right: 2.5rem !important;
-  background: var(--card-bg, #ffffff);
-  color: var(--body-text-color, #0f172a);
-}
-
-.form-select option {
-  background: var(--card-bg, #ffffff);
-  color: var(--body-text-color, #0f172a);
-}
-
-.select-chevron {
-  position: absolute;
-  right: 1rem;
-  color: var(--text-muted, #94a3b8);
-  font-size: 0.85rem;
-  pointer-events: none;
-}
-
 .location-preview-pill {
   margin-top: 1.1rem;
   display: inline-flex;
