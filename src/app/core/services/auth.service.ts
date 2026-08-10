@@ -3,6 +3,7 @@ import { Injectable, signal, computed, effect, inject, PLATFORM_ID } from '@angu
 import { Router } from '@angular/router';
 import { Observable, tap } from 'rxjs';
 import { UserResourceService } from './user-resource.service';
+import { UserApiService } from './apis/user-api.service';
 import { User, LoginResponse, RefreshTokenResponse } from '../models/user.model';
 
 export type { User, LoginResponse, RefreshTokenResponse };
@@ -19,6 +20,7 @@ export class AuthService {
   private readonly platformId = inject(PLATFORM_ID);
   private readonly router = inject(Router);
   private readonly userResourceService = inject(UserResourceService);
+  private readonly userApiService = inject(UserApiService);
 
   private readonly _currentUser = signal<User | null>(null);
 
@@ -114,13 +116,31 @@ export class AuthService {
     return this.userResourceService.buyAiCreditsWithCoins(amount);
   }
 
-  updateUserProfile(updatedData: Partial<User>): void {
+  updateUserProfile(updatedData: Partial<User>, persistToBackend = true): void {
     const current = this._currentUser();
     if (current) {
       const merged = { ...current, ...updatedData };
       this._currentUser.set(merged);
       if (isPlatformBrowser(this.platformId)) {
         localStorage.setItem(this.currentUserKey, JSON.stringify(merged));
+      }
+
+      // Persist profile updates to backend DB
+      if (persistToBackend && current.id) {
+        this.userApiService.updateUser(current.id, updatedData).subscribe({
+          next: (savedUser) => {
+            if (savedUser) {
+              const updatedMerged = { ...this._currentUser(), ...savedUser };
+              this._currentUser.set(updatedMerged);
+              if (isPlatformBrowser(this.platformId)) {
+                localStorage.setItem(this.currentUserKey, JSON.stringify(updatedMerged));
+              }
+            }
+          },
+          error: (err) => {
+            console.warn('Could not sync profile update to backend server:', err);
+          },
+        });
       }
     }
   }

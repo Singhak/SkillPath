@@ -1,12 +1,13 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, effect, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MessageService } from 'primeng/api';
 import { ToastModule } from 'primeng/toast';
 import { AuthService } from '../../core/services/auth.service';
+import { UserApiService } from '../../core/services/apis/user-api.service';
 import { ThemeService, ThemeMode, AccentColor, UiDensity } from '../../core/services/theme.service';
 import { User } from '../../core/models/user.model';
-import { AI_CREDIT_COST } from '../../shared/constants';
+import { AI_CREDIT_COST, COUNTRIES_DATA } from '../../shared/constants';
 import { BillingHistoryModalComponent } from '../../shared/components/billing-history-modal/billing-history-modal.component';
 
 @Component({
@@ -19,6 +20,7 @@ import { BillingHistoryModalComponent } from '../../shared/components/billing-hi
 export class SettingsComponent {
   readonly themeService = inject(ThemeService);
   readonly authService = inject(AuthService);
+  private readonly userApiService = inject(UserApiService);
   private readonly messageService = inject(MessageService);
 
   readonly activeTab = signal<'appearance' | 'profile' | 'preferences' | 'account'>('appearance');
@@ -35,6 +37,24 @@ export class SettingsComponent {
   readonly location = signal<string>('');
   readonly skillInput = signal<string>('');
   readonly skills = signal<string[]>([]);
+
+  // Location Signals & Datasets
+  readonly countriesList = COUNTRIES_DATA;
+  readonly selectedCountry = signal<string>('United States');
+  readonly selectedState = signal<string>('California (San Francisco / LA)');
+  readonly customState = signal<string>('');
+
+  readonly availableStates = computed(() => {
+    const ctry = this.selectedCountry();
+    const found = COUNTRIES_DATA.find((c) => c.country === ctry);
+    return found ? found.states : ['Other / Custom City/State'];
+  });
+
+  readonly isCustomStateSelected = computed(() => {
+    const st = this.selectedState();
+    const ctry = this.selectedCountry();
+    return !st || st.startsWith('Other') || st.includes('Custom') || ctry === 'Other / International';
+  });
 
   // Preferences Signals
   readonly aiDifficulty = signal<'beginner' | 'intermediate' | 'advanced'>('intermediate');
@@ -76,10 +96,10 @@ export class SettingsComponent {
   readonly profileCompletion = computed(() => {
     let score = 20; // Default for account creation
     if (this.name().trim()) score += 20;
-    if (this.email().trim()) score += 20;
+    if (this.currentUser()?.emailId || this.currentUser()?.email || this.email().trim()) score += 20;
     if (this.targetRole().trim()) score += 15;
     if (this.bio().trim()) score += 15;
-    if (this.skills().length > 0) score += 10;
+    if (this.getFormattedLocation().trim()) score += 10;
     return Math.min(100, score);
   });
 
@@ -140,18 +160,128 @@ export class SettingsComponent {
   ];
 
   constructor() {
+    // Reactively synchronize profile signals whenever currentUser updates
+    effect(() => {
+      const user = this.currentUser();
+      if (user) {
+        this.populateForm(user);
+      }
+    });
+
+    // Fetch fresh user profile from API server if logged in
     const user = this.currentUser();
-    if (user) {
-      this.name.set(user.name || '');
-      this.email.set(user.email || '');
-      this.targetRole.set(user.targetRole || 'Full-Stack Developer');
-      this.bio.set(user.bio || 'Passionate developer enhancing skills with AI interviews & quizzes.');
-      this.phone.set(user.phone || '+1 (555) 234-5678');
-      this.location.set(user.location || 'San Francisco, CA');
-      this.skills.set(user.skills || ['Angular', 'TypeScript', 'RxJS', 'Node.js', 'TailwindCSS']);
-      this.aiDifficulty.set(user.aiDifficulty || 'intermediate');
-      this.emailNotifications.set(user.emailNotifications ?? true);
+    if (user?.id) {
+      this.userApiService.getUser(user.id).subscribe({
+        next: (freshUser) => {
+          if (freshUser) {
+            this.authService.updateUserProfile(freshUser);
+          }
+        },
+        error: () => {
+          // If offline or endpoint unavailable, currentUser signal fallback is preserved
+        },
+      });
     }
+  }
+
+  private populateForm(user: User): void {
+    this.name.set(user.name || '');
+    this.email.set(user.emailId || user.email || '');
+    this.targetRole.set(user.targetRole || '');
+    this.bio.set(user.bio || '');
+    this.phone.set(user.phone || '');
+    this.skills.set(user.skills || []);
+    this.aiDifficulty.set(user.aiDifficulty || 'intermediate');
+    this.emailNotifications.set(user.emailNotifications ?? true);
+
+    // Initialize Country & State/City dropdowns based on user's location
+    this.initLocation(user.location || '');
+  }
+
+  private initLocation(rawLocation: string): void {
+    this.location.set(rawLocation);
+    if (!rawLocation) {
+      this.selectedCountry.set('United States');
+      this.selectedState.set('California (San Francisco / LA)');
+      return;
+    }
+
+    const lowerLoc = rawLocation.toLowerCase();
+
+    // Check if any country in COUNTRIES_DATA matches
+    let matchedCountryData = COUNTRIES_DATA.find((c) =>
+      lowerLoc.includes(c.country.toLowerCase())
+    );
+
+    // Quick aliases for common abbreviations
+    if (!matchedCountryData) {
+      if (lowerLoc.includes('usa') || lowerLoc.includes('us')) {
+        matchedCountryData = COUNTRIES_DATA.find((c) => c.country === 'United States');
+      } else if (lowerLoc.includes('uk') || lowerLoc.includes('england') || lowerLoc.includes('london')) {
+        matchedCountryData = COUNTRIES_DATA.find((c) => c.country === 'United Kingdom');
+      } else if (lowerLoc.includes('india') || lowerLoc.includes('in')) {
+        matchedCountryData = COUNTRIES_DATA.find((c) => c.country === 'India');
+      }
+    }
+
+    if (matchedCountryData) {
+      this.selectedCountry.set(matchedCountryData.country);
+      const matchedState = matchedCountryData.states.find((st) => {
+        const stateKey = st.split('(')[0].trim().toLowerCase();
+        return lowerLoc.includes(stateKey);
+      });
+
+      if (matchedState) {
+        this.selectedState.set(matchedState);
+      } else {
+        this.selectedState.set(
+          matchedCountryData.states[matchedCountryData.states.length - 1] || 'Other / Custom State/City'
+        );
+        const customVal = rawLocation
+          .replace(new RegExp(matchedCountryData.country, 'gi'), '')
+          .replace(/,$/, '')
+          .trim();
+        if (customVal) {
+          this.customState.set(customVal);
+        }
+      }
+    } else {
+      this.selectedCountry.set('Other / International');
+      this.selectedState.set('Other / Custom City/State');
+      this.customState.set(rawLocation);
+    }
+  }
+
+  onCountryChange(country: string): void {
+    this.selectedCountry.set(country);
+    const found = COUNTRIES_DATA.find((c) => c.country === country);
+    if (found && found.states.length > 0) {
+      this.selectedState.set(found.states[0]);
+    } else {
+      this.selectedState.set('Other / Custom City/State');
+    }
+  }
+
+  onStateChange(state: string): void {
+    this.selectedState.set(state);
+  }
+
+  getFormattedLocation(): string {
+    const country = this.selectedCountry();
+    const state = this.selectedState();
+    const custom = this.customState().trim();
+
+    if (!country) return '';
+
+    if (country === 'Other / International') {
+      return custom || 'International';
+    }
+
+    if (!state || state.startsWith('Other') || state.includes('Custom')) {
+      return custom ? `${custom}, ${country}` : country;
+    }
+
+    return `${state}, ${country}`;
   }
 
   setActiveTab(tab: 'appearance' | 'profile' | 'preferences' | 'account'): void {
@@ -203,13 +333,20 @@ export class SettingsComponent {
   }
 
   saveProfile(): void {
+    const formattedLoc = this.getFormattedLocation();
+    this.location.set(formattedLoc);
+
+    // Email is strictly locked to authenticated user email
+    const loginEmail = this.currentUser()?.emailId || this.currentUser()?.email || this.email();
+
     const updatedData: Partial<User> = {
       name: this.name(),
-      email: this.email(),
+      email: loginEmail,
+      emailId: loginEmail,
       targetRole: this.targetRole(),
       bio: this.bio(),
       phone: this.phone(),
-      location: this.location(),
+      location: formattedLoc,
       skills: this.skills(),
     };
 

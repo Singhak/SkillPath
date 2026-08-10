@@ -140,7 +140,7 @@ export class PaymentService {
       },
       prefill: {
         name: currentUser?.name || '',
-        email: currentUser?.email || '',
+        email: currentUser?.emailId || currentUser?.email || '',
       },
       modal: {
         ondismiss: () => {

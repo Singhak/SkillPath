@@ -16,7 +16,7 @@
         </div>
         <p class="user-email-text">
           <i class="pi pi-envelope text-xs opacity-75"></i>
-          {{ email() || currentUser()?.email || 'Manage your preferences and profile details' }}
+          {{ currentUser()?.emailId || currentUser()?.email || email() || 'Manage your preferences and profile details' }}
         </p>
       </div>
     </div>
@@ -284,19 +284,22 @@
           </div>
 
           <div class="form-group">
-            <label for="emailAddr">Email Address</label>
-            <div class="input-wrapper">
+            <div class="label-with-badge">
+              <label for="emailAddr">Email Address</label>
+              <span class="locked-badge"><i class="pi pi-lock text-xs"></i> Account Email</span>
+            </div>
+            <div class="input-wrapper readonly-wrapper">
               <i class="pi pi-envelope input-icon"></i>
               <input
                 id="emailAddr"
                 type="email"
-                class="form-input"
-                [ngModel]="email()"
-                (ngModelChange)="email.set($event)"
+                class="form-input readonly-input"
+                [value]="currentUser()?.emailId || currentUser()?.email || email()"
                 name="emailAddr"
-                placeholder="name@example.com"
-                required
+                readonly
+                disabled
               />
+              <i class="pi pi-lock lock-status-icon" title="Email cannot be changed"></i>
             </div>
           </div>
 
@@ -332,20 +335,84 @@
             </div>
           </div>
 
-          <div class="form-group full-width">
-            <label for="location">Location / Timezone</label>
-            <div class="input-wrapper">
-              <i class="pi pi-map-marker input-icon"></i>
-              <input
-                id="location"
-                type="text"
-                class="form-input"
-                [ngModel]="location()"
-                (ngModelChange)="location.set($event)"
-                name="location"
-                placeholder="City, Country"
-              />
+          <!-- Location Group: Country + State/City Dropdowns -->
+          <div class="form-group full-width location-section">
+            <div class="label-with-badge">
+              <label class="section-sublabel"><i class="pi pi-map-marker text-accent"></i> Location Details</label>
+              <span class="location-badge">Country & Region</span>
             </div>
+
+            <div class="location-grid">
+              <!-- Country Select -->
+              <div class="form-subgroup">
+                <label for="countrySelect">Select Country</label>
+                <div class="input-wrapper select-wrapper">
+                  <i class="pi pi-globe input-icon"></i>
+                  <select
+                    id="countrySelect"
+                    class="form-input form-select"
+                    [ngModel]="selectedCountry()"
+                    (ngModelChange)="onCountryChange($event)"
+                    name="countrySelect"
+                  >
+                    @for (item of countriesList; track item.country) {
+                      <option [value]="item.country">{{ item.country }}</option>
+                    }
+                  </select>
+                  <i class="pi pi-chevron-down select-chevron"></i>
+                </div>
+              </div>
+
+              <!-- City / State Select -->
+              <div class="form-subgroup">
+                <label for="stateSelect">State / City / Region</label>
+                <div class="input-wrapper select-wrapper">
+                  <i class="pi pi-compass input-icon"></i>
+                  <select
+                    id="stateSelect"
+                    class="form-input form-select"
+                    [ngModel]="selectedState()"
+                    (ngModelChange)="onStateChange($event)"
+                    name="stateSelect"
+                  >
+                    @for (st of availableStates(); track st) {
+                      <option [value]="st">{{ st }}</option>
+                    }
+                  </select>
+                  <i class="pi pi-chevron-down select-chevron"></i>
+                </div>
+              </div>
+
+              <!-- Optional Specific Custom City/State Input -->
+              @if (isCustomStateSelected()) {
+                <div class="form-subgroup full-width-subgroup animate-fade">
+                  <label for="customStateInput">Specific City or Region Name</label>
+                  <div class="input-wrapper">
+                    <i class="pi pi-pencil input-icon"></i>
+                    <input
+                      id="customStateInput"
+                      type="text"
+                      class="form-input"
+                      [ngModel]="customState()"
+                      (ngModelChange)="customState.set($event)"
+                      name="customStateInput"
+                      placeholder="e.g. Austin, Texas or Silicon Valley"
+                    />
+                  </div>
+                </div>
+              }
+            </div>
+
+            <!-- Location Preview Pill -->
+            @if (getFormattedLocation()) {
+              <div class="location-preview-pill">
+                <span class="preview-lbl">Selected Location:</span>
+                <strong class="preview-val">
+                  <i class="pi pi-map-marker"></i>
+                  {{ getFormattedLocation() }}
+                </strong>
+              </div>
+            }
           </div>
 
           <div class="form-group full-width">
