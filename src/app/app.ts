@@ -69,11 +69,22 @@ export class App {
   }
   toggleSidebar(): void {
     if (typeof window !== 'undefined' && window.innerWidth < 1024) {
-      this.mobileMenuOpen.set(!this.mobileMenuOpen());
-      return;
+      if (!this.mobileMenuOpen()) {
+        this.mobileMenuOpen.set(true);
+        this.sidebarCollapsed.set(false);
+        return;
+      }
     }
 
     this.sidebarCollapsed.set(!this.sidebarCollapsed());
+  }
+
+  toggleMobileMenu(): void {
+    const isOpening = !this.mobileMenuOpen();
+    this.mobileMenuOpen.set(isOpening);
+    if (isOpening) {
+      this.sidebarCollapsed.set(false);
+    }
   }
 
   closeSidebar(): void {

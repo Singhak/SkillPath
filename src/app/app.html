@@ -23,7 +23,7 @@
           <span>MAIN MENU</span>
         </div>
         <a class="nav-item" [routerLink]="'/'" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }"
-          [title]="sidebarCollapsed() ? 'Overview' : ''">
+          (click)="closeSidebar()" [title]="sidebarCollapsed() ? 'Overview' : ''">
           <div class="nav-icon-box">
             <i class="pi pi-home"></i>
           </div>
@@ -31,7 +31,7 @@
           <div class="active-indicator"></div>
         </a>
         <a class="nav-item" [routerLink]="'/quiz'" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }"
-          [title]="sidebarCollapsed() ? 'Quizzes' : ''">
+          (click)="closeSidebar()" [title]="sidebarCollapsed() ? 'Quizzes' : ''">
           <div class="nav-icon-box">
             <i class="pi pi-play"></i>
           </div>
@@ -39,7 +39,7 @@
           <div class="active-indicator"></div>
         </a>
         <a class="nav-item" [routerLink]="'/skills'" routerLinkActive="active"
-          [routerLinkActiveOptions]="{ exact: true }" [title]="sidebarCollapsed() ? 'Skills' : ''">
+          (click)="closeSidebar()" [routerLinkActiveOptions]="{ exact: true }" [title]="sidebarCollapsed() ? 'Skills' : ''">
           <div class="nav-icon-box">
             <i class="pi pi-bolt"></i>
           </div>
@@ -53,7 +53,7 @@
           <span>PREPARATION</span>
         </div>
         <a class="nav-item" [routerLink]="'/aiinterview'" routerLinkActive="active"
-          [routerLinkActiveOptions]="{ exact: false }" [title]="sidebarCollapsed() ? 'AI Interview' : ''">
+          (click)="closeSidebar()" [routerLinkActiveOptions]="{ exact: false }" [title]="sidebarCollapsed() ? 'AI Interview' : ''">
           <div class="nav-icon-box">
             <i class="pi pi-microchip-ai"></i>
           </div>
@@ -62,7 +62,7 @@
           <div class="active-indicator"></div>
         </a>
         <a class="nav-item" [routerLink]="'/interviewer-studio'" routerLinkActive="active"
-          [routerLinkActiveOptions]="{ exact: false }" [title]="sidebarCollapsed() ? 'Interviewer Studio' : ''">
+          (click)="closeSidebar()" [routerLinkActiveOptions]="{ exact: false }" [title]="sidebarCollapsed() ? 'Interviewer Studio' : ''">
           <div class="nav-icon-box">
             <i class="pi pi-users"></i>
           </div>
@@ -76,14 +76,14 @@
           <span>SYSTEM</span>
         </div>
         <a class="nav-item" [routerLink]="'/settings'" routerLinkActive="active"
-          [routerLinkActiveOptions]="{ exact: true }" [title]="sidebarCollapsed() ? 'Settings' : ''">
+          (click)="closeSidebar()" [routerLinkActiveOptions]="{ exact: true }" [title]="sidebarCollapsed() ? 'Settings' : ''">
           <div class="nav-icon-box">
             <i class="pi pi-cog"></i>
           </div>
           <span class="nav-label">Settings</span>
           <div class="active-indicator"></div>
         </a>
-        <a class="nav-item" [routerLink]="'/help'" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }"
+        <a class="nav-item" [routerLink]="'/help'" routerLinkActive="active" (click)="closeSidebar()" [routerLinkActiveOptions]="{ exact: true }"
           [title]="sidebarCollapsed() ? 'Help & Guide' : ''">
           <div class="nav-icon-box">
             <i class="pi pi-question-circle"></i>
@@ -92,7 +92,7 @@
           <div class="active-indicator"></div>
         </a>
         <a class="nav-item" [routerLink]="'/about'" routerLinkActive="active"
-          [routerLinkActiveOptions]="{ exact: true }" [title]="sidebarCollapsed() ? 'About ImOnBench' : ''">
+          (click)="closeSidebar()" [routerLinkActiveOptions]="{ exact: true }" [title]="sidebarCollapsed() ? 'About ImOnBench' : ''">
           <div class="nav-icon-box">
             <i class="pi pi-info-circle"></i>
           </div>
@@ -110,7 +110,7 @@
         <span class="trial-text">{{ remainingTrialDays() }} Days Left</span>
       </div>
       }
-      <a class="nav-item upgrade-nav-item" [routerLink]="'/pricing'" routerLinkActive="active"
+      <a class="nav-item upgrade-nav-item" [routerLink]="'/pricing'" routerLinkActive="active" (click)="closeSidebar()"
         [title]="sidebarCollapsed() ? 'Upgrade Plan' : ''">
         <div class="nav-icon-box">
           <i class="pi pi-bolt text-amber-500"></i>
@@ -132,7 +132,7 @@
         </button>
       </div>
       } @else {
-      <a class="nav-item login-item" [routerLink]="'/login'" routerLinkActive="active"
+      <a class="nav-item login-item" [routerLink]="'/login'" routerLinkActive="active" (click)="closeSidebar()"
         [title]="sidebarCollapsed() ? 'Login' : ''">
         <div class="nav-icon-box">
           <i class="pi pi-sign-in"></i>
@@ -149,8 +149,13 @@
 
   <div class="content-shell">
     <div class="mobile-toolbar">
-      <button class="mobile-toggle" type="button" (click)="toggleSidebar()" aria-label="Toggle navigation menu">
-        <i class="pi pi-bars"></i>
+      <div class="mobile-brand">
+        <img src="assests/logo.png" alt="IMONBENCH Logo" class="mobile-brand-logo" />
+        <span class="mobile-brand-title">IMONBENCH</span>
+        <span class="brand-tag mobile-tag" [ngClass]="getPlanColorClass()">AI</span>
+      </div>
+      <button class="mobile-toggle" type="button" (click)="toggleMobileMenu()" [attr.aria-expanded]="mobileMenuOpen()" aria-label="Toggle navigation menu">
+        <i class="pi" [class.pi-bars]="!mobileMenuOpen()" [class.pi-times]="mobileMenuOpen()"></i>
       </button>
     </div>
     <div class="page-content">

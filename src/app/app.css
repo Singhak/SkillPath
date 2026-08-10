@@ -455,7 +455,8 @@
 
 .mobile-backdrop,
 .mobile-toolbar,
-.mobile-toggle {
+.mobile-toggle,
+.mobile-brand {
   display: none;
 }
 
@@ -468,7 +469,16 @@
     position: fixed;
     left: 0;
     top: 0;
+    width: 280px;
+    max-width: 85vw;
+    height: 100dvh;
     transform: translateX(-100%);
+    z-index: 30;
+    box-shadow: 8px 0 32px rgba(15, 23, 42, 0.4);
+  }
+
+  .sidebar.collapsed {
+    width: 84px;
   }
 
   .sidebar.mobile-open {
@@ -478,27 +488,63 @@
   .mobile-toolbar {
     display: flex;
     align-items: center;
-    padding: 1rem 1rem 0;
+    justify-content: space-between;
+    padding: 0.75rem 1rem;
+    background: #0f172a;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+
+  .mobile-brand {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .mobile-brand-logo {
+    width: 26px;
+    height: 26px;
+    object-fit: contain;
+  }
+
+  .mobile-brand-title {
+    font-size: 1rem;
+    font-weight: 800;
+    color: #ffffff;
+    letter-spacing: -0.01em;
+  }
+
+  .mobile-tag {
+    font-size: 0.6rem;
   }
 
   .mobile-toggle {
     display: grid;
     border: 0;
-    width: 40px;
-    height: 40px;
+    width: 38px;
+    height: 38px;
     border-radius: 10px;
     place-items: center;
     cursor: pointer;
-    background: rgba(15, 23, 42, 0.8);
+    background: rgba(255, 255, 255, 0.08);
     color: white;
+    font-size: 1.1rem;
+    transition: background-color 0.2s ease;
+  }
+
+  .mobile-toggle:hover {
+    background: rgba(255, 255, 255, 0.16);
   }
 
   .mobile-backdrop {
     display: block;
     position: fixed;
     inset: 0;
-    background: rgba(15, 23, 42, 0.45);
-    z-index: 15;
+    background: rgba(15, 23, 42, 0.6);
+    backdrop-filter: blur(4px);
+    z-index: 25;
   }
 }
 
