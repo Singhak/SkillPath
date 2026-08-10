@@ -3,17 +3,19 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MessageService } from 'primeng/api';
 import { ToastModule } from 'primeng/toast';
+import { SelectModule } from 'primeng/select';
 import { AuthService } from '../../core/services/auth.service';
 import { UserApiService } from '../../core/services/apis/user-api.service';
 import { ThemeService, ThemeMode, AccentColor, UiDensity } from '../../core/services/theme.service';
 import { User } from '../../core/models/user.model';
-import { AI_CREDIT_COST, COUNTRIES_DATA } from '../../shared/constants';
+import { AI_CREDIT_COST } from '../../shared/constants';
 import { BillingHistoryModalComponent } from '../../shared/components/billing-history-modal/billing-history-modal.component';
+import { LocationApiService, Country, State, City } from '../../core/services/apis/location-api.service';
 
 @Component({
   selector: 'app-settings',
   standalone: true,
-  imports: [CommonModule, FormsModule, ToastModule, BillingHistoryModalComponent],
+  imports: [CommonModule, FormsModule, ToastModule, SelectModule, BillingHistoryModalComponent],
   templateUrl: './settings.component.html',
   styleUrl: './settings.component.css',
 })
@@ -21,6 +23,7 @@ export class SettingsComponent {
   readonly themeService = inject(ThemeService);
   readonly authService = inject(AuthService);
   private readonly userApiService = inject(UserApiService);
+  private readonly locationApiService = inject(LocationApiService);
   private readonly messageService = inject(MessageService);
 
   readonly activeTab = signal<'appearance' | 'profile' | 'preferences' | 'account'>('appearance');
@@ -38,22 +41,55 @@ export class SettingsComponent {
   readonly skillInput = signal<string>('');
   readonly skills = signal<string[]>([]);
 
-  // Location Signals & Datasets
-  readonly countriesList = COUNTRIES_DATA;
-  readonly selectedCountry = signal<string>('United States');
-  readonly selectedState = signal<string>('California (San Francisco / LA)');
-  readonly customState = signal<string>('');
+  // Location Signals & Datasets (from Backend Location API)
+  readonly countriesList = signal<Country[]>([]);
+  readonly statesList = signal<State[]>([]);
+  readonly citiesList = signal<City[]>([]);
 
-  readonly availableStates = computed(() => {
-    const ctry = this.selectedCountry();
-    const found = COUNTRIES_DATA.find((c) => c.country === ctry);
-    return found ? found.states : ['Other / Custom City/State'];
+  readonly selectedCountryCode = signal<string>('');
+  readonly selectedStateCode = signal<string>('');
+  readonly selectedCityName = signal<string>('');
+  readonly customLocationInput = signal<string>('');
+
+  readonly isLoadingCountries = signal<boolean>(false);
+  readonly isLoadingStates = signal<boolean>(false);
+  readonly isLoadingCities = signal<boolean>(false);
+
+  readonly selectedCountryObj = computed(() =>
+    this.countriesList().find((c) => c.iso2 === this.selectedCountryCode())
+  );
+
+  readonly selectedStateObj = computed(() =>
+    this.statesList().find((s) => s.iso2 === this.selectedStateCode())
+  );
+
+  readonly countryOptions = computed(() => {
+    const list = this.countriesList().map((c) => ({ label: c.name, value: c.iso2 }));
+    return [...list, { label: 'Other / International', value: 'OTHER' }];
   });
 
-  readonly isCustomStateSelected = computed(() => {
-    const st = this.selectedState();
-    const ctry = this.selectedCountry();
-    return !st || st.startsWith('Other') || st.includes('Custom') || ctry === 'Other / International';
+  readonly stateOptions = computed(() => {
+    const list = this.statesList().map((s) => ({ label: s.name, value: s.iso2 }));
+    if (list.length > 0 || this.selectedCountryCode()) {
+      return [...list, { label: 'Other / Custom State', value: 'OTHER' }];
+    }
+    return list;
+  });
+
+  readonly cityOptions = computed(() => {
+    const list = this.citiesList().map((ct) => ({ label: ct.name, value: ct.name }));
+    if (list.length > 0 || this.selectedStateCode()) {
+      return [...list, { label: 'Other / Custom City', value: 'OTHER' }];
+    }
+    return list;
+  });
+
+  readonly isCustomLocationSelected = computed(() => {
+    return (
+      this.selectedCountryCode() === 'OTHER' ||
+      this.selectedStateCode() === 'OTHER' ||
+      this.selectedCityName() === 'OTHER'
+    );
   });
 
   // Preferences Signals
@@ -160,6 +196,8 @@ export class SettingsComponent {
   ];
 
   constructor() {
+    this.loadCountries();
+
     // Reactively synchronize profile signals whenever currentUser updates
     effect(() => {
       const user = this.currentUser();
@@ -184,6 +222,23 @@ export class SettingsComponent {
     }
   }
 
+  loadCountries(userLocation?: string): void {
+    this.isLoadingCountries.set(true);
+    this.locationApiService.getCountries().subscribe({
+      next: (data) => {
+        this.countriesList.set(data || []);
+        this.isLoadingCountries.set(false);
+        const locToParse = userLocation !== undefined ? userLocation : (this.currentUser()?.location || '');
+        if (locToParse) {
+          this.parseAndSetLocation(locToParse);
+        }
+      },
+      error: () => {
+        this.isLoadingCountries.set(false);
+      },
+    });
+  }
+
   private populateForm(user: User): void {
     this.name.set(user.name || '');
     this.email.set(user.emailId || user.email || '');
@@ -193,95 +248,182 @@ export class SettingsComponent {
     this.skills.set(user.skills || []);
     this.aiDifficulty.set(user.aiDifficulty || 'intermediate');
     this.emailNotifications.set(user.emailNotifications ?? true);
+    this.location.set(user.location || '');
 
-    // Initialize Country & State/City dropdowns based on user's location
-    this.initLocation(user.location || '');
+    if (this.countriesList().length > 0) {
+      this.parseAndSetLocation(user.location || '');
+    }
   }
 
-  private initLocation(rawLocation: string): void {
-    this.location.set(rawLocation);
-    if (!rawLocation) {
-      this.selectedCountry.set('United States');
-      this.selectedState.set('California (San Francisco / LA)');
+  private parseAndSetLocation(rawLocation: string): void {
+    if (!rawLocation) return;
+    const parts = rawLocation.split(',').map((p) => p.trim()).filter(Boolean);
+    const countries = this.countriesList();
+    if (countries.length === 0) return;
+
+    let matchedCountry: Country | undefined;
+    for (let i = parts.length - 1; i >= 0; i--) {
+      const partLower = parts[i].toLowerCase();
+      matchedCountry = countries.find(
+        (c) => c.name.toLowerCase() === partLower || c.iso2.toLowerCase() === partLower
+      );
+      if (matchedCountry) break;
+    }
+
+    if (!matchedCountry) {
+      const rawLower = rawLocation.toLowerCase();
+      if (rawLower.includes('usa') || rawLower.includes('united states')) {
+        matchedCountry = countries.find((c) => c.iso2 === 'US');
+      } else if (rawLower.includes('india')) {
+        matchedCountry = countries.find((c) => c.iso2 === 'IN');
+      } else if (rawLower.includes('uk') || rawLower.includes('united kingdom')) {
+        matchedCountry = countries.find((c) => c.iso2 === 'GB');
+      }
+    }
+
+    if (matchedCountry) {
+      this.selectedCountryCode.set(matchedCountry.iso2);
+      this.isLoadingStates.set(true);
+      this.locationApiService.getStatesByCountry(matchedCountry.iso2).subscribe({
+        next: (statesData) => {
+          this.statesList.set(statesData || []);
+          this.isLoadingStates.set(false);
+
+          let matchedState: State | undefined;
+          for (const part of parts) {
+            const partLower = part.toLowerCase();
+            matchedState = (statesData || []).find(
+              (s) => s.name.toLowerCase() === partLower || s.iso2.toLowerCase() === partLower
+            );
+            if (matchedState) break;
+          }
+
+          if (matchedState) {
+            this.selectedStateCode.set(matchedState.iso2);
+            this.isLoadingCities.set(true);
+            this.locationApiService
+              .getCitiesByState(matchedCountry!.iso2, matchedState.iso2)
+              .subscribe({
+                next: (citiesData) => {
+                  this.citiesList.set(citiesData || []);
+                  this.isLoadingCities.set(false);
+
+                  let matchedCity: City | undefined;
+                  for (const part of parts) {
+                    const partLower = part.toLowerCase();
+                    matchedCity = (citiesData || []).find(
+                      (ct) => ct.name.toLowerCase() === partLower
+                    );
+                    if (matchedCity) break;
+                  }
+
+                  if (matchedCity) {
+                    this.selectedCityName.set(matchedCity.name);
+                    this.customLocationInput.set('');
+                  } else if (parts.length >= 3) {
+                    this.selectedCityName.set(parts[0]);
+                  } else {
+                    this.customLocationInput.set('');
+                  }
+                },
+                error: () => this.isLoadingCities.set(false),
+              });
+          } else if (parts.length >= 2) {
+            this.customLocationInput.set(parts[0]);
+          } else {
+            this.customLocationInput.set('');
+          }
+        },
+        error: () => this.isLoadingStates.set(false),
+      });
+    } else {
+      this.customLocationInput.set(rawLocation);
+    }
+  }
+
+  onCountryChange(countryCode: string): void {
+    this.selectedCountryCode.set(countryCode);
+    this.selectedStateCode.set('');
+    this.statesList.set([]);
+    this.selectedCityName.set('');
+    this.citiesList.set([]);
+    this.customLocationInput.set('');
+
+    if (!countryCode || countryCode === 'OTHER') {
       return;
     }
 
-    const lowerLoc = rawLocation.toLowerCase();
-
-    // Check if any country in COUNTRIES_DATA matches
-    let matchedCountryData = COUNTRIES_DATA.find((c) =>
-      lowerLoc.includes(c.country.toLowerCase())
-    );
-
-    // Quick aliases for common abbreviations
-    if (!matchedCountryData) {
-      if (lowerLoc.includes('usa') || lowerLoc.includes('us')) {
-        matchedCountryData = COUNTRIES_DATA.find((c) => c.country === 'United States');
-      } else if (lowerLoc.includes('uk') || lowerLoc.includes('england') || lowerLoc.includes('london')) {
-        matchedCountryData = COUNTRIES_DATA.find((c) => c.country === 'United Kingdom');
-      } else if (lowerLoc.includes('india') || lowerLoc.includes('in')) {
-        matchedCountryData = COUNTRIES_DATA.find((c) => c.country === 'India');
-      }
-    }
-
-    if (matchedCountryData) {
-      this.selectedCountry.set(matchedCountryData.country);
-      const matchedState = matchedCountryData.states.find((st) => {
-        const stateKey = st.split('(')[0].trim().toLowerCase();
-        return lowerLoc.includes(stateKey);
-      });
-
-      if (matchedState) {
-        this.selectedState.set(matchedState);
-      } else {
-        this.selectedState.set(
-          matchedCountryData.states[matchedCountryData.states.length - 1] || 'Other / Custom State/City'
-        );
-        const customVal = rawLocation
-          .replace(new RegExp(matchedCountryData.country, 'gi'), '')
-          .replace(/,$/, '')
-          .trim();
-        if (customVal) {
-          this.customState.set(customVal);
-        }
-      }
-    } else {
-      this.selectedCountry.set('Other / International');
-      this.selectedState.set('Other / Custom City/State');
-      this.customState.set(rawLocation);
-    }
+    this.isLoadingStates.set(true);
+    this.locationApiService.getStatesByCountry(countryCode).subscribe({
+      next: (data) => {
+        this.statesList.set(data || []);
+        this.isLoadingStates.set(false);
+      },
+      error: () => {
+        this.statesList.set([]);
+        this.isLoadingStates.set(false);
+      },
+    });
   }
 
-  onCountryChange(country: string): void {
-    this.selectedCountry.set(country);
-    const found = COUNTRIES_DATA.find((c) => c.country === country);
-    if (found && found.states.length > 0) {
-      this.selectedState.set(found.states[0]);
-    } else {
-      this.selectedState.set('Other / Custom City/State');
+  onStateChange(stateCode: string): void {
+    this.selectedStateCode.set(stateCode);
+    this.selectedCityName.set('');
+    this.citiesList.set([]);
+    this.customLocationInput.set('');
+
+    const countryCode = this.selectedCountryCode();
+    if (!countryCode || !stateCode || stateCode === 'OTHER') {
+      return;
     }
+
+    this.isLoadingCities.set(true);
+    this.locationApiService.getCitiesByState(countryCode, stateCode).subscribe({
+      next: (data) => {
+        this.citiesList.set(data || []);
+        this.isLoadingCities.set(false);
+      },
+      error: () => {
+        this.citiesList.set([]);
+        this.isLoadingCities.set(false);
+      },
+    });
   }
 
-  onStateChange(state: string): void {
-    this.selectedState.set(state);
+  onCityChange(cityName: string): void {
+    this.selectedCityName.set(cityName);
+    if (cityName !== 'OTHER') {
+      this.customLocationInput.set('');
+    }
   }
 
   getFormattedLocation(): string {
-    const country = this.selectedCountry();
-    const state = this.selectedState();
-    const custom = this.customState().trim();
+    const countryObj = this.selectedCountryObj();
+    const stateObj = this.selectedStateObj();
+    const city = this.selectedCityName();
+    const custom = this.customLocationInput().trim();
 
-    if (!country) return '';
+    const parts: string[] = [];
 
-    if (country === 'Other / International') {
-      return custom || 'International';
+    if (city && city !== 'OTHER') {
+      parts.push(city);
+    } else if (city === 'OTHER' && custom) {
+      parts.push(custom);
     }
 
-    if (!state || state.startsWith('Other') || state.includes('Custom')) {
-      return custom ? `${custom}, ${country}` : country;
+    if (stateObj && stateObj.iso2 !== 'OTHER') {
+      parts.push(stateObj.name);
+    } else if (this.selectedStateCode() === 'OTHER' && custom && parts.length === 0) {
+      parts.push(custom);
     }
 
-    return `${state}, ${country}`;
+    if (countryObj && countryObj.iso2 !== 'OTHER') {
+      parts.push(countryObj.name);
+    } else if (this.selectedCountryCode() === 'OTHER' && custom && parts.length === 0) {
+      parts.push(custom);
+    }
+
+    return parts.join(', ');
   }
 
   setActiveTab(tab: 'appearance' | 'profile' | 'preferences' | 'account'): void {

@@ -335,11 +335,11 @@
             </div>
           </div>
 
-          <!-- Location Group: Country + State/City Dropdowns -->
+          <!-- Location Group: Country, State & City Dropdowns (Powered by Location API) -->
           <div class="form-group full-width location-section">
             <div class="label-with-badge">
               <label class="section-sublabel"><i class="pi pi-map-marker text-accent"></i> Location Details</label>
-              <span class="location-badge">Country & Region</span>
+              <span class="location-badge">Country, State & City</span>
             </div>
 
             <div class="location-grid">
@@ -348,54 +348,86 @@
                 <label for="countrySelect">Select Country</label>
                 <div class="input-wrapper select-wrapper">
                   <i class="pi pi-globe input-icon"></i>
-                  <select
+                  <p-select
                     id="countrySelect"
-                    class="form-input form-select"
-                    [ngModel]="selectedCountry()"
+                    [options]="countryOptions()"
+                    [ngModel]="selectedCountryCode()"
                     (ngModelChange)="onCountryChange($event)"
                     name="countrySelect"
-                  >
-                    @for (item of countriesList; track item.country) {
-                      <option [value]="item.country">{{ item.country }}</option>
-                    }
-                  </select>
-                  <i class="pi pi-chevron-down select-chevron"></i>
+                    [filter]="true"
+                    filterBy="label"
+                    optionLabel="label"
+                    optionValue="value"
+                    placeholder="-- Select Country --"
+                    [loading]="isLoadingCountries()"
+                    [disabled]="isLoadingCountries()"
+                    class="location-p-select"
+                    appendTo="body"
+                  ></p-select>
                 </div>
               </div>
 
-              <!-- City / State Select -->
+              <!-- State Select -->
               <div class="form-subgroup">
-                <label for="stateSelect">State / City / Region</label>
+                <label for="stateSelect">State / Region</label>
                 <div class="input-wrapper select-wrapper">
                   <i class="pi pi-compass input-icon"></i>
-                  <select
+                  <p-select
                     id="stateSelect"
-                    class="form-input form-select"
-                    [ngModel]="selectedState()"
+                    [options]="stateOptions()"
+                    [ngModel]="selectedStateCode()"
                     (ngModelChange)="onStateChange($event)"
                     name="stateSelect"
-                  >
-                    @for (st of availableStates(); track st) {
-                      <option [value]="st">{{ st }}</option>
-                    }
-                  </select>
-                  <i class="pi pi-chevron-down select-chevron"></i>
+                    [filter]="true"
+                    filterBy="label"
+                    optionLabel="label"
+                    optionValue="value"
+                    placeholder="-- Select State --"
+                    [loading]="isLoadingStates()"
+                    [disabled]="isLoadingStates() || !selectedCountryCode() || selectedCountryCode() === 'OTHER'"
+                    class="location-p-select"
+                    appendTo="body"
+                  ></p-select>
                 </div>
               </div>
 
-              <!-- Optional Specific Custom City/State Input -->
-              @if (isCustomStateSelected()) {
+              <!-- City Select -->
+              <div class="form-subgroup">
+                <label for="citySelect">City</label>
+                <div class="input-wrapper select-wrapper">
+                  <i class="pi pi-building input-icon"></i>
+                  <p-select
+                    id="citySelect"
+                    [options]="cityOptions()"
+                    [ngModel]="selectedCityName()"
+                    (ngModelChange)="onCityChange($event)"
+                    name="citySelect"
+                    [filter]="true"
+                    filterBy="label"
+                    optionLabel="label"
+                    optionValue="value"
+                    placeholder="-- Select City --"
+                    [loading]="isLoadingCities()"
+                    [disabled]="isLoadingCities() || !selectedStateCode() || selectedStateCode() === 'OTHER'"
+                    class="location-p-select"
+                    appendTo="body"
+                  ></p-select>
+                </div>
+              </div>
+
+              <!-- Custom Location Input if user selected Other or wants specific details -->
+              @if (isCustomLocationSelected()) {
                 <div class="form-subgroup full-width-subgroup animate-fade">
-                  <label for="customStateInput">Specific City or Region Name</label>
+                  <label for="customLocationInput">Custom City / Specific Region Name</label>
                   <div class="input-wrapper">
                     <i class="pi pi-pencil input-icon"></i>
                     <input
-                      id="customStateInput"
+                      id="customLocationInput"
                       type="text"
                       class="form-input"
-                      [ngModel]="customState()"
-                      (ngModelChange)="customState.set($event)"
-                      name="customStateInput"
+                      [ngModel]="customLocationInput()"
+                      (ngModelChange)="customLocationInput.set($event)"
+                      name="customLocationInput"
                       placeholder="e.g. Austin, Texas or Silicon Valley"
                     />
                   </div>
