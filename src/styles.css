@@ -578,6 +578,112 @@ html[data-theme='dark'] .p-selectbutton .p-button.p-highlight {
   color: #ffffff !important;
 }
 
+/* ==========================================================================
+   PrimeNG Datatable, Paginator & Tabs Dark Mode Enhancements
+   ========================================================================== */
+html.p-dark .p-datatable,
+html[data-theme='dark'] .p-datatable,
+.p-dark .p-datatable {
+  background: transparent !important;
+  color: #f8fafc !important;
+}
+
+html.p-dark .p-datatable .p-datatable-header,
+html[data-theme='dark'] .p-datatable .p-datatable-header,
+.p-dark .p-datatable .p-datatable-header {
+  background: transparent !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+  color: #f8fafc !important;
+}
+
+html.p-dark .p-datatable .p-datatable-thead > tr > th,
+html[data-theme='dark'] .p-datatable .p-datatable-thead > tr > th,
+.p-dark .p-datatable .p-datatable-thead > tr > th {
+  background-color: #1e293b !important;
+  background: #1e293b !important;
+  color: #94a3b8 !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+html.p-dark .p-datatable .p-datatable-tbody > tr,
+html[data-theme='dark'] .p-datatable .p-datatable-tbody > tr,
+.p-dark .p-datatable .p-datatable-tbody > tr {
+  background-color: transparent !important;
+  color: #e2e8f0 !important;
+  border-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+html.p-dark .p-datatable.p-datatable-striped .p-datatable-tbody > tr:nth-child(even),
+html[data-theme='dark'] .p-datatable.p-datatable-striped .p-datatable-tbody > tr:nth-child(even),
+.p-dark .p-datatable.p-datatable-striped .p-datatable-tbody > tr:nth-child(even) {
+  background-color: rgba(255, 255, 255, 0.025) !important;
+}
+
+html.p-dark .p-paginator,
+html[data-theme='dark'] .p-paginator,
+.p-dark .p-paginator {
+  background-color: #1e293b !important;
+  background: #1e293b !important;
+  color: #94a3b8 !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+  border-radius: 0 0 1rem 1rem;
+}
+
+html.p-dark .p-paginator .p-paginator-page,
+html.p-dark .p-paginator .p-paginator-first,
+html.p-dark .p-paginator .p-paginator-prev,
+html.p-dark .p-paginator .p-paginator-next,
+html.p-dark .p-paginator .p-paginator-last,
+html[data-theme='dark'] .p-paginator .p-paginator-page,
+html[data-theme='dark'] .p-paginator .p-paginator-first,
+html[data-theme='dark'] .p-paginator .p-paginator-prev,
+html[data-theme='dark'] .p-paginator .p-paginator-next,
+html[data-theme='dark'] .p-paginator .p-paginator-last {
+  color: #cbd5e1 !important;
+}
+
+html.p-dark .p-paginator .p-paginator-page.p-highlight,
+html[data-theme='dark'] .p-paginator .p-paginator-page.p-highlight {
+  background-color: var(--primary-accent, #6366f1) !important;
+  color: #ffffff !important;
+}
+
+/* PrimeNG Tabs Dark Mode */
+html.p-dark .p-tablist,
+html[data-theme='dark'] .p-tablist,
+.p-dark .p-tablist {
+  background: transparent !important;
+  border-bottom-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+html.p-dark .p-tab,
+html[data-theme='dark'] .p-tab,
+.p-dark .p-tab {
+  background: transparent !important;
+  color: #94a3b8 !important;
+  border-color: transparent !important;
+}
+
+html.p-dark .p-tab:hover,
+html[data-theme='dark'] .p-tab:hover,
+.p-dark .p-tab:hover {
+  color: #f8fafc !important;
+}
+
+html.p-dark .p-tab-active,
+html[data-theme='dark'] .p-tab-active,
+.p-dark .p-tab-active {
+  color: var(--primary-accent, #818cf8) !important;
+  border-color: var(--primary-accent, #818cf8) !important;
+}
+
+html.p-dark .p-tabpanels,
+html[data-theme='dark'] .p-tabpanels,
+.p-dark .p-tabpanels {
+  background: transparent !important;
+  color: #e2e8f0 !important;
+}
+
 /* Custom Scrollbars */
 ::-webkit-scrollbar {
     width: 6px;

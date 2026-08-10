@@ -34,6 +34,8 @@ import { SelectModule } from 'primeng/select';
 
 import { UserResourceService } from '../../../core/services/user-resource.service';
 import { AuthService } from '../../../core/services/auth.service';
+import { ResumeParserService } from '../../../core/services/resume-parser.service';
+import { JobFitService, JobFitResult } from '../../../core/services/job-fit.service';
 
 type UploadMode = 'text' | 'upload';
 
@@ -63,6 +65,9 @@ export class CreateInterviewComponent implements OnInit {
   readonly router = inject(Router);
   private readonly userResourceService = inject(UserResourceService);
   readonly authService = inject(AuthService);
+  readonly resumeService = inject(ResumeParserService);
+  readonly jobFitService = inject(JobFitService);
+
   readonly userRoles = USER_ROLES;
   readonly experienceLevels = EXPERIENCE_LEVELS;
   readonly stepstoFollow = INTERVIEW_STEPS;
@@ -72,8 +77,9 @@ export class CreateInterviewComponent implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
 
   mode = signal<UploadMode>('text');
-
   loading = signal(false);
+  isAnalyzingFit = signal(false);
+  jobFitResult = signal<JobFitResult | null>(null);
 
   selectedFile = signal<File | null>(null);
 
@@ -96,7 +102,11 @@ export class CreateInterviewComponent implements OnInit {
     });
   }
 
-  ngOnInit(): void { }
+  ngOnInit(): void {
+    if (!this.resumeService.parsedResume()) {
+      this.resumeService.loadSavedResume();
+    }
+  }
 
   get estimatedCredits(): string {
     const count = parseInt(this.form.get('questionCount')?.value, 10) || 5;
@@ -116,11 +126,61 @@ export class CreateInterviewComponent implements OnInit {
 
     if (!input.files?.length) return;
 
-    this.selectedFile.set(input.files[0]);
+    const file = input.files[0];
+    this.selectedFile.set(file);
+
+    // Auto extract text if uploading JD file
+    this.resumeService.parseResumeFile(file).then(res => {
+      if (res.rawTextPreview) {
+        this.form.patchValue({ jobDescription: res.rawTextPreview });
+        this.analyzeJobFit();
+      }
+    }).catch(() => {});
   }
 
   removeFile() {
     this.selectedFile.set(null);
+  }
+
+  analyzeJobFit() {
+    const { jobDescription, userRole, experienceLevel } = this.form.getRawValue();
+    if (!jobDescription || !jobDescription.trim()) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Job Description Required',
+        detail: 'Please paste or write a Job Description to analyze your job fit.',
+      });
+      return;
+    }
+
+    this.isAnalyzingFit.set(true);
+
+    setTimeout(() => {
+      const candidateResume = this.resumeService.parsedResume();
+      const result = this.jobFitService.calculateJobFit(
+        jobDescription,
+        candidateResume,
+        userRole,
+        experienceLevel
+      );
+
+      this.jobFitResult.set(result);
+      this.isAnalyzingFit.set(false);
+
+      // Auto fill role / experience if blank
+      if (!userRole && candidateResume?.suggestedRoles?.[0]) {
+        this.form.patchValue({ userRole: candidateResume.suggestedRoles[0] });
+      }
+      if (!experienceLevel && candidateResume?.experienceLevel) {
+        this.form.patchValue({ experienceLevel: candidateResume.experienceLevel });
+      }
+
+      this.messageService.add({
+        severity: 'success',
+        summary: 'Job Fit Analysis Complete',
+        detail: `Calculated Fit Score: ${result.fitScore}% (${result.verdict})`,
+      });
+    }, 400);
   }
 
   generateQuestions() {
@@ -139,9 +199,11 @@ export class CreateInterviewComponent implements OnInit {
       return;
     }
 
-    this.loading.set(true);
+    if (!this.jobFitResult()) {
+      this.analyzeJobFit();
+    }
 
-    // Backend API
+    this.loading.set(true);
 
     const { jobDescription, userRole, experienceLevel, questionCount } = this.form.getRawValue();
 
