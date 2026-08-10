@@ -15,6 +15,12 @@ export class RatingApiService {
   createorUpdateSelfRating(rating: Rating): Observable<Rating> {
     return this.http.post<Rating>(`${this.apiUrl}/self`, rating);
   }
+
+  deleteSelfRating(category: string): Observable<{ message: string; category: string }> {
+    return this.http.delete<{ message: string; category: string }>(
+      `${this.apiUrl}/self/${encodeURIComponent(category)}`
+    );
+  }
 }
 
 export interface Rating {
