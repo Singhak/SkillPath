@@ -184,7 +184,7 @@ export class CreateInterviewComponent implements OnInit {
   }
 
   generateQuestions() {
-    if (this.authService.currentPlan() === 'Silver') {
+    if (!this.authService.hasMinPlan('Copper')) {
       this.messageService.add({
         severity: 'warn',
         summary: 'Upgrade Required',

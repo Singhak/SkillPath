@@ -31,7 +31,7 @@ export class SkillGapPanelComponent {
   }
 
   openFlashcards(): void {
-    if (this.authService.currentPlan() !== 'Gold') {
+    if (!this.authService.hasMinPlan('Gold')) {
       if (this.confirmationService) {
         this.confirmationService.confirm({
           message: 'Spaced Repetition Review Deck requires the Gold plan. Would you like to upgrade your plan?',

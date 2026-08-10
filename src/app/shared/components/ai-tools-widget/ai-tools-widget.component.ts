@@ -91,7 +91,7 @@ export class AiToolsWidgetComponent implements OnInit {
   readonly speechEvaluationMode = signal<'instant' | 'ai_groq'>('instant');
 
   selectSpeechAiMode(): void {
-    if (this.authService.currentPlan() === 'Silver') {
+    if (!this.authService.hasMinPlan('Copper')) {
       if (this.confirmationService) {
         this.confirmationService.confirm({
           message:
@@ -113,7 +113,7 @@ export class AiToolsWidgetComponent implements OnInit {
   }
 
   startSpeechRecording(): void {
-    if (this.speechEvaluationMode() === 'ai_groq' && this.authService.currentPlan() === 'Silver') {
+    if (this.speechEvaluationMode() === 'ai_groq' && !this.authService.hasMinPlan('Copper')) {
       this.selectSpeechAiMode();
       return;
     }
@@ -122,7 +122,7 @@ export class AiToolsWidgetComponent implements OnInit {
 
   stopSpeechRecording(): void {
     const useAi = this.speechEvaluationMode() === 'ai_groq';
-    if (useAi && this.authService.currentPlan() === 'Silver') {
+    if (useAi && !this.authService.hasMinPlan('Copper')) {
       this.selectSpeechAiMode();
       return;
     }
@@ -130,7 +130,7 @@ export class AiToolsWidgetComponent implements OnInit {
   }
 
   selectGroqAiMode(): void {
-    if (this.authService.currentPlan() === 'Silver') {
+    if (!this.authService.hasMinPlan('Copper')) {
       if (this.confirmationService) {
         this.confirmationService.confirm({
           message:
@@ -153,7 +153,7 @@ export class AiToolsWidgetComponent implements OnInit {
 
   evaluateStarResponse(): void {
     if (this.evaluationMode() === 'ai_groq') {
-      if (this.authService.currentPlan() === 'Silver') {
+      if (!this.authService.hasMinPlan('Copper')) {
         this.selectGroqAiMode();
         return;
       }

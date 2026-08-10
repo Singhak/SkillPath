@@ -32,6 +32,26 @@ export class AuthService {
   readonly isAuthenticated = computed(() => !!this._currentUser());
   readonly currentPlan = computed(() => this._currentUser()?.plan || 'Silver');
 
+  private readonly planHierarchy: Record<string, number> = {
+    'Silver': 1,
+    'Copper': 2,
+    'Gold': 3,
+  };
+
+  readonly planLevel = computed(() => {
+    const plan = this.currentPlan();
+    return this.planHierarchy[plan] || 1;
+  });
+
+  readonly hasCopperPlan = computed(() => this.planLevel() >= 2);
+  readonly hasGoldPlan = computed(() => this.planLevel() >= 3);
+
+  /** Checks if the user's plan is at or above the required plan tier (Silver < Copper < Gold) */
+  hasMinPlan(requiredPlan: 'Silver' | 'Copper' | 'Gold'): boolean {
+    const requiredLevel = this.planHierarchy[requiredPlan] || 1;
+    return this.planLevel() >= requiredLevel;
+  }
+
   readonly profileCompletion = computed(() => {
     const user = this._currentUser();
     if (!user) return 0;

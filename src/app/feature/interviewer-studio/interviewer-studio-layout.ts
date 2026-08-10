@@ -18,19 +18,19 @@ import { AuthService } from '../../core/services/auth.service';
           </div>
         </div>
         <div class="nav-links">
-          <a routerLink="/interviewer-studio" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" class="nav-btn" [class.disabled]="currentPlan() !== 'Gold'">
+          <a routerLink="/interviewer-studio" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" class="nav-btn" [class.disabled]="!authService.hasMinPlan('Gold')">
             <span>⚙️ Config Wizard</span>
           </a>
-          <a routerLink="/interviewer-studio/session" routerLinkActive="active" class="nav-btn" [class.disabled]="currentPlan() !== 'Gold'">
+          <a routerLink="/interviewer-studio/session" routerLinkActive="active" class="nav-btn" [class.disabled]="!authService.hasMinPlan('Gold')">
             <span>⚡ Live Session Co-Pilot</span>
           </a>
-          <a routerLink="/interviewer-studio/report" routerLinkActive="active" class="nav-btn" [class.disabled]="currentPlan() !== 'Gold'">
+          <a routerLink="/interviewer-studio/report" routerLinkActive="active" class="nav-btn" [class.disabled]="!authService.hasMinPlan('Gold')">
             <span>📊 Assessment Report</span>
           </a>
         </div>
       </header>
       <main class="studio-content">
-        @if (currentPlan() !== 'Gold') {
+        @if (!authService.hasMinPlan('Gold')) {
           <div class="locked-overlay">
             <div class="locked-content">
               <span style="font-size: 3rem; margin-bottom: 1rem; display: block;">🔒</span>
@@ -42,7 +42,7 @@ import { AuthService } from '../../core/services/auth.service';
             </div>
           </div>
         }
-        <div [class.blurred]="currentPlan() !== 'Gold'">
+        <div [class.blurred]="!authService.hasMinPlan('Gold')">
           <router-outlet></router-outlet>
         </div>
       </main>
@@ -197,7 +197,6 @@ import { AuthService } from '../../core/services/auth.service';
   `]
 })
 export class InterviewerStudioLayoutComponent {
-  private authService = inject(AuthService);
-  currentPlan = this.authService.currentPlan;
+  public authService = inject(AuthService);
 }
 

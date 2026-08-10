@@ -126,7 +126,7 @@
               [options]="questionCountOptions" appendTo="body" />
           </span>
         </div>
-        @if (authService.currentPlan() === 'Silver') {
+        @if (!authService.hasMinPlan('Copper')) {
         <div
           class="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
           <div class="flex items-center space-x-3">
@@ -152,8 +152,8 @@
           </button>
 
           <button type="button" pButton class="flex-1 h-14 text-base font-semibold"
-            [label]="authService.currentPlan() === 'Silver' ? 'Upgrade to Copper' : ('Generate AI Questions (⚡ ' + estimatedCredits + ' Credits)')"
-            [icon]="authService.currentPlan() === 'Silver' ? 'pi pi-lock' : 'pi pi-sparkles'" iconPos="right"
+            [label]="!authService.hasMinPlan('Copper') ? 'Upgrade Plan' : ('Generate AI Questions (⚡ ' + estimatedCredits + ' Credits)')"
+            [icon]="!authService.hasMinPlan('Copper') ? 'pi pi-lock' : 'pi pi-sparkles'" iconPos="right"
             (click)="generateQuestions()" [disabled]="(mode() === 'text' && form.invalid) || loading()"
             [loading]="loading()">
           </button>

@@ -668,7 +668,7 @@
             [class.text-white]="speechEvaluationMode() === 'ai_groq'"
             [class.text-slate-400]="speechEvaluationMode() !== 'ai_groq'"
           >
-            @if (authService.currentPlan() === 'Silver') {
+            @if (!authService.hasMinPlan('Copper')) {
               <span
                 class="absolute -top-2 -right-2 bg-rose-500 rounded-full w-4 h-4 flex items-center justify-center border border-white text-[8px]"
               >
@@ -850,7 +850,7 @@
                 [class.text-white]="evaluationMode() === 'ai_groq'"
                 [class.text-slate-400]="evaluationMode() !== 'ai_groq'"
               >
-                @if (authService.currentPlan() === 'Silver') {
+                @if (!authService.hasMinPlan('Copper')) {
                   <span
                     class="absolute -top-2 -right-2 bg-rose-500 rounded-full w-4 h-4 flex items-center justify-center border border-white text-[8px]"
                   >
