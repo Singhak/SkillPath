@@ -43,7 +43,7 @@ export class AuthService {
     if (user.bio?.trim()) score += 15;
     if (user.location?.trim()) score += 10;
     if (user.phone?.trim()) score += 10;
-    if (user.skills?.length > 0) score += 10;
+    if (user?.skills && user.skills.length > 0) score += 10;
 
     return Math.min(100, score);
   });
