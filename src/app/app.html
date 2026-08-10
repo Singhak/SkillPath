@@ -105,18 +105,20 @@
     <div class="sidebar-footer">
       @if(isAuthenticated()){
       @if(remainingTrialDays() !== null) {
-      <div
-        class="bg-linear-to-br from-emerald-500/15 to-emerald-600/15 border border-emerald-500/20 rounded-xl p-2.5 mb-3 flex items-center">
-        <i class="pi pi-clock text-emerald-500 text-base mr-2"></i>
-        <span class="text-emerald-500 font-bold text-xs">{{ remainingTrialDays() }} Days Left</span>
+      <div class="trial-widget" [title]="sidebarCollapsed() ? (remainingTrialDays() + ' Days Left') : ''">
+        <i class="pi pi-clock trial-icon"></i>
+        <span class="trial-text">{{ remainingTrialDays() }} Days Left</span>
       </div>
       }
-      <a class="nav-item h-9 px-3 mb-3 bg-linear-to-br from-amber-500/15 to-orange-600/15 border border-amber-500/20 rounded-xl flex items-center"
-        [routerLink]="'/pricing'" routerLinkActive="active" [title]="sidebarCollapsed() ? 'Upgrade Plan' : ''">
-        <i class="pi pi-bolt text-amber-500 text-base" [style.margin-right]="sidebarCollapsed() ? '0' : '8px'"></i>
+      <a class="nav-item upgrade-nav-item" [routerLink]="'/pricing'" routerLinkActive="active"
+        [title]="sidebarCollapsed() ? 'Upgrade Plan' : ''">
+        <div class="nav-icon-box">
+          <i class="pi pi-bolt text-amber-500"></i>
+        </div>
         <span class="nav-label text-amber-500 font-bold uppercase tracking-wider text-xs leading-none">Upgrade</span>
       </a>
-      <div class="user-profile-card">
+      <div class="user-profile-card" [title]="sidebarCollapsed() ? (currentUser()?.name + ' (Click to logout)') : ''"
+        (click)="sidebarCollapsed() ? logout() : null" [style.cursor]="sidebarCollapsed() ? 'pointer' : 'default'">
         <div class="avatar-container">
           <div class="avatar">{{ userInitials() }}</div>
           <span class="online-status" [class.offline]="!isOnline()" [title]="isOnline() ? 'Online' : 'Offline'"></span>
@@ -125,7 +127,7 @@
           <strong class="user-name">{{ currentUser()?.name }}</strong>
           <span class="user-role">Member</span>
         </div>
-        <button class="logout-btn" type="button" (click)="logout()" title="Logout" aria-label="Logout">
+        <button class="logout-btn" type="button" (click)="logout(); $event.stopPropagation()" title="Logout" aria-label="Logout">
           <i class="pi pi-sign-out"></i>
         </button>
       </div>

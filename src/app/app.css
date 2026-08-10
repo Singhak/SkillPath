@@ -68,6 +68,18 @@
   width: 84px;
 }
 
+.sidebar.collapsed .sidebar-header {
+  flex-direction: column;
+  gap: 0.65rem;
+  align-items: center;
+  justify-content: center;
+}
+
+.sidebar.collapsed .brand {
+  width: 100%;
+  justify-content: center;
+}
+
 .sidebar-header {
   display: flex;
   align-items: center;
@@ -86,8 +98,8 @@
 .sidebar.collapsed .brand-icon-wrapper {
   opacity: 1;
   pointer-events: auto;
-  width: 42px;
-  height: 42px;
+  width: 38px;
+  height: 38px;
   border-radius: 12px;
   display: grid;
   place-items: center;
@@ -106,8 +118,8 @@
 }
 
 .brand-logo {
-  width: 26px;
-  height: 26px;
+  width: 24px;
+  height: 24px;
   object-fit: contain;
 }
 
@@ -121,6 +133,7 @@
 }
 
 .sidebar.collapsed .brand-text {
+  display: none !important;
   opacity: 0;
   width: 0;
   pointer-events: none;
@@ -288,6 +301,67 @@
   padding-top: 0.85rem;
 }
 
+/* Trial Widget */
+.trial-widget {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.12) 0%, rgba(5, 150, 105, 0.15) 100%);
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  border-radius: 12px;
+  padding: 0.6rem 0.75rem;
+  margin-bottom: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  color: #10b981;
+  transition: all 0.25s ease;
+  overflow: hidden;
+}
+
+.trial-icon {
+  font-size: 1.1rem;
+  color: #10b981;
+  flex-shrink: 0;
+}
+
+.trial-text {
+  font-size: 0.75rem;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: #10b981;
+  transition: opacity 0.2s ease, width 0.2s ease;
+}
+
+.sidebar.collapsed .trial-widget {
+  justify-content: center;
+  padding: 0.65rem 0;
+  background: rgba(16, 185, 129, 0.15) !important;
+  border-color: rgba(16, 185, 129, 0.3) !important;
+}
+
+.sidebar.collapsed .trial-text {
+  display: none !important;
+  opacity: 0;
+  width: 0;
+}
+
+/* Upgrade Navigation Item */
+.upgrade-nav-item {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.12) 0%, rgba(234, 88, 12, 0.15) 100%) !important;
+  border: 1px solid rgba(245, 158, 11, 0.25) !important;
+  margin-bottom: 0.75rem;
+}
+
+.upgrade-nav-item:hover {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.25) 0%, rgba(234, 88, 12, 0.3) 100%) !important;
+  border-color: rgba(245, 158, 11, 0.4) !important;
+}
+
+.sidebar.collapsed .upgrade-nav-item {
+  justify-content: center;
+  padding-inline: 0 !important;
+}
+
 .user-profile-card {
   display: flex;
   align-items: center;
@@ -338,14 +412,15 @@
 .sidebar.collapsed .logout-btn {
   opacity: 0;
   width: 0;
-  display: none;
+  display: none !important;
 }
 
 .sidebar.collapsed .user-profile-card {
   justify-content: center;
   padding: 0.5rem 0;
-  background: transparent;
-  border: none;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
 }
 
 .user-name {
