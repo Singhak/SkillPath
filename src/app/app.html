@@ -75,30 +75,48 @@
         <div class="section-header">
           <span>SYSTEM</span>
         </div>
-        <a class="nav-item" [routerLink]="'/settings'" routerLinkActive="active"
-          (click)="closeSidebar()" [routerLinkActiveOptions]="{ exact: true }" [title]="sidebarCollapsed() ? 'Settings' : ''">
-          <div class="nav-icon-box">
-            <i class="pi pi-cog"></i>
+        <div class="nav-group" [class.open]="!sidebarCollapsed() && (systemGroupExpanded() || isSystemRouteActive())">
+          <button type="button" class="nav-item group-header-btn"
+            [class.active]="isSystemRouteActive() && (sidebarCollapsed() || !systemGroupExpanded())"
+            (click)="toggleSystemGroup()"
+            [title]="sidebarCollapsed() ? 'Settings & Support' : ''">
+            <div class="nav-icon-box">
+              <i class="pi pi-sliders-h"></i>
+            </div>
+            <span class="nav-label">Settings & Support</span>
+            <i class="pi pi-chevron-down submenu-chevron" [class.rotated]="systemGroupExpanded() || isSystemRouteActive()"></i>
+            <div class="active-indicator"></div>
+          </button>
+
+          @if (!sidebarCollapsed() && (systemGroupExpanded() || isSystemRouteActive())) {
+          <div class="submenu-list">
+            <a class="nav-item submenu-item" [routerLink]="'/settings'" routerLinkActive="active"
+              (click)="closeSidebar()" [routerLinkActiveOptions]="{ exact: true }" [title]="sidebarCollapsed() ? 'Settings' : ''">
+              <div class="nav-icon-box">
+                <i class="pi pi-cog"></i>
+              </div>
+              <span class="nav-label">Settings</span>
+              <div class="active-indicator"></div>
+            </a>
+            <a class="nav-item submenu-item" [routerLink]="'/help'" routerLinkActive="active" (click)="closeSidebar()" [routerLinkActiveOptions]="{ exact: true }"
+              [title]="sidebarCollapsed() ? 'Help & Guide' : ''">
+              <div class="nav-icon-box">
+                <i class="pi pi-question-circle"></i>
+              </div>
+              <span class="nav-label">Help & Guide</span>
+              <div class="active-indicator"></div>
+            </a>
+            <a class="nav-item submenu-item" [routerLink]="'/about'" routerLinkActive="active"
+              (click)="closeSidebar()" [routerLinkActiveOptions]="{ exact: true }" [title]="sidebarCollapsed() ? 'About ImOnBench' : ''">
+              <div class="nav-icon-box">
+                <i class="pi pi-info-circle"></i>
+              </div>
+              <span class="nav-label">About Us</span>
+              <div class="active-indicator"></div>
+            </a>
           </div>
-          <span class="nav-label">Settings</span>
-          <div class="active-indicator"></div>
-        </a>
-        <a class="nav-item" [routerLink]="'/help'" routerLinkActive="active" (click)="closeSidebar()" [routerLinkActiveOptions]="{ exact: true }"
-          [title]="sidebarCollapsed() ? 'Help & Guide' : ''">
-          <div class="nav-icon-box">
-            <i class="pi pi-question-circle"></i>
-          </div>
-          <span class="nav-label">Help & Guide</span>
-          <div class="active-indicator"></div>
-        </a>
-        <a class="nav-item" [routerLink]="'/about'" routerLinkActive="active"
-          (click)="closeSidebar()" [routerLinkActiveOptions]="{ exact: true }" [title]="sidebarCollapsed() ? 'About ImOnBench' : ''">
-          <div class="nav-icon-box">
-            <i class="pi pi-info-circle"></i>
-          </div>
-          <span class="nav-label">About Us</span>
-          <div class="active-indicator"></div>
-        </a>
+          }
+        </div>
       </div>
     </nav>
 
