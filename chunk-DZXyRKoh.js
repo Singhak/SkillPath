@@ -1,1 +1,0 @@
-import {bG as n,I,ai as qi,bH as xn}from'./main-PV6KZ257.js';var o=class r{apiUrl=`${n.apiUrl}/quizzes`;http=I(qi);updateQuizStats(e){return this.http.put(`${n.apiUrl}/quizzes/${e}/complete`,{})}getQuizAttempts(){return this.http.get(`${n.apiUrl}/quizzes`)}static \u0275fac=function(s){return new(s||r)};static \u0275prov=xn({token:r,factory:r.\u0275fac})};export{o};
