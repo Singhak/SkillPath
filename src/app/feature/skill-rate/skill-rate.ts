@@ -672,7 +672,7 @@ export class SkillRate implements OnInit {
 
   private loadDeletedSkillsFromStorage(): Set<string> {
     try {
-      const raw = localStorage.getItem('mordenec_deleted_skills');
+      const raw = localStorage.getItem('imonbench_deleted_skills') || localStorage.getItem('mordenec_deleted_skills');
       if (raw) {
         const arr = JSON.parse(raw);
         return new Set(arr.map((s: string) => this.normalizeKey(s)));
@@ -683,7 +683,7 @@ export class SkillRate implements OnInit {
 
   private saveDeletedSkillsToStorage(set: Set<string>): void {
     try {
-      localStorage.setItem('mordenec_deleted_skills', JSON.stringify(Array.from(set)));
+      localStorage.setItem('imonbench_deleted_skills', JSON.stringify(Array.from(set)));
     } catch {}
   }
 
