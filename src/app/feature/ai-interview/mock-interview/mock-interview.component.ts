@@ -16,6 +16,8 @@ import { InterviewQuestion } from '../../../core/models/interview-question.model
 import { AiApiService } from '../../../core/services/apis/ai-api.service';
 import { VoiceService } from '../../../shared/services/voice-service';
 import { MockInterviewService } from '../../../core/services/mock-interview.service';
+import { InterviewReportService } from '../../../core/services/interview-report.service';
+import { GamificationService } from '../../../core/services/gamification.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { MessageService } from 'primeng/api';
 import { AI_CREDIT_COST, EXPERIENCE_LEVELS, USER_ROLES } from '../../../shared/constants';
@@ -52,6 +54,8 @@ export class MockInterviewComponent {
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private readonly interviewService = inject(MockInterviewService);
+  private readonly reportService = inject(InterviewReportService);
+  private readonly gamificationService = inject(GamificationService);
   private readonly authService = inject(AuthService);
   private readonly messageService = inject(MessageService);
 
@@ -300,8 +304,51 @@ export class MockInterviewComponent {
       finalize(() => this.loading.set(false)),
       takeUntilDestroyed(this.destroyRef)
     ).subscribe({
-      next: (res) => {
+      next: (res: any) => {
         this.authService.refreshCreditsAndCoins().subscribe();
+
+        // Calculate aggregate performance score
+        const evalList = Array.isArray(res) ? res : [res];
+        const totalScoreSum = evalList.reduce((acc, curr) => acc + (curr.score || 0), 0);
+        const overallScore = Math.round(totalScoreSum / (evalList.length || 1));
+        const user = this.authService.currentUser();
+        const currentTopic = this.topic().trim() || 'Technical Practice';
+
+        // Automatically save report to database under category 'mock'
+        this.reportService.createReportData({
+          userName: user?.name || 'IMONBENCH Candidate',
+          userEmail: user?.email || 'candidate@imonbench.app',
+          roleOrSkill: `${this.userRole() || 'Full Stack Engineer'} (${currentTopic})`,
+          overallScore,
+          technicalAccuracyScore: Math.min(100, overallScore + 3),
+          communicationScore: Math.max(50, overallScore - 2),
+          confidenceScore: overallScore,
+          problemSolvingScore: Math.min(100, overallScore + 4),
+          category: 'mock',
+          summaryFeedback: evalList[0]?.feedback || `Demonstrated ${overallScore}% proficiency across ${evalList.length} question(s) during AI Mock Interview practice on ${currentTopic}.`,
+          strengths: [
+            `Strong conceptual understanding of ${currentTopic}`,
+            'Structured scenario analysis and answer breakdown'
+          ],
+          improvementAreas: [
+            'Provide more concrete production examples and edge-case handling under timed constraints'
+          ],
+          recommendedTopics: [
+            `${currentTopic} Advanced Deep Dive`,
+            'System Architecture & Design Patterns'
+          ]
+        });
+
+        // Track gamification interview activity
+        this.gamificationService.recordActivity('interview', 1);
+
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Interview Report Saved',
+          detail: `Mock interview evaluated successfully (${overallScore}% Score). Report saved to profile database.`,
+          life: 5000,
+        });
+
         this.endInterview();
       },
       error: (err) => {
