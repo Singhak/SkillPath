@@ -1,6 +1,6 @@
 <div class="help-container">
   <!-- Hero Section -->
-  <header class="help-hero">
+  <header class="help-hero" id="sec-overview">
     <div class="hero-content">
       <div class="hero-badge">
         <i class="pi pi-question-circle"></i>
@@ -58,7 +58,7 @@
   </header>
 
   <!-- Interactive Visual Workflow Chart Section -->
-  <section class="section-card workflow-section">
+  <section class="section-card workflow-section" id="sec-workflow">
     <div class="section-header">
       <div class="section-icon-box">
         <i class="pi pi-sitemap"></i>
@@ -103,8 +103,9 @@
     </div>
   </section>
 
-  <!-- Category Filter Pills for Features -->
-  <div class="category-filter-bar">
+  <div class="features-section-container" id="sec-features">
+    <!-- Category Filter Pills for Features -->
+    <div class="category-filter-bar">
     <span class="filter-label"><i class="pi pi-filter"></i> Filter Category:</span>
     <button type="button" class="filter-pill" [class.active]="activeCategory() === 'all'"
       (click)="setCategoryFilter('all')">
@@ -212,9 +213,10 @@
     </div>
     }
   </section>
+  </div>
 
   <!-- Feature Comparison Matrix Chart Section -->
-  <section class="section-card comparison-section">
+  <section class="section-card comparison-section" id="sec-comparison">
     <div class="section-header">
       <div class="section-icon-box">
         <i class="pi pi-table"></i>
@@ -256,7 +258,7 @@
   </section>
 
   <!-- STAR Method Masterclass Section -->
-  <section class="section-card star-section">
+  <section class="section-card star-section" id="sec-star">
     <div class="section-header">
       <div class="section-icon-box star-icon-box">
         <i class="pi pi-star"></i>
@@ -284,7 +286,7 @@
   </section>
 
   <!-- Searchable FAQ Section -->
-  <section class="section-card faq-section">
+  <section class="section-card faq-section" id="sec-faq">
     <div class="section-header">
       <div class="section-icon-box">
         <i class="pi pi-comments"></i>

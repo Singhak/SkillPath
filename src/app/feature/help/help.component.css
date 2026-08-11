@@ -10,6 +10,16 @@
   display: flex;
   flex-direction: column;
   gap: 2rem;
+  scroll-behavior: smooth;
+}
+
+#sec-overview,
+#sec-workflow,
+#sec-features,
+#sec-comparison,
+#sec-star,
+#sec-faq {
+  scroll-margin-top: 1.5rem;
 }
 
 .help-hero::before {

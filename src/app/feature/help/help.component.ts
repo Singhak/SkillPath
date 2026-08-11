@@ -1,5 +1,5 @@
-import { Component, computed, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, computed, signal, AfterViewInit, OnDestroy, inject, PLATFORM_ID } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 
@@ -35,11 +35,14 @@ export interface FaqItem {
   templateUrl: './help.component.html',
   styleUrl: './help.component.css',
 })
-export class HelpComponent {
+export class HelpComponent implements AfterViewInit, OnDestroy {
+  private readonly platformId = inject(PLATFORM_ID);
+  private observer: IntersectionObserver | null = null;
+
   // Navigation & Search Signals
   readonly searchQuery = signal<string>('');
   readonly activeCategory = signal<string>('all');
-  readonly activeSection = signal<'overview' | 'workflow' | 'features' | 'quickstart' | 'comparison' | 'faq' | 'star'>('overview');
+  readonly activeSection = signal<'overview' | 'workflow' | 'features' | 'comparison' | 'faq' | 'star'>('overview');
   readonly selectedFeatureId = signal<string>('ai-interview');
   readonly expandedFaqId = signal<number | null>(1);
 
@@ -852,9 +855,51 @@ export class HelpComponent {
     );
   });
 
-  // Actions
-  selectSection(section: 'overview' | 'workflow' | 'features' | 'quickstart' | 'comparison' | 'faq' | 'star'): void {
+  // Actions & Navigation
+  selectSection(section: 'overview' | 'workflow' | 'features' | 'comparison' | 'faq' | 'star'): void {
     this.activeSection.set(section);
+    if (isPlatformBrowser(this.platformId)) {
+      const elementId = `sec-${section}`;
+      const targetElement = document.getElementById(elementId);
+      if (targetElement) {
+        targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }
+  }
+
+  ngAfterViewInit(): void {
+    if (isPlatformBrowser(this.platformId)) {
+      const sectionIds = ['sec-overview', 'sec-workflow', 'sec-features', 'sec-comparison', 'sec-star', 'sec-faq'];
+      
+      setTimeout(() => {
+        const sections = sectionIds
+          .map((id) => document.getElementById(id))
+          .filter((el): el is HTMLElement => el !== null);
+
+        if (sections.length > 0 && typeof IntersectionObserver !== 'undefined') {
+          this.observer = new IntersectionObserver(
+            (entries) => {
+              for (const entry of entries) {
+                if (entry.isIntersecting) {
+                  const secName = entry.target.id.replace('sec-', '') as any;
+                  this.activeSection.set(secName);
+                  break;
+                }
+              }
+            },
+            { rootMargin: '-15% 0px -50% 0px', threshold: 0.1 }
+          );
+
+          sections.forEach((sec) => this.observer?.observe(sec));
+        }
+      }, 200);
+    }
+  }
+
+  ngOnDestroy(): void {
+    if (this.observer) {
+      this.observer.disconnect();
+    }
   }
 
   selectFeature(featureId: string): void {
