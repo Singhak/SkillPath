@@ -2,7 +2,7 @@ import { Component, inject, signal, DestroyRef, OnInit } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { SpeechAnalyticsService } from '../../../core/services/speech-analytics.service';
+import { SpeechAnalyticsService, SUPPORTED_SPEECH_LANGUAGES } from '../../../core/services/speech-analytics.service';
 import { ResumeParserService } from '../../../core/services/resume-parser.service';
 import { StarCoachService } from '../../../core/services/star-coach.service';
 import { UserResourceService } from '../../../core/services/user-resource.service';
@@ -25,6 +25,15 @@ export class AiToolsWidgetComponent implements OnInit {
   private readonly confirmationService = inject(ConfirmationService, { optional: true });
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
+
+  readonly supportedLanguages = SUPPORTED_SPEECH_LANGUAGES;
+
+  onLanguageChange(event: Event): void {
+    const val = (event.target as HTMLSelectElement).value;
+    if (val) {
+      this.speechService.setLanguage(val);
+    }
+  }
 
   readonly copiedAnswer = signal<boolean>(false);
   readonly starOutputTab = signal<'pillars' | 'analysis' | 'suggestion'>('pillars');
