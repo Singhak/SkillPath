@@ -12,6 +12,34 @@
       <p class="setup-subtitle">Choose your topic and challenge yourself to level up your skills</p>
     </div>
 
+    <!-- Mode Selector Cards -->
+    <div class="mode-selector-grid">
+      <div
+        class="mode-card"
+        [class.mode-card--active]="quizMode() === 'standard'"
+        (click)="quizMode.set('standard')"
+      >
+        <div class="mode-card-header">
+          <span class="mode-icon">🎯</span>
+          <span class="mode-title">Standard Practice</span>
+        </div>
+        <p class="mode-desc">Untimed self-paced learning with hints and instant answer feedback.</p>
+      </div>
+
+      <div
+        class="mode-card mode-card--speed"
+        [class.mode-card--active]="quizMode() === 'speed_bot'"
+        (click)="quizMode.set('speed_bot')"
+      >
+        <div class="mode-badge">⚡ SPEED ATTACK</div>
+        <div class="mode-card-header">
+          <span class="mode-icon">🤖</span>
+          <span class="mode-title">60s Speed-Quiz vs AI Bot</span>
+        </div>
+        <p class="mode-desc">Race against Alex AI Bot in 60s! Build consecutive streaks for up to 3x coin bonuses!</p>
+      </div>
+    </div>
+
     <!-- Form -->
     <div class="setup-form">
       <div class="form-field">
@@ -71,15 +99,15 @@
         <span>Loading Quiz...</span>
       } @else {
         <i class="pi pi-play-circle"></i>
-        <span>Launch Quiz</span>
+        <span>{{ quizMode() === 'speed_bot' ? 'Launch 60s Speed Match vs AI' : 'Launch Quiz' }}</span>
       }
     </button>
 
     <!-- Footer tips -->
     <div class="setup-tips">
       <span class="tip-item tip-item--hint"><i class="pi pi-lightbulb"></i> Use hints wisely</span>
-      <span class="tip-item tip-item--coins"><i class="pi pi-bitcoin"></i> Earn 5 coins per correct</span>
-      <span class="tip-item tip-item--timer"><i class="pi pi-clock"></i> Timer tracks your speed</span>
+      <span class="tip-item tip-item--coins"><i class="pi pi-bitcoin"></i> Earn up to 3x Coins on Streaks</span>
+      <span class="tip-item tip-item--timer"><i class="pi pi-clock"></i> {{ quizMode() === 'speed_bot' ? '60s Time-Attack Global Clock' : 'Timer tracks your speed' }}</span>
     </div>
   </div>
 </div>
@@ -88,13 +116,70 @@
 <!-- Active Quiz Screen -->
 <div class="quiz-active-wrapper">
 
-  <!-- Progress Bar -->
-  <div class="quiz-progress-bar">
-    <div
-      class="quiz-progress-fill"
-      [style.width.%]="((currentQuizIndex() + 1) / quizes().length) * 100">
+  <!-- Speed-Quiz VS Live Race Header -->
+  @if (quizMode() === 'speed_bot') {
+    <div class="vs-live-header">
+      <div class="vs-race-top">
+        <div class="speed-countdown-badge" [class.speed-countdown-badge--danger]="speedTimeRemaining() <= 15">
+          <i class="pi pi-clock"></i>
+          <span>⏱ {{ speedTimeRemaining() }}s REMAINING</span>
+        </div>
+
+        @if (currentStreak() > 1) {
+          <div class="streak-multiplier-badge">
+            <span>🔥 {{ currentStreak() }}x STREAK ({{ streakMultiplier() }}x Bonus Coins!)</span>
+          </div>
+        }
+      </div>
+
+      <!-- Live Race Track: User vs Bot -->
+      <div class="race-track-card">
+        <!-- User Progress Row -->
+        <div class="race-row">
+          <div class="race-user-label">
+            <span class="user-avatar">👤</span>
+            <span class="user-name">You</span>
+            <span class="user-score-val">{{ quizStatsService.totalScore() }} pts</span>
+          </div>
+          <div class="race-track-bg">
+            <div
+              class="race-track-fill race-track-fill--user"
+              [style.width.%]="((currentQuizIndex() + 1) / quizes().length) * 100"
+            ></div>
+          </div>
+        </div>
+
+        <!-- AI Bot Progress Row -->
+        <div class="race-row">
+          <div class="race-user-label">
+            <span class="user-avatar">🤖</span>
+            <span class="user-name">Alex AI Bot</span>
+            <span class="user-score-val">{{ botScore() }} pts</span>
+          </div>
+          <div class="race-track-bg">
+            <div
+              class="race-track-fill race-track-fill--bot"
+              [style.width.%]="(botProgressIndex() / quizes().length) * 100"
+            ></div>
+          </div>
+        </div>
+
+        <div class="bot-live-status-text">
+          <span>🤖 Status: {{ botStatusMessage() }}</span>
+        </div>
+      </div>
     </div>
-  </div>
+  }
+
+  <!-- Progress Bar (Standard Mode) -->
+  @if (quizMode() !== 'speed_bot') {
+    <div class="quiz-progress-bar">
+      <div
+        class="quiz-progress-fill"
+        [style.width.%]="((currentQuizIndex() + 1) / quizes().length) * 100">
+      </div>
+    </div>
+  }
 
   <div class="quiz-main-card">
 
@@ -109,9 +194,9 @@
           <i class="pi pi-folder-open"></i>
           <span>{{ currentQuiz()?.category }} — {{ currentQuiz()?.subCategory }}</span>
         </div>
-        <div class="coin-reward-badge">
+        <div class="coin-reward-badge" [class.coin-reward-badge--streak]="currentStreak() > 1">
           <i class="pi pi-check-circle"></i>
-          <span>+5 Coins per correct</span>
+          <span>+{{ Math.round(5 * streakMultiplier()) }} Coins per correct {{ currentStreak() > 1 ? '(' + streakMultiplier() + 'x Streak Bonus)' : '' }}</span>
         </div>
       </div>
 
@@ -121,7 +206,7 @@
             <i class="pi pi-clock stat-pill-icon"></i>
           </div>
           <div class="stat-pill-content">
-            <span class="stat-pill-value">{{ timer.time() }}</span>
+            <span class="stat-pill-value">{{ quizMode() === 'speed_bot' ? speedTimeRemaining() + 's' : timer.time() }}</span>
           </div>
         </div>
 
@@ -180,6 +265,11 @@
             </span>
           }
         </div>
+
+        <div class="hidden md:flex items-center gap-2 ml-4 text-[11px] font-medium text-slate-400">
+          <span class="inline-flex items-center gap-1 bg-slate-800 border border-slate-700 text-slate-300 px-1.5 py-0.5 rounded font-mono text-[10px] font-bold">1-4</span> Select
+          <span class="inline-flex items-center gap-1 bg-slate-800 border border-slate-700 text-slate-300 px-1.5 py-0.5 rounded font-mono text-[10px] font-bold">↵ Enter</span> Submit / Next
+        </div>
       </div>
       <div class="footer-actions">
         <button
@@ -224,6 +314,65 @@
 
   </div>
 </div>
+}
+
+<!-- Speed-Quiz VS Match Results Modal Overlay -->
+@if (isVsMatchFinished()) {
+  <div class="vs-result-overlay">
+    <div class="vs-result-modal">
+      <div class="vs-result-header" [class.vs-result-header--win]="vsMatchWinner() === 'user'" [class.vs-result-header--loss]="vsMatchWinner() === 'bot'">
+        <div class="vs-result-icon">
+          {{ vsMatchWinner() === 'user' ? '👑' : (vsMatchWinner() === 'tie' ? '🤝' : '🤖') }}
+        </div>
+        <h2>
+          {{ vsMatchWinner() === 'user' ? 'SPEED-QUIZ VICTORY!' : (vsMatchWinner() === 'tie' ? 'IT IS A DRAW!' : 'AI BOT WINS!') }}
+        </h2>
+        <p class="vs-result-subtitle">
+          {{ vsMatchWinner() === 'user' ? 'You outpaced Alex AI Bot under pressure!' : (vsMatchWinner() === 'tie' ? 'Equal scores! Great battle!' : 'Keep practicing to surpass Alex AI Bot!') }}
+        </p>
+      </div>
+
+      <div class="vs-scoreboard-grid">
+        <div class="vs-score-card vs-score-card--user" [class.vs-score-card--winner]="vsMatchWinner() === 'user'">
+          <span class="vs-player-name">👤 YOU</span>
+          <span class="vs-score-num">{{ quizStatsService.totalScore() }}</span>
+          <span class="vs-score-sub">{{ numberOfCorrectAns }} / {{ quizesCount() }} Correct</span>
+        </div>
+
+        <div class="vs-score-divider">VS</div>
+
+        <div class="vs-score-card vs-score-card--bot" [class.vs-score-card--winner]="vsMatchWinner() === 'bot'">
+          <span class="vs-player-name">🤖 ALEX AI BOT</span>
+          <span class="vs-score-num">{{ botScore() }}</span>
+          <span class="vs-score-sub">{{ botCorrectCount() }} / {{ quizesCount() }} Correct</span>
+        </div>
+      </div>
+
+      <!-- Bonus Rewards Card -->
+      <div class="vs-rewards-banner">
+        <div class="reward-item">
+          <i class="pi pi-bolt text-amber-400"></i>
+          <span>Peak Streak: <strong>{{ maxStreak() }}x Streak</strong></span>
+        </div>
+        <div class="reward-item">
+          <i class="pi pi-bitcoin text-amber-400"></i>
+          <span>Victory Bonus Coins: <strong>+{{ bonusCoinsEarned() }} Coins</strong></span>
+        </div>
+      </div>
+
+      <div class="vs-modal-actions">
+        <button type="button" class="vs-btn vs-btn--restart" (click)="onRestartQuiz()">
+          <i class="pi pi-refresh"></i> Rematch vs AI Bot
+        </button>
+        <button type="button" class="vs-btn vs-btn--stats" (click)="showDetailedSummaryFromVs()">
+          <i class="pi pi-chart-bar"></i> Detailed Stats
+        </button>
+        <button type="button" class="vs-btn vs-btn--close" (click)="onCloseSummary()">
+          <i class="pi pi-home"></i> Back to Setup
+        </button>
+      </div>
+    </div>
+  </div>
 }
 
 <app-quiz-summary

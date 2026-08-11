@@ -1,4 +1,4 @@
-import { Component, computed, input, model } from '@angular/core';
+import { Component, computed, input, model, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ButtonModule } from 'primeng/button';
 import { RadioButton } from 'primeng/radiobutton';
@@ -37,7 +37,6 @@ export class QuestionComponent {
     const currentQuiz = this.quiz();
     const hintIdx = this.hintIndex();
     if (currentQuiz && currentQuiz.hints && hintIdx >= 0) {
-      // Return a slice of the hints array up to and including the current hintIndex
       return currentQuiz.hints.slice(0, hintIdx + 1);
     }
     return [];
@@ -46,6 +45,25 @@ export class QuestionComponent {
   selectOption(option: string): void {
     if (!this.showExplanation()) {
       this.selectedAnswer.set(option);
+    }
+  }
+
+  @HostListener('window:keydown', ['$event'])
+  onKeydown(event: KeyboardEvent): void {
+    if (this.showExplanation()) return;
+
+    const target = event.target as HTMLElement;
+    if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)) {
+      return;
+    }
+
+    const key = event.key;
+    if (['1', '2', '3', '4'].includes(key)) {
+      const idx = parseInt(key, 10) - 1;
+      const opts = this.options();
+      if (opts[idx]) {
+        this.selectOption(opts[idx]);
+      }
     }
   }
 

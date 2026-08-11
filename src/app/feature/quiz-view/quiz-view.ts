@@ -1,4 +1,4 @@
-import { Component, computed, effect, inject, OnDestroy, OnInit, signal, DestroyRef } from '@angular/core';
+import { Component, computed, effect, inject, OnDestroy, OnInit, signal, DestroyRef, HostListener } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute } from '@angular/router';
 import { TagModule } from 'primeng/tag';
@@ -45,6 +45,7 @@ import { UserApiService } from '../../core/services/apis/user-api.service';
   providers: [Timer],
 })
 export class QuizView implements OnInit, OnDestroy {
+  readonly Math = Math;
   // region Service Injections
   readonly questionApiService = inject(QuestionApiService);
   readonly messanger = inject(MessageService);
@@ -71,11 +72,74 @@ export class QuizView implements OnInit, OnDestroy {
     });
   }
 
+  @HostListener('window:keydown', ['$event'])
+  handleKeyDown(event: KeyboardEvent): void {
+    if (!this.currentQuiz() || this.isQuizFinished() || this.isVsMatchFinished()) return;
+
+    const target = event.target as HTMLElement;
+    if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)) {
+      return;
+    }
+
+    const key = event.key;
+
+    if (key === 'Enter') {
+      event.preventDefault();
+      if (!this.isSubmited()) {
+        if (this.selectedAnswer()?.trim()?.length) {
+          this.onSubmitClick();
+          // If it's the last question, automatically finish!
+          if (this.currentQuizIndex() + 1 === this.quizesCount()) {
+            setTimeout(() => this.onNextClick(), 150);
+          }
+        }
+      } else {
+        // If answer already submitted, pressing Enter proceeds to Next / Finish
+        this.onNextClick();
+      }
+    } else if (key === 'ArrowRight' || key === ' ') {
+      if (this.isSubmited()) {
+        event.preventDefault();
+        this.onNextClick();
+      }
+    }
+  }
+
   // region Component State
   // Quiz selection state
   allCategories = signal<Category[]>([]);
   selectedCategory = signal<string | null>(null);
   selectedSubCategories = signal<string[] | null>(null);
+
+  // Mode Selection: Standard vs Speed-Quiz vs AI Bot
+  quizMode = signal<'standard' | 'speed_bot'>('standard');
+
+  // Speed-Quiz Timer & Streak State
+  speedTimeRemaining = signal<number>(60);
+  currentStreak = signal<number>(0);
+  maxStreak = signal<number>(0);
+  streakMultiplier = computed(() => {
+    const streak = this.currentStreak();
+    if (streak >= 5) return 3.0;
+    if (streak >= 3) return 2.0;
+    if (streak >= 2) return 1.5;
+    return 1.0;
+  });
+
+  // AI Bot Simulation State
+  botScore = signal<number>(0);
+  botProgressIndex = signal<number>(0);
+  botCorrectCount = signal<number>(0);
+  botStatusMessage = signal<string>('Alex AI Bot is preparing...');
+  isBotFinished = signal<boolean>(false);
+
+  // VS Match Result State
+  isVsMatchFinished = signal<boolean>(false);
+  vsMatchWinner = signal<'user' | 'bot' | 'tie'>('user');
+  bonusCoinsEarned = signal<number>(0);
+
+  private speedTimerInterval: any = null;
+  private botInterval: any = null;
 
   // Quiz gameplay state
   quizes = signal<Question[]>([]);
@@ -110,6 +174,7 @@ export class QuizView implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.timer.destroy();
+    this.stopSpeedQuizEngine();
     this.quizStatsService.reset();
   }
 
@@ -145,6 +210,9 @@ export class QuizView implements OnInit, OnDestroy {
             this.quizesCount.set(quize?.questions.length ?? 0);
             if (quize?.questions.length > 0) {
               this.startQuestion(0);
+              if (this.quizMode() === 'speed_bot') {
+                this.startSpeedQuizEngine();
+              }
             }
             this.isLoading.set(false);
           },
@@ -159,6 +227,127 @@ export class QuizView implements OnInit, OnDestroy {
           },
         });
     }
+  }
+
+  private startSpeedQuizEngine(): void {
+    this.stopSpeedQuizEngine();
+    this.speedTimeRemaining.set(60);
+    this.currentStreak.set(0);
+    this.maxStreak.set(0);
+    this.botScore.set(0);
+    this.botProgressIndex.set(0);
+    this.botCorrectCount.set(0);
+    this.isBotFinished.set(false);
+    this.isVsMatchFinished.set(false);
+    this.bonusCoinsEarned.set(0);
+    this.botStatusMessage.set('Alex AI Bot is analyzing Q1...');
+
+    // 1. Start 60s Countdown Timer
+    this.speedTimerInterval = setInterval(() => {
+      if (this.speedTimeRemaining() > 0) {
+        this.speedTimeRemaining.update((t) => t - 1);
+        if (this.speedTimeRemaining() === 0) {
+          this.finishSpeedMatch();
+        }
+      }
+    }, 1000);
+
+    // 2. Start Concurrent AI Bot Simulation
+    this.simulateBotGameplay();
+  }
+
+  private simulateBotGameplay(): void {
+    const totalQ = this.quizesCount();
+    if (totalQ === 0) return;
+
+    const botStep = () => {
+      if (this.isBotFinished() || this.botProgressIndex() >= totalQ || this.speedTimeRemaining() <= 0) {
+        this.isBotFinished.set(true);
+        this.botStatusMessage.set('Alex AI Bot has completed all questions!');
+        return;
+      }
+
+      const currentIdx = this.botProgressIndex();
+      this.botStatusMessage.set(`Alex AI Bot is solving Q${currentIdx + 1}...`);
+
+      // Simulated thinking delay (2.2s to 4.5s per question)
+      const delayMs = Math.floor(Math.random() * 2300) + 2200;
+
+      this.botInterval = setTimeout(() => {
+        if (this.speedTimeRemaining() <= 0) return;
+
+        // 80% Bot Accuracy
+        const isCorrect = Math.random() < 0.8;
+        if (isCorrect) {
+          this.botScore.update((s) => s + 5);
+          this.botCorrectCount.update((c) => c + 1);
+          this.botStatusMessage.set(`Alex AI Bot answered Q${currentIdx + 1} correctly! ⚡`);
+        } else {
+          this.botStatusMessage.set(`Alex AI Bot missed Q${currentIdx + 1}.`);
+        }
+
+        this.botProgressIndex.update((idx) => idx + 1);
+
+        if (this.botProgressIndex() >= totalQ) {
+          this.isBotFinished.set(true);
+          this.botStatusMessage.set('Alex AI Bot completed the speed challenge!');
+        } else {
+          botStep();
+        }
+      }, delayMs);
+    };
+
+    botStep();
+  }
+
+  private stopSpeedQuizEngine(): void {
+    if (this.speedTimerInterval) {
+      clearInterval(this.speedTimerInterval);
+      this.speedTimerInterval = null;
+    }
+    if (this.botInterval) {
+      clearTimeout(this.botInterval);
+      this.botInterval = null;
+    }
+  }
+
+  private finishSpeedMatch(): void {
+    if (this.isVsMatchFinished()) return;
+
+    this.stopSpeedQuizEngine();
+    this.timer.stop();
+
+    const userTotalScore = this.quizStatsService.totalScore();
+    const botTotal = this.botScore();
+
+    let bonusCoins = 0;
+    let winner: 'user' | 'bot' | 'tie' = 'user';
+
+    if (userTotalScore > botTotal) {
+      winner = 'user';
+      bonusCoins = 25; // Victory bonus!
+    } else if (userTotalScore === botTotal) {
+      winner = 'tie';
+      bonusCoins = 10;
+    } else {
+      winner = 'bot';
+      bonusCoins = 0;
+    }
+
+    this.vsMatchWinner.set(winner);
+    this.bonusCoinsEarned.set(bonusCoins);
+
+    // Save coins & stats in background WITHOUT setting isQuizFinished to true
+    this.saveStatsInBackground();
+
+    // Set VS scoreboard active
+    this.isVsMatchFinished.set(true);
+    this.isFinishing.set(false);
+  }
+
+  showDetailedSummaryFromVs(): void {
+    this.isVsMatchFinished.set(false);
+    this.isQuizFinished.set(true);
   }
 
   private startQuestion(index: number): void {
@@ -192,6 +381,7 @@ export class QuizView implements OnInit, OnDestroy {
       // If not submitted, it's a skip
       if (!this.isSubmited()) {
         this.quizStatsService.skipAttempt(this.currentQuiz()!, this.timer.elapsedSeconds);
+        this.currentStreak.set(0); // Reset streak on skip
       }
       this.startQuestion(this.currentQuizIndex() + 1);
     } else {
@@ -202,21 +392,25 @@ export class QuizView implements OnInit, OnDestroy {
       // Last question was answered/skipped, finish the quiz
       if (!this.isSubmited()) {
         this.quizStatsService.skipAttempt(this.currentQuiz()!, this.timer.elapsedSeconds);
+        this.currentStreak.set(0);
       }
       this.isFinishing.set(true);
       this.timer.stop();
-      if (this.authService.isAuthenticated()) {
-        // to show summary of quiz to guest users
-        this.updateStats();
+
+      if (this.quizMode() === 'speed_bot') {
+        this.finishSpeedMatch();
       } else {
-        this.isQuizFinished.set(true);
-        this.isFinishing.set(false);
+        if (this.authService.isAuthenticated()) {
+          this.updateStats();
+        } else {
+          this.isQuizFinished.set(true);
+          this.isFinishing.set(false);
+        }
       }
     }
   }
 
   onSubmitClick(): void {
-
     if (!this.selectedAnswer()?.trim()?.length) {
       return;
     }
@@ -233,9 +427,21 @@ export class QuizView implements OnInit, OnDestroy {
       if (correctAnswerValue === selected) {
         this.numberOfCorrectAns++;
         isCorrect = true;
-        score = 5;
-        coinsEarned = 5;
+
+        // Streak Multiplier Calculation
+        this.currentStreak.update((s) => s + 1);
+        if (this.currentStreak() > this.maxStreak()) {
+          this.maxStreak.set(this.currentStreak());
+        }
+
+        const mult = this.streakMultiplier();
+        score = Math.round(5 * mult);
+        coinsEarned = Math.round(5 * mult);
+      } else {
+        // Reset streak on incorrect answer
+        this.currentStreak.set(0);
       }
+
       this.quizStatsService.endAttempt({
         question: quiz,
         timeTaken: this.timer.elapsedSeconds,
@@ -251,6 +457,7 @@ export class QuizView implements OnInit, OnDestroy {
 
   onCloseSummary(): void {
     // Reset the entire quiz state to go back to the selection screen.
+    this.stopSpeedQuizEngine();
     this.quizes.set([]);
     this.quizesCount.set(0);
     this.currentQuiz.set(null);
@@ -261,14 +468,24 @@ export class QuizView implements OnInit, OnDestroy {
     this.numberOfCorrectAns = 0;
     this.isQuizFinished.set(false);
     this.isFinishing.set(false);
+    this.isVsMatchFinished.set(false);
+    this.currentStreak.set(0);
+    this.maxStreak.set(0);
     this.quizStatsService.reset();
   }
 
   onRestartQuiz(): void {
+    this.stopSpeedQuizEngine();
     this.quizStatsService.reset();
     this.isQuizFinished.set(false);
+    this.isVsMatchFinished.set(false);
     this.numberOfCorrectAns = 0;
+    this.currentStreak.set(0);
+    this.maxStreak.set(0);
     this.startQuestion(0);
+    if (this.quizMode() === 'speed_bot') {
+      this.startSpeedQuizEngine();
+    }
   }
 
   onHintClick(): void {
@@ -308,10 +525,35 @@ export class QuizView implements OnInit, OnDestroy {
   private readonly gamificationService = inject(GamificationService);
 
   // region Private Helpers
+  private saveStatsInBackground(): void {
+    this.gamificationService.recordActivity('quiz');
+    const coinsEarned = this.quizStatsService.totalCoinsEarned() + this.bonusCoinsEarned();
+    const newTotalCoins = this.authService.userCoins() + coinsEarned;
+    const userId = this.authService.currentUser()?.id;
+    if (userId) {
+      this.userService
+        .updateUser(userId, { coins: newTotalCoins, totalQuizAttempted: this.userAttempsCount() + 1 })
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe({
+          next: () => {
+            this.authService.updateCoins(newTotalCoins);
+            this.isFinishing.set(false);
+          },
+          error: () => {
+            this.isFinishing.set(false);
+          }
+        });
+    } else {
+      this.isFinishing.set(false);
+    }
+    this.quizStatsService.createQuestionStats();
+    this.quizStatsService.updateQuizStats();
+  }
+
   private updateStats(): void {
     this.gamificationService.recordActivity('quiz');
-    //update coins before close
-    const coinsEarned = this.quizStatsService.correctAnswerCount() * 5; // we are not deduting the hint use coins since those already deduted
+    // update coins before close
+    const coinsEarned = this.quizStatsService.totalCoinsEarned() + this.bonusCoinsEarned();
     const newTotalCoins = this.authService.userCoins() + coinsEarned;
     const userId = this.authService.currentUser()?.id;
     if (userId) {
@@ -333,7 +575,7 @@ export class QuizView implements OnInit, OnDestroy {
       this.isQuizFinished.set(true);
       this.isFinishing.set(false);
     }
-    //update stats
+    // update stats
     this.quizStatsService.createQuestionStats();
     this.quizStatsService.updateQuizStats();
   }
