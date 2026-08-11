@@ -53,6 +53,17 @@
       >
         <span>⭐️</span> <span>STAR Coach</span>
       </button>
+
+      <button
+        type="button"
+        (click)="activeTab.set('storybank')"
+        [class.bg-indigo-600]="activeTab() === 'storybank'"
+        [class.text-white]="activeTab() === 'storybank'"
+        [class.text-slate-400]="activeTab() !== 'storybank'"
+        class="px-3.5 py-2 rounded-lg text-xs font-bold transition-all flex items-center space-x-1.5"
+      >
+        <span>📖</span> <span>STAR Story Bank</span>
+      </button>
     </div>
   </div>
 
@@ -640,16 +651,33 @@
   <!-- TAB 2: Speech & Tone Analytics -->
   @if (activeTab() === 'speech') {
     <div class="animate-fadeIn space-y-4">
-      <!-- Dual Mode Evaluation Selector -->
+      <!-- Header Controls: Language Selector & Dual Mode Evaluation Selector -->
       <div
-        class="bg-slate-800/60 p-3 rounded-xl border border-slate-700/60 flex items-center justify-between"
+        class="bg-slate-800/60 p-3 rounded-xl border border-slate-700/60 flex flex-col sm:flex-row items-center justify-between gap-3"
       >
-        <div>
-          <span class="text-xs font-bold text-white block">Evaluation Engine Mode</span>
-          <span class="text-[11px] text-slate-400">Choose between instant rule engine or AI</span>
+        <div class="flex items-center space-x-3 w-full sm:w-auto">
+          <div>
+            <span class="text-xs font-bold text-white block">Speech Engine Config</span>
+            <span class="text-[11px] text-slate-400">Recognition Language & Tone Evaluation</span>
+          </div>
+
+          <!-- Language Selector -->
+          <div class="relative">
+            <label for="speech_language_select" class="sr-only">Speech Recognition Language</label>
+            <select
+              id="speech_language_select"
+              [value]="speechService.selectedLanguage()"
+              (change)="onLanguageChange($event)"
+              class="bg-slate-900 border border-slate-700 hover:border-indigo-500/60 text-slate-200 text-xs font-semibold rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-indigo-500"
+            >
+              @for (lang of supportedLanguages; track lang.code) {
+                <option [value]="lang.code">{{ lang.label }}</option>
+              }
+            </select>
+          </div>
         </div>
 
-        <div class="flex space-x-1 bg-slate-900 p-1 rounded-lg border border-slate-800 text-xs">
+        <div class="flex space-x-1 bg-slate-900 p-1 rounded-lg border border-slate-800 text-xs w-full sm:w-auto justify-end">
           <button
             type="button"
             (click)="speechEvaluationMode.set('instant')"
@@ -658,7 +686,7 @@
             [class.text-slate-400]="speechEvaluationMode() !== 'instant'"
             class="px-2.5 py-1.5 rounded-md font-semibold transition-all"
           >
-            ⚡ Fast (Free)
+            ⚡ Fast Rule Engine
           </button>
           <button
             type="button"
@@ -675,7 +703,7 @@
                 <i class="pi pi-lock"></i>
               </span>
             }
-            <span>🤖 AI</span>
+            <span>🤖 AI Coach</span>
             <span class="text-[10px] px-1 bg-amber-500/30 text-amber-300 rounded font-bold"
               >1 Cr</span
             >
@@ -689,39 +717,81 @@
           class="lg:col-span-1 bg-slate-800/40 border border-slate-700/50 rounded-2xl p-5 flex flex-col justify-between"
         >
           <div>
-            <h4 class="font-bold text-white text-sm mb-1">Voice & Tone Analyzer</h4>
+            <div class="flex items-center justify-between mb-1">
+              <h4 class="font-bold text-white text-sm">Voice & Tone Analyzer</h4>
+              <span class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-slate-800 text-indigo-300 border border-slate-700">
+                🌐 {{ speechService.selectedLanguage() }}
+              </span>
+            </div>
             <p class="text-xs text-slate-400 mb-4">
-              Measures speaking pace (WPM), detects filler words, and rates tone clarity.
+              Real-time WPM, silence tracker, awkward pause detector (>4s), and Web Audio pitch variance.
             </p>
 
             <div
-              class="bg-slate-900 p-4 rounded-xl border border-slate-800 min-h-25 mb-4 text-xs font-mono text-slate-300"
+              class="bg-slate-900 p-4 rounded-xl border border-slate-800 min-h-30 mb-4 text-xs font-mono text-slate-300"
             >
               @if (speechService.isRecording()) {
-                <div class="space-y-1.5 mb-2 pb-2 border-b border-slate-800">
+                <div class="space-y-2 mb-3 pb-3 border-b border-slate-800">
                   <div
                     class="flex flex-wrap items-center justify-between gap-1 text-rose-400 text-[11px] font-bold"
                   >
                     <span class="animate-pulse flex items-center space-x-1"
                       ><span>🔴</span> <span>Live Audio Stream</span></span
                     >
-                    <span class="text-amber-400 font-mono text-[10px]"
-                      >Silence: {{ speechService.liveSilenceSeconds() }}s | Pauses:
-                      {{ speechService.livePauseCount() }} | Fillers:
-                      {{ speechService.liveVocalFillerCount() }}</span
+                    <span class="text-indigo-400 text-[10px] font-mono"
+                      >Pitch: {{ speechService.livePitchHz() > 0 ? speechService.livePitchHz() + ' Hz' : 'Detecting...' }}</span
                     >
                   </div>
+
+                  <!-- Live Stats Row -->
+                  <div class="grid grid-cols-3 gap-1 text-[10px] text-slate-300 bg-slate-950 p-2 rounded-lg border border-slate-800 text-center font-sans">
+                    <div>
+                      <span class="text-slate-500 block">Silence</span>
+                      <strong class="text-amber-400">{{ speechService.liveSilenceSeconds() }}s</strong>
+                    </div>
+                    <div>
+                      <span class="text-slate-500 block">Pauses</span>
+                      <strong class="text-amber-300">{{ speechService.livePauseCount() }}</strong>
+                    </div>
+                    <div>
+                      <span class="text-slate-500 block">Long (>4s)</span>
+                      <strong [class.text-rose-400]="speechService.liveLongPauseCount() > 0" [class.text-slate-400]="speechService.liveLongPauseCount() === 0">
+                        {{ speechService.liveLongPauseCount() }}
+                      </strong>
+                    </div>
+                  </div>
+
+                  <!-- Live Tone Badge -->
+                  <div class="flex items-center justify-between text-[10px] font-sans">
+                    <span class="text-slate-400">Live Tone Category:</span>
+                    <span
+                      class="px-2 py-0.5 rounded-full font-bold border"
+                      [class.bg-emerald-500/20]="speechService.liveToneCategory() === 'Engaging Inflection'"
+                      [class.text-emerald-300]="speechService.liveToneCategory() === 'Engaging Inflection'"
+                      [class.border-emerald-500/40]="speechService.liveToneCategory() === 'Engaging Inflection'"
+                      [class.bg-indigo-500/20]="speechService.liveToneCategory() === 'Steady' || speechService.liveToneCategory() === 'Dynamic'"
+                      [class.text-indigo-300]="speechService.liveToneCategory() === 'Steady' || speechService.liveToneCategory() === 'Dynamic'"
+                      [class.border-indigo-500/40]="speechService.liveToneCategory() === 'Steady' || speechService.liveToneCategory() === 'Dynamic'"
+                      [class.bg-amber-500/20]="speechService.liveToneCategory() === 'Monotone'"
+                      [class.text-amber-300]="speechService.liveToneCategory() === 'Monotone'"
+                      [class.border-amber-500/40]="speechService.liveToneCategory() === 'Monotone'"
+                    >
+                      🎤 {{ speechService.liveToneCategory() }}
+                    </span>
+                  </div>
+
+                  <!-- Volume Level Bar -->
                   <div
-                    class="w-full bg-slate-950 h-1.5 rounded-full overflow-hidden flex items-center"
+                    class="w-full bg-slate-950 h-2 rounded-full overflow-hidden flex items-center p-0.5 border border-slate-800"
                   >
                     <div
-                      class="h-full rounded-full transition-all duration-75 bg-linear-to-r from-emerald-500 via-amber-400 to-rose-500"
+                      class="h-full rounded-full transition-all duration-75 bg-linear-to-r from-emerald-500 via-indigo-400 to-rose-500"
                       [style.width.%]="speechService.liveVolumeLevel()"
                     ></div>
                   </div>
                 </div>
               }
-              <p>
+              <p class="leading-relaxed">
                 {{
                   speechService.liveTranscript() ||
                     'Click "Start Speech Test" and speak an interview response...'
@@ -735,7 +805,7 @@
               <button
                 type="button"
                 (click)="startSpeechRecording()"
-                class="w-full py-3 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs flex items-center justify-center space-x-2 shadow-lg shadow-rose-600/20 transition-all active:scale-95"
+                class="w-full py-3 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs flex items-center justify-center space-x-2 shadow-lg shadow-rose-600/20 transition-all active:scale-95 cursor-pointer"
               >
                 <span>🎙️</span> <span>Start Speech Test</span>
               </button>
@@ -743,7 +813,7 @@
               <button
                 type="button"
                 (click)="stopSpeechRecording()"
-                class="w-full py-3 rounded-xl bg-slate-700 hover:bg-slate-600 text-white font-bold text-xs flex items-center justify-center space-x-2 transition-all active:scale-95"
+                class="w-full py-3 rounded-xl bg-slate-700 hover:bg-slate-600 text-white font-bold text-xs flex items-center justify-center space-x-2 transition-all active:scale-95 cursor-pointer"
               >
                 <span
                   >⏹ Stop & Analyze Speech ({{
@@ -767,21 +837,30 @@
                     {{ m.wpm }} <span class="text-xs font-normal">WPM</span>
                   </div>
                   <div class="text-[10px] text-slate-400">Net: {{ m.netWpm || m.wpm }} WPM</div>
+                  <div class="mt-1 inline-block text-[9px] font-semibold px-2 py-0.5 rounded bg-slate-900 text-indigo-300 border border-slate-700">
+                    {{ m.cadenceRhythm }}
+                  </div>
                 </div>
 
                 <div class="bg-slate-800/50 p-3 rounded-xl border border-slate-700/50 text-center">
                   <div class="text-[11px] text-slate-400">Filler Sounds</div>
                   <div class="text-xl font-black text-rose-400 mt-1">{{ m.fillerWordsCount }}</div>
-                  <div class="text-[10px] text-slate-400">Um / Uh / Like</div>
+                  <div class="text-[10px] text-slate-400">Um / Uh / Vocal</div>
+                  <div class="mt-1 text-[9px] text-rose-300 italic">
+                    {{ m.fillerWordsCount > 0 ? 'Hesitation detected' : 'Clean articulation' }}
+                  </div>
                 </div>
 
                 <div class="bg-slate-800/50 p-3 rounded-xl border border-slate-700/50 text-center">
                   <div class="text-[11px] text-slate-400">Pauses & Silence</div>
                   <div class="text-xl font-black text-amber-400 mt-1">
-                    {{ m.pausesCount || 0 }} <span class="text-xs font-normal">pauses</span>
+                    {{ m.pausesCount }} <span class="text-xs font-normal">pauses</span>
                   </div>
                   <div class="text-[10px] text-slate-400">
-                    {{ m.silenceSeconds || 0 }}s silent ({{ m.silencePercentage || 0 }}%)
+                    {{ m.silenceSeconds }}s silent ({{ m.silencePercentage }}%)
+                  </div>
+                  <div class="mt-1 text-[9px] font-semibold" [class.text-rose-400]="m.longPausesCount > 0" [class.text-slate-400]="m.longPausesCount === 0">
+                    Long Pauses (&gt;4s): {{ m.longPausesCount }}
                   </div>
                 </div>
 
@@ -791,8 +870,88 @@
                     {{ m.confidenceScore }}%
                   </div>
                   <div class="text-[10px] text-slate-400">Clarity: {{ m.clarityScore }}%</div>
+                  <div class="mt-1 text-[9px] text-emerald-300 font-semibold">
+                    Inflection: {{ m.vocalInflectionScore }}%
+                  </div>
                 </div>
               </div>
+
+              <!-- Pitch & Tone Inflection Card -->
+              <div class="bg-slate-800/60 p-4 rounded-xl border border-slate-700/60 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div class="space-y-1">
+                  <div class="flex items-center space-x-2">
+                    <span class="text-base">🎵</span>
+                    <h4 class="text-xs font-bold text-white">Vocal Pitch & Tone Analysis</h4>
+                    <span
+                      class="px-2.5 py-0.5 rounded-full text-[10px] font-bold border"
+                      [class.bg-emerald-500/10]="m.toneCategory === 'Engaging Inflection'"
+                      [class.text-emerald-300]="m.toneCategory === 'Engaging Inflection'"
+                      [class.border-emerald-500/30]="m.toneCategory === 'Engaging Inflection'"
+                      [class.bg-indigo-500/10]="m.toneCategory === 'Steady' || m.toneCategory === 'Dynamic'"
+                      [class.text-indigo-300]="m.toneCategory === 'Steady' || m.toneCategory === 'Dynamic'"
+                      [class.border-indigo-500/30]="m.toneCategory === 'Steady' || m.toneCategory === 'Dynamic'"
+                      [class.bg-amber-500/10]="m.toneCategory === 'Monotone'"
+                      [class.text-amber-300]="m.toneCategory === 'Monotone'"
+                      [class.border-amber-500/30]="m.toneCategory === 'Monotone'"
+                    >
+                      {{ m.toneCategory }}
+                    </span>
+                  </div>
+                  <p class="text-[11px] text-slate-400">
+                    Acoustic Pitch Variance: <strong class="text-indigo-300">±{{ m.pitchVariance }} Hz</strong> (Avg: {{ m.avgPitchHz }} Hz). Measured via Web Audio fundamental frequency autocorrelation.
+                  </p>
+                </div>
+
+                <div class="w-full sm:w-48 bg-slate-900 p-2.5 rounded-lg border border-slate-800 shrink-0">
+                  <div class="flex justify-between text-[10px] text-slate-400 mb-1">
+                    <span>Vocal Expression</span>
+                    <span class="font-bold text-emerald-400">{{ m.vocalInflectionScore }}/100</span>
+                  </div>
+                  <div class="h-2 w-full bg-slate-800 rounded-full overflow-hidden">
+                    <div
+                      class="h-full bg-linear-to-r from-indigo-500 to-emerald-400 rounded-full transition-all duration-500"
+                      [style.width.%]="m.vocalInflectionScore"
+                    ></div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Long Awkward Pause Log Timeline (if any) -->
+              @if (m.longPauseLogs && m.longPauseLogs.length > 0) {
+                <div class="bg-rose-950/30 border border-rose-500/30 p-3.5 rounded-xl text-xs space-y-2">
+                  <div class="flex items-center space-x-2 text-rose-300 font-bold">
+                    <span>⚠️</span>
+                    <span>Long Awkward Silence Timestamps (&gt; 4 seconds)</span>
+                  </div>
+                  <div class="flex flex-wrap gap-2">
+                    @for (log of m.longPauseLogs; track log.timestampSec) {
+                      <div class="bg-slate-900 px-3 py-1.5 rounded-lg border border-rose-500/20 text-[11px] flex items-center space-x-2">
+                        <span class="text-rose-400 font-mono font-bold">⏱ {{ log.timestampSec }}s mark</span>
+                        <span class="text-slate-300">— Duration: <strong class="text-amber-300">{{ log.durationSec }}s</strong></span>
+                      </div>
+                    }
+                  </div>
+                </div>
+              }
+
+              <!-- Filler Words Breakdown Badges -->
+              @if (m.fillerWordsCount > 0) {
+                <div class="bg-slate-800/40 p-3 rounded-xl border border-slate-700/50">
+                  <span class="text-[11px] font-bold text-slate-300 block mb-2">
+                    🗣 Captured Filler & Hesitation Breakdown:
+                  </span>
+                  <div class="flex flex-wrap gap-1.5">
+                    @for (item of m.fillerBreakdown | keyvalue; track item.key) {
+                      <span
+                        class="px-2.5 py-1 rounded-lg bg-rose-500/10 text-rose-300 border border-rose-500/30 text-[11px] font-semibold flex items-center space-x-1"
+                      >
+                        <span>"{{ item.key }}"</span>
+                        <span class="bg-rose-500/30 text-rose-200 px-1.5 py-0.2 rounded text-[10px] font-bold">×{{ item.value }}</span>
+                      </span>
+                    }
+                  </div>
+                </div>
+              }
 
               <!-- AI Feedback Banner -->
               <div
@@ -806,7 +965,7 @@
             <div
               class="bg-slate-800/20 border border-slate-800 rounded-2xl p-12 text-center text-slate-500 text-xs"
             >
-              Start the speech test to calculate WPM, filler word count, and tone confidence score.
+              Start the speech test to calculate WPM, silence tracker, long pause logs, filler word count, and tone pitch confidence.
             </div>
           }
         </div>
@@ -921,14 +1080,27 @@
               </h3>
             </div>
             @if (starCoachService.latestEvaluation(); as eval) {
-              <span
-                class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium bg-slate-800 border border-slate-700/80 text-slate-300"
-              >
-                Engine:
-                <strong class="text-indigo-400 flex items-center gap-1">
-                  {{ eval.evaluationMode === 'ai_groq' ? '🤖 AI Groq' : '⚡ Instant Logic' }}
-                </strong>
-              </span>
+              <div class="flex items-center space-x-2">
+                <button
+                  type="button"
+                  (click)="saveCurrentEvaluationToStoryBank()"
+                  class="px-2.5 py-1 rounded-lg bg-indigo-600/30 hover:bg-indigo-600 border border-indigo-500/50 text-indigo-200 text-xs font-bold transition-all flex items-center space-x-1"
+                >
+                  @if (savedToBank()) {
+                    <span class="text-emerald-300">✓ Saved to Bank!</span>
+                  } @else {
+                    <span>💾 Save to Story Bank</span>
+                  }
+                </button>
+                <span
+                  class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium bg-slate-800 border border-slate-700/80 text-slate-300"
+                >
+                  Engine:
+                  <strong class="text-indigo-400 flex items-center gap-1">
+                    {{ eval.evaluationMode === 'ai_groq' ? '🤖 AI Groq' : '⚡ Instant Logic' }}
+                  </strong>
+                </span>
+              </div>
             }
           </div>
 
@@ -1210,6 +1382,13 @@
           }
         </div>
       </div>
+    </div>
+  }
+
+  <!-- TAB 4: STAR Story Bank Repository -->
+  @if (activeTab() === 'storybank') {
+    <div class="animate-fadeIn">
+      <app-star-story-bank></app-star-story-bank>
     </div>
   }
 </div>

@@ -1,0 +1,451 @@
+<div class="star-story-bank-container space-y-6">
+  <!-- Top Bar: Search, Sorting, Layout & Add Button -->
+  <div class="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4 bg-slate-800/60 p-4 rounded-2xl border border-slate-700/60">
+    <div class="flex-1 flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+      <!-- Search Input -->
+      <div class="relative flex-1">
+        <span class="absolute left-3 top-2.5 text-slate-400 text-xs">🔍</span>
+        <input
+          type="text"
+          [value]="storyService.searchQuery()"
+          (input)="storyService.setSearchQuery($any($event.target).value)"
+          placeholder="Search stories by keyword, technology tag, or metric..."
+          class="w-full bg-slate-900 border border-slate-700 rounded-xl pl-9 pr-3 py-2 text-xs text-white placeholder-slate-500 outline-none focus:border-indigo-500 transition-all"
+        />
+        @if (storyService.searchQuery()) {
+          <button
+            type="button"
+            (click)="storyService.setSearchQuery('')"
+            class="absolute right-3 top-2.5 text-slate-400 hover:text-white text-xs"
+          >
+            ✕
+          </button>
+        }
+      </div>
+
+      <!-- Sorting Selector -->
+      <div class="flex items-center space-x-2">
+        <label for="star_sort_by" class="text-xs text-slate-400 font-semibold whitespace-nowrap">Sort:</label>
+        <select
+          id="star_sort_by"
+          [value]="storyService.sortBy()"
+          (change)="storyService.setSortBy($any($event.target).value)"
+          class="bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-indigo-500"
+        >
+          <option value="newest">🕒 Newest First</option>
+          <option value="impact">⚡ Highest Impact Score</option>
+          <option value="oldest">⏳ Oldest First</option>
+          <option value="title">🔤 Alphabetical (Title)</option>
+        </select>
+      </div>
+
+      <!-- Count Badge -->
+      <div class="px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs text-slate-300 font-semibold flex items-center justify-center space-x-1.5 whitespace-nowrap">
+        <span>📚</span>
+        <span>{{ storyService.sortedStories().length }} Stories</span>
+      </div>
+    </div>
+
+    <!-- Add New Story Button -->
+    <button
+      type="button"
+      (click)="openAddModal()"
+      class="px-4 py-2.5 rounded-xl bg-linear-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold text-xs shadow-lg shadow-indigo-500/20 transition-all active:scale-95 flex items-center justify-center space-x-2 whitespace-nowrap"
+    >
+      <span>✨</span>
+      <span>Add New STAR Story</span>
+    </button>
+  </div>
+
+  <!-- Competency Category Filter Pills -->
+  <div class="flex items-center space-x-2 overflow-x-auto pb-2 scrollbar-none">
+    <button
+      type="button"
+      (click)="storyService.setCompetencyFilter('all')"
+      [class.bg-indigo-600]="storyService.selectedCompetency() === 'all'"
+      [class.text-white]="storyService.selectedCompetency() === 'all'"
+      [class.bg-slate-800]="storyService.selectedCompetency() !== 'all'"
+      [class.text-slate-400]="storyService.selectedCompetency() !== 'all'"
+      class="px-3.5 py-1.5 rounded-full text-xs font-semibold border border-slate-700/60 transition-all whitespace-nowrap hover:border-indigo-500/50"
+    >
+      🌟 All Categories
+    </button>
+
+    @for (comp of storyService.availableCompetencies(); track comp) {
+      <button
+        type="button"
+        (click)="storyService.setCompetencyFilter(comp)"
+        [class.bg-indigo-600]="storyService.selectedCompetency() === comp"
+        [class.text-white]="storyService.selectedCompetency() === comp"
+        [class.bg-slate-800]="storyService.selectedCompetency() !== comp"
+        [class.text-slate-400]="storyService.selectedCompetency() !== comp"
+        class="px-3.5 py-1.5 rounded-full text-xs font-semibold border border-slate-700/60 transition-all whitespace-nowrap hover:border-indigo-500/50"
+      >
+        {{ comp }}
+      </button>
+    }
+  </div>
+
+  <!-- Story Cards List (Paginated) -->
+  @if (storyService.paginatedStories().length > 0) {
+    <div class="grid grid-cols-1 gap-4">
+      @for (story of storyService.paginatedStories(); track story.id) {
+        <div
+          class="bg-slate-850/70 hover:bg-slate-850 border border-slate-800 hover:border-indigo-500/40 rounded-2xl p-5 transition-all shadow-md group relative"
+        >
+          <!-- Card Top Bar: Competency Badge, Impact Score & Actions -->
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
+            <div class="flex items-center space-x-2.5 flex-wrap gap-y-1">
+              <span
+                class="px-3 py-1 rounded-full text-[11px] font-bold border {{ getCompetencyBadgeColor(story.competency) }}"
+              >
+                🎯 {{ story.competency }}
+              </span>
+
+              <span class="px-2.5 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-[10px] font-bold">
+                ⚡ {{ story.impactScore || 85 }}/100 Impact
+              </span>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex items-center space-x-2 self-end sm:self-auto">
+              <!-- Expand/Hide Toggle Button -->
+              <button
+                type="button"
+                (click)="toggleExpand(story.id)"
+                [class.bg-indigo-600]="expandedStoryId() === story.id"
+                [class.text-white]="expandedStoryId() === story.id"
+                [class.bg-slate-800]="expandedStoryId() !== story.id"
+                [class.text-slate-300]="expandedStoryId() !== story.id"
+                class="px-2.5 py-1 rounded-lg border border-slate-700 text-xs font-semibold transition-all flex items-center space-x-1 hover:border-indigo-500/60"
+              >
+                <span>{{ expandedStoryId() === story.id ? '▼ Hide' : '▶ Expand' }}</span>
+              </button>
+
+              <!-- Copy Formatted Text -->
+              <button
+                type="button"
+                (click)="copyFormattedStar(story, $event)"
+                class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 text-xs font-medium transition-all flex items-center space-x-1"
+                title="Copy STAR story text"
+              >
+                @if (copiedStoryId() === story.id) {
+                  <span class="text-emerald-400">✓ Copied!</span>
+                } @else {
+                  <span>📋 Copy</span>
+                }
+              </button>
+
+              <!-- Edit Story -->
+              <button
+                type="button"
+                (click)="openEditModal(story)"
+                class="p-1.5 rounded-lg bg-slate-800 hover:bg-indigo-600/30 border border-slate-700 text-slate-300 hover:text-indigo-300 text-xs transition-all"
+                title="Edit STAR story"
+              >
+                ✏️
+              </button>
+
+              <!-- Delete Story -->
+              <button
+                type="button"
+                (click)="deleteStory(story.id, $event)"
+                class="p-1.5 rounded-lg bg-slate-800 hover:bg-rose-600/30 border border-slate-700 text-slate-300 hover:text-rose-300 text-xs transition-all"
+                title="Delete STAR story"
+              >
+                🗑️
+              </button>
+            </div>
+          </div>
+
+          <!-- Story Title -->
+          <h3
+            (click)="toggleExpand(story.id)"
+            class="text-base font-bold text-white mb-2 cursor-pointer hover:text-indigo-300 transition-colors flex items-center justify-between"
+          >
+            <span>{{ story.title }}</span>
+            <span class="text-xs font-semibold transition-colors" [class.text-indigo-400]="expandedStoryId() === story.id" [class.text-slate-500]="expandedStoryId() !== story.id">
+              {{ expandedStoryId() === story.id ? '▼ Hide Details' : '▶ Expand STAR Details' }}
+            </span>
+          </h3>
+
+          <!-- Technology / Skill Tags -->
+          @if (story.tags && story.tags.length > 0) {
+            <div class="flex items-center space-x-1.5 flex-wrap gap-y-1 mb-4">
+              @for (tag of story.tags; track tag) {
+                <span class="px-2 py-0.5 rounded bg-slate-800 text-slate-400 text-[10px] font-mono border border-slate-700/60">
+                  #{{ tag }}
+                </span>
+              }
+            </div>
+          }
+
+          <!-- Detailed STAR Breakdown -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-3">
+            <!-- Situation -->
+            <div class="bg-slate-900/60 p-3 rounded-xl border border-slate-800 transition-all" [class.border-rose-500\/40]="expandedStoryId() === story.id">
+              <span class="text-[11px] font-bold text-rose-400 block mb-1 flex items-center space-x-1">
+                <span>🔴</span> <span>Situation (Context)</span>
+              </span>
+              <p class="text-xs text-slate-300 leading-relaxed" [class.line-clamp-3]="expandedStoryId() !== story.id">
+                {{ story.situation || 'No situation context provided.' }}
+              </p>
+            </div>
+
+            <!-- Task -->
+            <div class="bg-slate-900/60 p-3 rounded-xl border border-slate-800 transition-all" [class.border-amber-500\/40]="expandedStoryId() === story.id">
+              <span class="text-[11px] font-bold text-amber-400 block mb-1 flex items-center space-x-1">
+                <span>🟡</span> <span>Task (Objective)</span>
+              </span>
+              <p class="text-xs text-slate-300 leading-relaxed" [class.line-clamp-3]="expandedStoryId() !== story.id">
+                {{ story.task || 'No task objective provided.' }}
+              </p>
+            </div>
+
+            <!-- Action -->
+            <div class="bg-slate-900/60 p-3 rounded-xl border border-slate-800 transition-all" [class.border-indigo-500\/40]="expandedStoryId() === story.id">
+              <span class="text-[11px] font-bold text-indigo-400 block mb-1 flex items-center space-x-1">
+                <span>🔵</span> <span>Action (Execution)</span>
+              </span>
+              <p class="text-xs text-slate-300 leading-relaxed" [class.line-clamp-3]="expandedStoryId() !== story.id">
+                {{ story.action || 'No action execution steps provided.' }}
+              </p>
+            </div>
+
+            <!-- Result -->
+            <div class="bg-slate-900/60 p-3 rounded-xl border border-slate-800 transition-all" [class.border-emerald-500\/40]="expandedStoryId() === story.id">
+              <span class="text-[11px] font-bold text-emerald-400 block mb-1 flex items-center space-x-1">
+                <span>🟢</span> <span>Result (Impact Metrics)</span>
+              </span>
+              <p class="text-xs text-slate-300 font-medium leading-relaxed" [class.line-clamp-3]="expandedStoryId() !== story.id">
+                {{ story.result || 'No quantifiable result provided.' }}
+              </p>
+            </div>
+          </div>
+
+          <!-- Extra Expanded Formatted Script Card when Expanded -->
+          @if (expandedStoryId() === story.id) {
+            <div class="mt-4 p-4 rounded-xl bg-slate-900/90 border border-indigo-500/30 text-xs space-y-2 animate-fadeIn">
+              <div class="flex items-center justify-between text-indigo-300 font-bold border-b border-slate-800 pb-2 mb-2">
+                <span>🎙️ Interview Delivery Script (Ready for Behavioral Questions)</span>
+                <span class="text-[10px] text-slate-400 font-mono">Competency: {{ story.competency }}</span>
+              </div>
+              <p class="text-slate-300 leading-relaxed italic">
+                "When asked about {{ story.competency.toLowerCase() }}, I reference this achievement: {{ story.situation }} My objective was {{ story.task }} To execute this, {{ story.action }} Ultimately, {{ story.result }}"
+              </p>
+            </div>
+          }
+        </div>
+      }
+    </div>
+
+    <!-- Pagination Controls Toolbar -->
+    <div class="flex flex-col sm:flex-row items-center justify-between gap-4 bg-slate-800/60 p-4 rounded-2xl border border-slate-700/60 mt-4">
+      <div class="text-xs text-slate-400">
+        Page <strong class="text-white">{{ storyService.currentPage() }}</strong> of <strong class="text-white">{{ storyService.totalPages() }}</strong>
+        <span class="ml-2 text-slate-500">({{ storyService.sortedStories().length }} total stories)</span>
+      </div>
+
+      <div class="flex items-center space-x-3">
+        <!-- Per Page Selector -->
+        <div class="flex items-center space-x-1.5 text-xs text-slate-400">
+          <span>Show:</span>
+          <select
+            [value]="storyService.itemsPerPage()"
+            (change)="storyService.itemsPerPage.set(+$any($event.target).value)"
+            class="bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-xs text-white outline-none"
+          >
+            <option [value]="1">1 per page (No Scroll)</option>
+            <option [value]="2">2 per page</option>
+            <option [value]="3">3 per page</option>
+            <option [value]="4">4 per page</option>
+            <option [value]="6">6 per page</option>
+          </select>
+        </div>
+
+        <!-- Page Buttons -->
+        <div class="flex items-center space-x-1.5">
+          <button
+            type="button"
+            (click)="storyService.prevPage()"
+            [disabled]="storyService.currentPage() <= 1"
+            class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 disabled:opacity-40 text-xs font-semibold text-white border border-slate-700 transition-all"
+          >
+            ◀ Previous
+          </button>
+          <button
+            type="button"
+            (click)="storyService.nextPage()"
+            [disabled]="storyService.currentPage() >= storyService.totalPages()"
+            class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 disabled:opacity-40 text-xs font-semibold text-white border border-slate-700 transition-all"
+          >
+            Next ▶
+          </button>
+        </div>
+      </div>
+    </div>
+  } @else {
+    <!-- Empty State -->
+    <div class="bg-slate-850/40 border border-slate-800 rounded-2xl p-12 text-center space-y-3">
+      <div class="text-4xl mb-2">📖</div>
+      <h4 class="text-base font-bold text-white">No STAR Stories Found</h4>
+      <p class="text-xs text-slate-400 max-w-md mx-auto">
+        Build your repository of workplace achievements. Grade your answers in STAR Coach or click "Add New STAR Story" to create one.
+      </p>
+      <button
+        type="button"
+        (click)="openAddModal()"
+        class="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold transition-all"
+      >
+        + Create First Story
+      </button>
+    </div>
+  }
+
+  <!-- Add / Edit Modal Dialog -->
+  @if (isModalOpen()) {
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-fadeIn">
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 w-full max-w-2xl shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
+        <!-- Modal Header -->
+        <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+          <div class="flex items-center space-x-2">
+            <span class="text-lg">⭐️</span>
+            <h3 class="text-base font-bold text-white">
+              {{ editingStoryId() ? 'Edit STAR Story' : 'Add New STAR Achievement Story' }}
+            </h3>
+          </div>
+          <button
+            type="button"
+            (click)="closeModal()"
+            class="text-slate-400 hover:text-white text-sm p-1"
+          >
+            ✕
+          </button>
+        </div>
+
+        <!-- Form Fields -->
+        <div class="space-y-3">
+          <!-- Title & Competency Category -->
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div class="sm:col-span-2">
+              <label for="star_title" class="text-xs font-bold text-slate-300 block mb-1">Story Title *</label>
+              <input
+                id="star_title"
+                type="text"
+                [(ngModel)]="formTitle"
+                placeholder="e.g. Resolving Production Database Lock Contention"
+                class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-indigo-500"
+              />
+            </div>
+
+            <div>
+              <label for="star_competency" class="text-xs font-bold text-slate-300 block mb-1">Competency Category</label>
+              <select
+                id="star_competency"
+                [(ngModel)]="formCompetency"
+                class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-indigo-500"
+              >
+                @for (c of defaultCompetencies; track c) {
+                  <option [value]="c">{{ c }}</option>
+                }
+              </select>
+            </div>
+          </div>
+
+          <!-- Situation -->
+          <div>
+            <label for="star_situation" class="text-xs font-bold text-rose-400 block mb-1">🔴 Situation (Context & Challenge)</label>
+            <textarea
+              id="star_situation"
+              rows="2"
+              [(ngModel)]="formSituation"
+              placeholder="Describe the company setting, scale, system constraints, or crisis situation faced..."
+              class="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-xs text-white outline-none focus:border-indigo-500"
+            ></textarea>
+          </div>
+
+          <!-- Task -->
+          <div>
+            <label for="star_task" class="text-xs font-bold text-amber-400 block mb-1">🟡 Task (Goal & Objective)</label>
+            <textarea
+              id="star_task"
+              rows="2"
+              [(ngModel)]="formTask"
+              placeholder="What was your specific responsibility or goal in resolving this situation?..."
+              class="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-xs text-white outline-none focus:border-indigo-500"
+            ></textarea>
+          </div>
+
+          <!-- Action -->
+          <div>
+            <label for="star_action" class="text-xs font-bold text-indigo-400 block mb-1">🔵 Action (Engineering & Personal Execution)</label>
+            <textarea
+              id="star_action"
+              rows="3"
+              [(ngModel)]="formAction"
+              placeholder="Detail the specific technical decisions, algorithms, architecture changes, or leadership actions YOU executed..."
+              class="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-xs text-white outline-none focus:border-indigo-500"
+            ></textarea>
+          </div>
+
+          <!-- Result -->
+          <div>
+            <label for="star_result" class="text-xs font-bold text-emerald-400 block mb-1">🟢 Result (Quantified Impact & Metrics)</label>
+            <textarea
+              id="star_result"
+              rows="2"
+              [(ngModel)]="formResult"
+              placeholder="Quantifiable outcome e.g. Reduced latency by 45%, eliminated downtime, saved $50k in infrastructure costs..."
+              class="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-xs text-white outline-none focus:border-indigo-500"
+            ></textarea>
+          </div>
+
+          <!-- Tags & Impact Rating -->
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div class="sm:col-span-2">
+              <label for="star_tags" class="text-xs font-bold text-slate-300 block mb-1">Technology Tags (Comma Separated)</label>
+              <input
+                id="star_tags"
+                type="text"
+                [(ngModel)]="formTagsInput"
+                placeholder="e.g. PostgreSQL, Redis, System Optimization"
+                class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-indigo-500"
+              />
+            </div>
+
+            <div>
+              <label for="star_impact" class="text-xs font-bold text-slate-300 block mb-1">Impact Rating (0-100)</label>
+              <input
+                id="star_impact"
+                type="number"
+                min="0"
+                max="100"
+                [(ngModel)]="formImpactScore"
+                class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-indigo-500"
+              />
+            </div>
+          </div>
+        </div>
+
+        <!-- Modal Actions -->
+        <div class="flex items-center justify-end space-x-3 pt-3 border-t border-slate-800">
+          <button
+            type="button"
+            (click)="closeModal()"
+            class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold transition-all"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            (click)="saveStoryForm()"
+            [disabled]="!formTitle.trim()"
+            class="px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white text-xs font-bold transition-all"
+          >
+            {{ editingStoryId() ? 'Save Changes' : 'Create Story' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+</div>

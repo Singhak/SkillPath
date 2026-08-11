@@ -2,29 +2,42 @@ import { Component, inject, signal, DestroyRef, OnInit } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { SpeechAnalyticsService } from '../../../core/services/speech-analytics.service';
+import { SpeechAnalyticsService, SUPPORTED_SPEECH_LANGUAGES } from '../../../core/services/speech-analytics.service';
 import { ResumeParserService } from '../../../core/services/resume-parser.service';
 import { StarCoachService } from '../../../core/services/star-coach.service';
+import { StarStoryService } from '../../../core/services/star-story.service';
 import { UserResourceService } from '../../../core/services/user-resource.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { ConfirmationService } from 'primeng/api';
 import { Router } from '@angular/router';
+import { StarStoryBankComponent } from '../star-story-bank/star-story-bank.component';
 
+// Next-Gen AI Tools & STAR Story Bank Widget
 @Component({
   selector: 'app-ai-tools-widget',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, StarStoryBankComponent],
   templateUrl: './ai-tools-widget.component.html',
 })
 export class AiToolsWidgetComponent implements OnInit {
   readonly speechService = inject(SpeechAnalyticsService);
   readonly resumeService = inject(ResumeParserService);
   readonly starCoachService = inject(StarCoachService);
+  readonly starStoryService = inject(StarStoryService);
   readonly userResourceService = inject(UserResourceService);
   public readonly authService = inject(AuthService);
   private readonly confirmationService = inject(ConfirmationService, { optional: true });
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
+
+  readonly supportedLanguages = SUPPORTED_SPEECH_LANGUAGES;
+
+  onLanguageChange(event: Event): void {
+    const val = (event.target as HTMLSelectElement).value;
+    if (val) {
+      this.speechService.setLanguage(val);
+    }
+  }
 
   readonly copiedAnswer = signal<boolean>(false);
   readonly starOutputTab = signal<'pillars' | 'analysis' | 'suggestion'>('pillars');
@@ -45,7 +58,7 @@ export class AiToolsWidgetComponent implements OnInit {
     }
   }
 
-  readonly activeTab = signal<'resume' | 'speech' | 'star'>('resume');
+  readonly activeTab = signal<'resume' | 'speech' | 'star' | 'storybank'>('resume');
   readonly resumeInputMode = signal<'upload' | 'paste'>('upload');
   pastedText = '';
   readonly evaluationMode = signal<'instant' | 'ai_groq'>('instant');
@@ -165,5 +178,26 @@ export class AiToolsWidgetComponent implements OnInit {
     } else {
       this.starCoachService.evaluateInstant(this.behavioralQuestion(), this.answerInput());
     }
+  }
+
+  readonly savedToBank = signal<boolean>(false);
+
+  saveCurrentEvaluationToStoryBank(): void {
+    const evalResult = this.starCoachService.latestEvaluation();
+    if (!evalResult) return;
+
+    this.starStoryService.addStory({
+      title: `STAR: ${this.behavioralQuestion().slice(0, 60)}...`,
+      competency: 'Problem Solving',
+      situation: evalResult.situationFeedback || 'Situation context from evaluated answer.',
+      task: evalResult.taskFeedback || 'Task objective from evaluated answer.',
+      action: this.answerInput() || 'Candidate action steps.',
+      result: evalResult.improvedAnswerSuggestion || evalResult.resultFeedback || 'Evaluated result outcome.',
+      tags: ['Evaluated STAR', 'Practice Lab'],
+      impactScore: evalResult.overallScore || 85,
+    });
+
+    this.savedToBank.set(true);
+    setTimeout(() => this.savedToBank.set(false), 3000);
   }
 }

@@ -26,6 +26,9 @@
       (keydown.enter)="selectOption(option)"
     >
       <div class="flex items-center gap-3 min-w-0 flex-1">
+        <span class="w-6 h-6 rounded-md bg-slate-200 text-slate-700 font-mono text-xs font-bold flex items-center justify-center shrink-0 border border-slate-300 shadow-2xs">
+          {{ i + 1 }}
+        </span>
         <p-radiobutton
           inputId="opt-{{ i }}"
           name="answer"
@@ -34,7 +37,7 @@
           [disabled]="!!showExplanation()"
         >
         </p-radiobutton>
-        <label for="opt-{{ i }}" class="cursor-pointer text-sm sm:text-base break-words flex-1 select-none">
+        <label for="opt-{{ i }}" class="cursor-pointer text-sm sm:text-base break-words flex-1 select-none font-medium">
           {{ option }}
         </label>
       </div>
