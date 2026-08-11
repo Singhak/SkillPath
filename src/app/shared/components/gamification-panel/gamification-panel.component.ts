@@ -58,7 +58,7 @@ export class GamificationPanelComponent {
   }
 
   generateAndDownloadReport(): void {
-    if (this.authService.currentPlan() !== 'Copper') {
+    if (!this.authService.hasMinPlan('Copper')) {
       if (this.confirmationService) {
         this.confirmationService.confirm({
           message:

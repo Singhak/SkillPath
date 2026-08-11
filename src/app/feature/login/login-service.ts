@@ -52,4 +52,16 @@ export class LoginService {
       }),
     );
   }
+
+  requestForgotPassword(emailId: string): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(`${this.apiUrl}/forgot-password`, { emailId });
+  }
+
+  resetPassword(payload: {
+    emailId: string;
+    token: string;
+    newPassword: string;
+  }): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(`${this.apiUrl}/reset-password`, payload);
+  }
 }

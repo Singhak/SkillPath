@@ -3,6 +3,7 @@ import { Injectable, signal, computed, effect, inject, PLATFORM_ID } from '@angu
 import { Router } from '@angular/router';
 import { Observable, tap } from 'rxjs';
 import { UserResourceService } from './user-resource.service';
+import { UserApiService } from './apis/user-api.service';
 import { User, LoginResponse, RefreshTokenResponse } from '../models/user.model';
 
 export type { User, LoginResponse, RefreshTokenResponse };
@@ -19,6 +20,7 @@ export class AuthService {
   private readonly platformId = inject(PLATFORM_ID);
   private readonly router = inject(Router);
   private readonly userResourceService = inject(UserResourceService);
+  private readonly userApiService = inject(UserApiService);
 
   private readonly _currentUser = signal<User | null>(null);
 
@@ -29,6 +31,55 @@ export class AuthService {
   readonly paidCredits = this.userResourceService.paidCredits;
   readonly isAuthenticated = computed(() => !!this._currentUser());
   readonly currentPlan = computed(() => this._currentUser()?.plan || 'Silver');
+
+  private readonly planHierarchy: Record<string, number> = {
+    'Silver': 1,
+    'Copper': 2,
+    'Gold': 3,
+  };
+
+  readonly planLevel = computed(() => {
+    const plan = this.currentPlan();
+    return this.planHierarchy[plan] || 1;
+  });
+
+  readonly hasCopperPlan = computed(() => this.planLevel() >= 2);
+  readonly hasGoldPlan = computed(() => this.planLevel() >= 3);
+
+  /** Checks if the user's plan is at or above the required plan tier (Silver < Copper < Gold) */
+  hasMinPlan(requiredPlan: 'Silver' | 'Copper' | 'Gold'): boolean {
+    const requiredLevel = this.planHierarchy[requiredPlan] || 1;
+    return this.planLevel() >= requiredLevel;
+  }
+
+  readonly profileCompletion = computed(() => {
+    const user = this._currentUser();
+    if (!user) return 0;
+
+    let score = 0;
+    if (user.name?.trim()) score += 20;
+    if ((user.emailId?.trim()) || (user.email?.trim())) score += 20;
+    if (user.targetRole?.trim()) score += 15;
+    if (user.bio?.trim()) score += 15;
+    if (user.location?.trim()) score += 10;
+    if (user.phone?.trim()) score += 10;
+    if (user?.skills && user.skills.length > 0) score += 10;
+
+    return Math.min(100, score);
+  });
+
+  readonly missingProfileFields = computed(() => {
+    const user = this._currentUser();
+    if (!user) return [];
+    const missing: string[] = [];
+    if (!user.name?.trim()) missing.push('Full Name');
+    if (!user.targetRole?.trim()) missing.push('Target Role');
+    if (!user.bio?.trim()) missing.push('Bio');
+    if (!user.phone?.trim()) missing.push('Phone');
+    if (!user.location?.trim()) missing.push('Location');
+    if (!user.skills?.length) missing.push('Skills');
+    return missing;
+  });
 
   constructor() {
     if (isPlatformBrowser(this.platformId)) {
@@ -84,7 +135,7 @@ export class AuthService {
 
   updateCoins(newCoinTotal: number): void {
     const user = this._currentUser();
-    if (user && user.id) {
+    if (user?.id) {
       this.userResourceService.updateCoins(user.id, newCoinTotal).subscribe({
         error: () => {
           this.userResourceService.updateUserCredits({ coins: newCoinTotal });
@@ -114,13 +165,31 @@ export class AuthService {
     return this.userResourceService.buyAiCreditsWithCoins(amount);
   }
 
-  updateUserProfile(updatedData: Partial<User>): void {
+  updateUserProfile(updatedData: Partial<User>, persistToBackend = true): void {
     const current = this._currentUser();
     if (current) {
       const merged = { ...current, ...updatedData };
       this._currentUser.set(merged);
       if (isPlatformBrowser(this.platformId)) {
         localStorage.setItem(this.currentUserKey, JSON.stringify(merged));
+      }
+
+      // Persist profile updates to backend DB
+      if (persistToBackend && current.id) {
+        this.userApiService.updateUser(current.id, updatedData).subscribe({
+          next: (savedUser) => {
+            if (savedUser) {
+              const updatedMerged = { ...this._currentUser(), ...savedUser };
+              this._currentUser.set(updatedMerged);
+              if (isPlatformBrowser(this.platformId)) {
+                localStorage.setItem(this.currentUserKey, JSON.stringify(updatedMerged));
+              }
+            }
+          },
+          error: (err) => {
+            console.warn('Could not sync profile update to backend server:', err);
+          },
+        });
       }
     }
   }

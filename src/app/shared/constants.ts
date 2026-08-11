@@ -364,5 +364,277 @@ export const DEFAULT_FLASHCARDS: FlashcardQuestion[] = [
   },
 ];
 
+export interface CountryStateData {
+  country: string;
+  code: string;
+  states: string[];
+}
+
+export const COUNTRIES_DATA: CountryStateData[] = [
+  {
+    country: 'United States',
+    code: 'US',
+    states: [
+      'California (San Francisco / LA)',
+      'New York (NYC)',
+      'Texas (Austin / Dallas / Houston)',
+      'Washington (Seattle)',
+      'Massachusetts (Boston)',
+      'Illinois (Chicago)',
+      'Florida (Miami / Orlando)',
+      'Georgia (Atlanta)',
+      'Colorado (Denver)',
+      'North Carolina (Raleigh / Charlotte)',
+      'Virginia (Northern VA / Richmond)',
+      'Other / Custom State/City',
+    ],
+  },
+  {
+    country: 'India',
+    code: 'IN',
+    states: [
+      'Maharashtra (Mumbai / Pune)',
+      'Karnataka (Bengaluru)',
+      'Delhi NCR (New Delhi / Gurugram / Noida)',
+      'Telangana (Hyderabad)',
+      'Tamil Nadu (Chennai)',
+      'West Bengal (Kolkata)',
+      'Gujarat (Ahmedabad / Surat)',
+      'Kerala (Kochi / Thiruvananthapuram)',
+      'Punjab (Chandigarh)',
+      'Uttar Pradesh (Lucknow / Kanpur)',
+      'Other / Custom State/City',
+    ],
+  },
+  {
+    country: 'United Kingdom',
+    code: 'GB',
+    states: [
+      'Greater London (London)',
+      'England - North West (Manchester / Liverpool)',
+      'England - West Midlands (Birmingham)',
+      'England - Yorkshire (Leeds / Sheffield)',
+      'England - South West (Bristol)',
+      'Scotland (Edinburgh / Glasgow)',
+      'Wales (Cardiff)',
+      'Northern Ireland (Belfast)',
+      'Other / Custom Region',
+    ],
+  },
+  {
+    country: 'Canada',
+    code: 'CA',
+    states: [
+      'Ontario (Toronto / Ottawa)',
+      'British Columbia (Vancouver / Victoria)',
+      'Quebec (Montreal / Quebec City)',
+      'Alberta (Calgary / Edmonton)',
+      'Manitoba (Winnipeg)',
+      'Nova Scotia (Halifax)',
+      'Other / Custom Province',
+    ],
+  },
+  {
+    country: 'Australia',
+    code: 'AU',
+    states: [
+      'New South Wales (Sydney)',
+      'Victoria (Melbourne)',
+      'Queensland (Brisbane)',
+      'Western Australia (Perth)',
+      'South Australia (Adelaide)',
+      'Australian Capital Territory (Canberra)',
+      'Other / Custom State',
+    ],
+  },
+  {
+    country: 'Germany',
+    code: 'DE',
+    states: [
+      'Bavaria (Munich)',
+      'Berlin',
+      'Hesse (Frankfurt)',
+      'North Rhine-Westphalia (Cologne / Düsseldorf)',
+      'Hamburg',
+      'Baden-Württemberg (Stuttgart)',
+      'Saxony (Dresden / Leipzig)',
+      'Other / Custom State',
+    ],
+  },
+  {
+    country: 'France',
+    code: 'FR',
+    states: [
+      'Île-de-France (Paris)',
+      'Auvergne-Rhône-Alpes (Lyon)',
+      'Provence-Alpes-Côte d\'Azur (Marseille / Nice)',
+      'Occitanie (Toulouse / Montpellier)',
+      'Hauts-de-France (Lille)',
+      'Other / Custom Region',
+    ],
+  },
+  {
+    country: 'Japan',
+    code: 'JP',
+    states: [
+      'Tokyo',
+      'Kanagawa (Yokohama)',
+      'Osaka',
+      'Aichi (Nagoya)',
+      'Kyoto',
+      'Fukuoka',
+      'Hokkaido (Sapporo)',
+      'Other / Custom Prefecture',
+    ],
+  },
+  {
+    country: 'Singapore',
+    code: 'SG',
+    states: [
+      'Central Region',
+      'East Region',
+      'North Region',
+      'North-East Region',
+      'West Region',
+    ],
+  },
+  {
+    country: 'United Arab Emirates',
+    code: 'AE',
+    states: [
+      'Dubai',
+      'Abu Dhabi',
+      'Sharjah',
+      'Ajman',
+      'Ras Al Khaimah',
+      'Fujairah',
+    ],
+  },
+  {
+    country: 'Netherlands',
+    code: 'NL',
+    states: [
+      'North Holland (Amsterdam)',
+      'South Holland (Rotterdam / The Hague)',
+      'Utrecht',
+      'North Brabant (Eindhoven)',
+      'Other / Custom Region',
+    ],
+  },
+  {
+    country: 'Brazil',
+    code: 'BR',
+    states: [
+      'São Paulo',
+      'Rio de Janeiro',
+      'Minas Gerais (Belo Horizonte)',
+      'Federal District (Brasília)',
+      'Rio Grande do Sul (Porto Alegre)',
+      'Other / Custom State',
+    ],
+  },
+  {
+    country: 'Spain',
+    code: 'ES',
+    states: [
+      'Community of Madrid (Madrid)',
+      'Catalonia (Barcelona)',
+      'Andalusia (Seville)',
+      'Valencian Community (Valencia)',
+      'Other / Custom Region',
+    ],
+  },
+  {
+    country: 'Italy',
+    code: 'IT',
+    states: [
+      'Lombardy (Milan)',
+      'Lazio (Rome)',
+      'Piedmont (Turin)',
+      'Veneto (Venice)',
+      'Emilia-Romagna (Bologna)',
+      'Other / Custom Region',
+    ],
+  },
+  {
+    country: 'China',
+    code: 'CN',
+    states: [
+      'Beijing',
+      'Shanghai',
+      'Guangdong (Shenzhen / Guangzhou)',
+      'Zhejiang (Hangzhou)',
+      'Jiangsu (Nanjing / Suzhou)',
+      'Sichuan (Chengdu)',
+      'Other / Custom Province',
+    ],
+  },
+  {
+    country: 'South Korea',
+    code: 'KR',
+    states: [
+      'Seoul',
+      'Gyeonggi-do (Suwon / Seongnam)',
+      'Busan',
+      'Incheon',
+      'Daejeon',
+      'Other / Custom Region',
+    ],
+  },
+  {
+    country: 'Philippines',
+    code: 'PH',
+    states: [
+      'Metro Manila (Quezon City / Manila)',
+      'Cebu',
+      'Davao',
+      'Calabarzon (Laguna / Cavite)',
+      'Central Luzon (Pampanga)',
+      'Other / Custom Province',
+    ],
+  },
+  {
+    country: 'Pakistan',
+    code: 'PK',
+    states: [
+      'Punjab (Lahore / Rawalpindi)',
+      'Sindh (Karachi)',
+      'Islamabad Capital Territory',
+      'Khyber Pakhtunkhwa (Peshawar)',
+      'Other / Custom Region',
+    ],
+  },
+  {
+    country: 'South Africa',
+    code: 'ZA',
+    states: [
+      'Gauteng (Johannesburg / Pretoria)',
+      'Western Cape (Cape Town)',
+      'KwaZulu-Natal (Durban)',
+      'Other / Custom Province',
+    ],
+  },
+  {
+    country: 'Nigeria',
+    code: 'NG',
+    states: [
+      'Lagos',
+      'Federal Capital Territory (Abuja)',
+      'Rivers (Port Harcourt)',
+      'Kano',
+      'Oyo (Ibadan)',
+      'Other / Custom State',
+    ],
+  },
+  {
+    country: 'Other / International',
+    code: 'XX',
+    states: [
+      'Other / Custom City/State',
+    ],
+  },
+];
+
+
 
 

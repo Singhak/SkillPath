@@ -85,4 +85,19 @@ describe('App Component (Shell)', () => {
     app.logout();
     expect(authServiceStub.logout).toHaveBeenCalled();
   });
+
+  it('should toggle systemGroupExpanded correctly', () => {
+    const fixture = TestBed.createComponent(App);
+    const app = fixture.componentInstance;
+    
+    // Expand sidebar first
+    app.sidebarCollapsed.set(false);
+    expect(app.systemGroupExpanded()).toBeFalse();
+    
+    app.toggleSystemGroup();
+    expect(app.systemGroupExpanded()).toBeTrue();
+    
+    app.toggleSystemGroup();
+    expect(app.systemGroupExpanded()).toBeFalse();
+  });
 });

@@ -1,5 +1,5 @@
 import { Component, computed, inject, signal } from '@angular/core';
-import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
+import { RouterOutlet, RouterLink, RouterLinkActive, Router } from '@angular/router';
 import { ToastModule } from 'primeng/toast';
 import { AuthService } from './core/services/auth.service';
 import { PaymentService } from './core/services/payment.service';
@@ -26,6 +26,7 @@ import { HealthService } from './core/services/health.service';
 export class App {
   private readonly authService = inject(AuthService);
   private readonly healthService = inject(HealthService);
+  private readonly router = inject(Router);
   protected readonly paymentService = inject(PaymentService);
   readonly isWakingUp$ = this.healthService.isWakingUp$;
   readonly isOnline = signal(typeof navigator !== 'undefined' ? navigator.onLine : true);
@@ -33,6 +34,12 @@ export class App {
   readonly mobileMenuOpen = signal(false);
   protected readonly title = signal('ImOnBench');
   readonly sidebarCollapsed = signal(true);
+  readonly systemGroupExpanded = signal<boolean>(false);
+
+  readonly isSystemRouteActive = computed<boolean>(() => {
+    const url = this.router.url;
+    return url.startsWith('/settings') || url.startsWith('/help') || url.startsWith('/about');
+  });
   readonly currentUser = this.authService.currentUser;
   readonly currentPlan = this.authService.currentPlan;
   readonly isAuthenticated = this.authService.isAuthenticated;
@@ -69,15 +76,35 @@ export class App {
   }
   toggleSidebar(): void {
     if (typeof window !== 'undefined' && window.innerWidth < 1024) {
-      this.mobileMenuOpen.set(!this.mobileMenuOpen());
-      return;
+      if (!this.mobileMenuOpen()) {
+        this.mobileMenuOpen.set(true);
+        this.sidebarCollapsed.set(false);
+        return;
+      }
     }
 
     this.sidebarCollapsed.set(!this.sidebarCollapsed());
   }
 
+  toggleMobileMenu(): void {
+    const isOpening = !this.mobileMenuOpen();
+    this.mobileMenuOpen.set(isOpening);
+    if (isOpening) {
+      this.sidebarCollapsed.set(false);
+    }
+  }
+
   closeSidebar(): void {
     this.mobileMenuOpen.set(false);
+  }
+
+  toggleSystemGroup(): void {
+    if (this.sidebarCollapsed()) {
+      this.sidebarCollapsed.set(false);
+      this.systemGroupExpanded.set(true);
+      return;
+    }
+    this.systemGroupExpanded.set(!this.systemGroupExpanded());
   }
 
   logout(): void {

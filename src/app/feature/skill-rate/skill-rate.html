@@ -9,9 +9,14 @@
         </div>
         <h1 class="hero-title">Skill Matrix & <span class="highlight">Self Reflection</span></h1>
         <p class="hero-subtitle">
-          Track how confident you feel in each technical area and compare your self-ratings against objective quiz
-          outcomes.
+          Track how confident you feel in each technical area, edit or delete skills extracted from your resume or added manually, and compare your self-ratings against objective quiz outcomes.
         </p>
+        <div class="hero-actions-row">
+          <button type="button" class="action-btn guide-toggle-btn" (click)="toggleGuide()">
+            <i class="pi" [ngClass]="showGuide() ? 'pi-times-circle' : 'pi-info-circle'"></i>
+            <span>{{ showGuide() ? 'Close Guide' : 'How Skill Alignment Works' }}</span>
+          </button>
+        </div>
       </div>
 
       <div class="hero-widgets">
@@ -37,6 +42,105 @@
       </div>
     </section>
 
+    <!-- Educational Guide Section (Toggleable) -->
+    @if (showGuide()) {
+    <section class="glass-card education-guide-card">
+      <div class="card-header">
+        <div>
+          <div class="section-tag guide-tag">
+            <i class="pi pi-book"></i>
+            <span>Skill Matrix Guide</span>
+          </div>
+          <h3 class="card-title">Understanding Skill Ratings & Alignment</h3>
+        </div>
+        <button type="button" class="close-guide-btn" (click)="toggleGuide()" aria-label="Close guide">
+          <i class="pi pi-times"></i>
+        </button>
+      </div>
+
+      <div class="guide-grid">
+        <div class="guide-item">
+          <div class="guide-icon-box resume-bg">
+            <i class="pi pi-file-pdf"></i>
+          </div>
+          <div class="guide-item-content">
+            <h4>📄 Resume Skills</h4>
+            <p>Automatically extracted by AI when you upload your resume. Click <strong>Sync Resume Skills</strong> to populate your matrix.</p>
+          </div>
+        </div>
+
+        <div class="guide-item">
+          <div class="guide-icon-box match-bg">
+            <i class="pi pi-check-circle"></i>
+          </div>
+          <div class="guide-item-content">
+            <h4>🎯 High Match</h4>
+            <p>Your self-perceived rating matches your objective quiz test results (within 0.5 stars). Confirms accurate self-awareness!</p>
+          </div>
+        </div>
+
+        <div class="guide-item">
+          <div class="guide-icon-box quiz-bg">
+            <i class="pi pi-minus-circle"></i>
+          </div>
+          <div class="guide-item-content">
+            <h4>⚡ Needs Quiz</h4>
+            <p>Skills you rated yourself in, but haven't tested via a quiz yet. Click the <strong>Quiz</strong> button to test your knowledge!</p>
+          </div>
+        </div>
+
+        <div class="guide-item">
+          <div class="guide-icon-box under-bg">
+            <i class="pi pi-arrow-up-right"></i>
+          </div>
+          <div class="guide-item-content">
+            <h4>↗️ Underestimating</h4>
+            <p>Your quiz score is higher than your self-rating! You have stronger technical mastery than you realize.</p>
+          </div>
+        </div>
+
+        <div class="guide-item">
+          <div class="guide-icon-box over-bg">
+            <i class="pi pi-arrow-down-right"></i>
+          </div>
+          <div class="guide-item-content">
+            <h4>↘️ Overestimating</h4>
+            <p>Your self-rating is higher than your actual quiz score. Take practice quizzes to strengthen your knowledge.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+    }
+
+    <!-- Resume Skills Extraction Banner (If Resume Uploaded) -->
+    @if (resumeSkills().length > 0) {
+    <section class="glass-card resume-sync-card">
+      <div class="resume-sync-header">
+        <div class="resume-info">
+          <div class="section-tag resume-tag">
+            <i class="pi pi-file-pdf"></i>
+            <span>Resume Skills Sync</span>
+          </div>
+          <h3 class="card-title">Skills Extracted from {{ parsedResume()?.fileName || 'Resume' }}</h3>
+          <p class="resume-desc">
+            We extracted <strong>{{ resumeSkills().length }} skills</strong> from your uploaded resume as System-rated. Sync them or edit/delete them anytime.
+          </p>
+        </div>
+        <button type="button" class="action-btn sync-btn" (click)="syncResumeSkills()">
+          <i class="pi pi-sync"></i>
+          <span>Sync Resume Skills</span>
+        </button>
+      </div>
+      <div class="resume-chips-list">
+        @for (skill of resumeSkills(); track skill) {
+        <span class="resume-chip">
+          <i class="pi pi-check-circle"></i> {{ skill }}
+        </span>
+        }
+      </div>
+    </section>
+    }
+
     <!-- Quick Add / Edit Skill Rating Form -->
     <section class="glass-card add-skill-card">
       <div class="card-header">
@@ -45,7 +149,7 @@
             <i class="pi pi-plus-circle"></i>
             <span>Update Competency</span>
           </div>
-          <h3 class="card-title">Rate a Skill</h3>
+          <h3 class="card-title">Rate or Add a Skill</h3>
         </div>
       </div>
 
@@ -208,52 +312,101 @@
           </div>
           <h3 class="card-title">Detailed Competency Overview</h3>
         </div>
-        <div class="table-search-box">
-          <label for="skillFilterInput" class="sr-only">Filter skills</label>
-          <i class="pi pi-search search-icon"></i>
-          <input id="skillFilterInput" type="text" placeholder="Filter skills..." [ngModel]="searchQuery()"
-            (ngModelChange)="searchQuery.set($event)" class="search-input" />
-          @if (searchQuery()) {
-          <button type="button" class="clear-search" (click)="searchQuery.set('')" aria-label="Clear filter">
-            <i class="pi pi-times"></i>
-          </button>
-          }
+
+        <div class="table-actions-header">
+          <!-- Filter Tabs -->
+          <div class="filter-chips">
+            <button type="button" class="filter-chip" [class.active]="selectedFilter() === 'all'"
+              (click)="setFilter('all')">
+              All ({{ skillPerformanceRows().length }})
+            </button>
+            @if (resumeSkills().length > 0) {
+            <button type="button" class="filter-chip" [class.active]="selectedFilter() === 'resume'"
+              (click)="setFilter('resume')">
+              Resume ({{ resumeSkills().length }})
+            </button>
+            }
+            <button type="button" class="filter-chip" [class.active]="selectedFilter() === 'match'"
+              (click)="setFilter('match')">
+              Match
+            </button>
+            <button type="button" class="filter-chip" [class.active]="selectedFilter() === 'needs-quiz'"
+              (click)="setFilter('needs-quiz')">
+              Needs Quiz
+            </button>
+          </div>
+
+          <div class="table-search-box">
+            <label for="skillFilterInput" class="sr-only">Filter skills</label>
+            <i class="pi pi-search search-icon"></i>
+            <input id="skillFilterInput" type="text" placeholder="Search skill..." [ngModel]="searchQuery()"
+              (ngModelChange)="searchQuery.set($event)" class="search-input" />
+            @if (searchQuery()) {
+            <button type="button" class="clear-search" (click)="searchQuery.set('')" aria-label="Clear filter">
+              <i class="pi pi-times"></i>
+            </button>
+            }
+          </div>
+        </div>
+      </div>
+
+      <!-- Matrix Quick Legend Bar -->
+      <div class="matrix-legend-bar">
+        <span class="legend-title"><i class="pi pi-info-circle"></i> Badge Legend:</span>
+        <div class="legend-items">
+          <span class="legend-item"><span class="source-badge system-source"><i class="pi pi-desktop"></i> System</span> AI Resume Rated</span>
+          <span class="legend-item"><span class="source-badge self-source"><i class="pi pi-user"></i> Self</span> User Rated / Edited</span>
+          <span class="legend-item"><span class="alignment-badge badge-match"><i class="pi pi-check-circle"></i> High Match</span> Self = Quiz</span>
+          <span class="legend-item"><span class="alignment-badge badge-neutral"><i class="pi pi-minus-circle"></i> Needs Quiz</span> No Quiz Taken</span>
         </div>
       </div>
 
       <div class="table-responsive">
-        <p-table [value]="filteredSkillPerformanceRows()" [tableStyle]="{ 'min-width': '100%' }" [rows]="6"
-          [paginator]="filteredSkillPerformanceRows().length > 6" class="p-datatable-sm custom-table">
+        <p-table [value]="filteredSkillPerformanceRows()" [tableStyle]="{ 'min-width': '100%' }" [rows]="5"
+          [paginator]="filteredSkillPerformanceRows().length > 5" class="p-datatable-sm custom-table">
           <ng-template pTemplate="header">
             <tr>
               <th>Skill</th>
-              <th>Self Rating</th>
-              <th>Quiz Rating</th>
-              <th>Attempts</th>
-              <th>Alignment</th>
+              <th pTooltip="Your confidence rating (1-5 stars). Click any star to change to Self-rated.">Rating (Click to Update)</th>
+              <th pTooltip="Calculated rating from actual quiz scores.">Quiz Rating</th>
+              <th pTooltip="Rating source: System (Resume AI) vs Self (User edited).">Rated By</th>
+              <th pTooltip="Number of quiz attempts for this skill.">Attempts</th>
+              <th pTooltip="Comparison between self-rating and quiz performance.">Alignment</th>
+              <th style="width: 160px; text-align: center;">Actions</th>
             </tr>
           </ng-template>
 
           <ng-template pTemplate="body" let-row>
             <tr class="table-row">
               <td>
-                <span class="skill-pill">{{ row.skill }}</span>
+                <div class="skill-name-wrapper">
+                  <span class="skill-pill">{{ row.skill }}</span>
+                  @if (row.isFromResume) {
+                  <span class="source-tag resume-source" pTooltip="Extracted from your resume">
+                    <i class="pi pi-file-pdf"></i> Resume
+                  </span>
+                  }
+                </div>
               </td>
+
+              <!-- Interactive Star Rating Column -->
               <td>
-                @if (row.selfRating > 0) {
-                <div class="rating-stars-badge">
-                  <span class="rating-val">{{ row.selfRating }}/5</span>
-                  <span class="stars-mini">
-                    @for (star of getStarArray(row.selfRating); track $index) {
-                    <i class="pi"
-                      [ngClass]="star === 1 ? 'pi-star-fill' : star === 0.5 ? 'pi-star-half-fill' : 'pi-star'"></i>
+                <div class="interactive-rating-container">
+                  <div class="stars-interactive" pTooltip="Click a star to update rating to Self">
+                    @for (star of [1,2,3,4,5]; track star) {
+                    <button type="button" class="star-btn" [class.active]="star <= row.selfRating"
+                      (click)="updateRatingDirectly(row.skill, star)"
+                      [attr.aria-label]="'Set ' + row.skill + ' rating to ' + star">
+                      <i class="pi" [ngClass]="star <= row.selfRating ? 'pi-star-fill' : 'pi-star'"></i>
+                    </button>
                     }
+                  </div>
+                  <span class="rating-val-badge" [class.unrated]="row.selfRating === 0">
+                    {{ row.selfRating > 0 ? row.selfRating + '/5' : 'Unrated' }}
                   </span>
                 </div>
-                } @else {
-                <span class="unrated-tag">Not Rated</span>
-                }
               </td>
+
               <td>
                 @if (row.quizRating > 0) {
                 <div class="rating-stars-badge quiz-badge">
@@ -269,11 +422,28 @@
                 <span class="unrated-tag">No Quizzes</span>
                 }
               </td>
+
+              <!-- Rated By Column (System vs Self) -->
+              <td>
+                @if (row.ratingSource === 'SYSTEM') {
+                <span class="source-badge system-source" pTooltip="Auto-rated by AI resume parser. Click stars to switch to Self-rated.">
+                  <i class="pi pi-desktop"></i> System
+                </span>
+                } @else if (row.ratingSource === 'SELF') {
+                <span class="source-badge self-source" pTooltip="Rated or updated directly by you">
+                  <i class="pi pi-user"></i> Self
+                </span>
+                } @else {
+                <span class="unrated-tag">Unrated</span>
+                }
+              </td>
+
               <td>
                 <span class="attempts-pill">
                   <i class="pi pi-history"></i> {{ row.attempts }} attempt{{ row.attempts === 1 ? '' : 's' }}
                 </span>
               </td>
+
               <td>
                 <span class="alignment-badge" [ngClass]="getAlignmentBadgeClass(row.alignment)">
                   @if (row.alignment === 'High Match') {
@@ -287,15 +457,34 @@
                   }
                 </span>
               </td>
+
+              <!-- Action Buttons: Edit, Take Quiz, Delete -->
+              <td>
+                <div class="row-actions">
+                  <button type="button" class="row-action-btn edit-btn" (click)="openEditModal(row)"
+                    pTooltip="Edit Skill Name & Rating">
+                    <i class="pi pi-pencil"></i>
+                  </button>
+                  <button type="button" class="row-action-btn quiz-btn" (click)="takeQuiz(row.skill)"
+                    pTooltip="Take Quiz for {{ row.skill }}">
+                    <i class="pi pi-play"></i>
+                    <span>Quiz</span>
+                  </button>
+                  <button type="button" class="row-action-btn delete-btn" (click)="confirmDelete(row.skill)"
+                    pTooltip="Delete Skill Rating">
+                    <i class="pi pi-trash"></i>
+                  </button>
+                </div>
+              </td>
             </tr>
           </ng-template>
 
           <ng-template pTemplate="emptymessage">
             <tr>
-              <td colspan="5" class="empty-table-state">
+              <td colspan="7" class="empty-table-state">
                 <div class="empty-box">
                   <i class="pi pi-inbox empty-icon"></i>
-                  <p>No skill ratings found matching your query.</p>
+                  <p>No skills found matching your current filter.</p>
                 </div>
               </td>
             </tr>
@@ -303,5 +492,72 @@
         </p-table>
       </div>
     </section>
+
+    <!-- Edit Skill Dialog Modal -->
+    <p-dialog [(visible)]="showEditModal" [modal]="true" [style]="{ width: '440px' }" header="Edit Skill Details"
+      [draggable]="false" [resizable]="false" [dismissableMask]="true">
+      <div class="edit-dialog-content">
+        <div class="dialog-field-group mb-3">
+          <label for="edit_skill_name_input" class="dialog-field-label">Skill Name</label>
+          <input id="edit_skill_name_input" type="text" [ngModel]="editingSkillNewName()"
+            (ngModelChange)="editingSkillNewName.set($event)" class="dialog-text-input" placeholder="e.g. Angular, Node.js..." />
+        </div>
+
+        <div class="dialog-field-group">
+          <label class="dialog-field-label">Confidence Rating</label>
+          <div class="modal-star-picker">
+            @for (star of [1,2,3,4,5]; track star) {
+            <button type="button" class="star-pick-btn" [class.active]="star <= editingSkillRating()"
+              (click)="editingSkillRating.set(star)">
+              <i class="pi" [ngClass]="star <= editingSkillRating() ? 'pi-star-fill' : 'pi-star'"></i>
+            </button>
+            }
+            <span class="rating-modal-badge">{{ editingSkillRating() }} / 5 Stars ⭐</span>
+          </div>
+        </div>
+      </div>
+      <ng-template pTemplate="footer">
+        <div class="dialog-footer-btns">
+          <button type="button" class="dialog-btn cancel-btn" (click)="showEditModal.set(false)" [disabled]="isSavingEdit()">
+            Cancel
+          </button>
+          <button type="button" class="dialog-btn save-btn" (click)="saveEdit()" [disabled]="isSavingEdit()">
+            @if (isSavingEdit()) {
+            <i class="pi pi-spin pi-spinner"></i> Saving...
+            } @else {
+            <i class="pi pi-check"></i> Save Changes
+            }
+          </button>
+        </div>
+      </ng-template>
+    </p-dialog>
+
+    <!-- Delete Confirmation Modal -->
+    <p-dialog [(visible)]="showDeleteConfirm" [modal]="true" [style]="{ width: '420px' }" header="Remove Skill Rating"
+      [draggable]="false" [resizable]="false" [dismissableMask]="true">
+      <div class="delete-dialog-content">
+        <div class="warning-icon-box">
+          <i class="pi pi-exclamation-triangle"></i>
+        </div>
+        <p class="delete-message">
+          Are you sure you want to delete your self-rating for <strong class="highlight-skill">{{ skillToDelete() }}</strong>?
+        </p>
+        <p class="delete-subtext">This action will remove the skill rating from your profile matrix.</p>
+      </div>
+      <ng-template pTemplate="footer">
+        <div class="dialog-footer-btns">
+          <button type="button" class="dialog-btn cancel-btn" (click)="cancelDelete()" [disabled]="isDeleting()">
+            Cancel
+          </button>
+          <button type="button" class="dialog-btn confirm-delete-btn" (click)="executeDelete()" [disabled]="isDeleting()">
+            @if (isDeleting()) {
+            <i class="pi pi-spin pi-spinner"></i> Deleting...
+            } @else {
+            <i class="pi pi-trash"></i> Delete Rating
+            }
+          </button>
+        </div>
+      </ng-template>
+    </p-dialog>
   </main>
 </div>

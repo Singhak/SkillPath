@@ -1,7 +1,8 @@
 export interface User {
   id: string;
   name: string;
-  email: string;
+  emailId: string;
+  email?: string;
   coins?: number;
   totalQuizAttempted?: number;
   freeCredits?: string;

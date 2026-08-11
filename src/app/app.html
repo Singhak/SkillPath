@@ -23,7 +23,7 @@
           <span>MAIN MENU</span>
         </div>
         <a class="nav-item" [routerLink]="'/'" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }"
-          [title]="sidebarCollapsed() ? 'Overview' : ''">
+          (click)="closeSidebar()" [title]="sidebarCollapsed() ? 'Overview' : ''">
           <div class="nav-icon-box">
             <i class="pi pi-home"></i>
           </div>
@@ -31,7 +31,7 @@
           <div class="active-indicator"></div>
         </a>
         <a class="nav-item" [routerLink]="'/quiz'" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }"
-          [title]="sidebarCollapsed() ? 'Quizzes' : ''">
+          (click)="closeSidebar()" [title]="sidebarCollapsed() ? 'Quizzes' : ''">
           <div class="nav-icon-box">
             <i class="pi pi-play"></i>
           </div>
@@ -39,7 +39,7 @@
           <div class="active-indicator"></div>
         </a>
         <a class="nav-item" [routerLink]="'/skills'" routerLinkActive="active"
-          [routerLinkActiveOptions]="{ exact: true }" [title]="sidebarCollapsed() ? 'Skills' : ''">
+          (click)="closeSidebar()" [routerLinkActiveOptions]="{ exact: true }" [title]="sidebarCollapsed() ? 'Skills' : ''">
           <div class="nav-icon-box">
             <i class="pi pi-bolt"></i>
           </div>
@@ -53,7 +53,7 @@
           <span>PREPARATION</span>
         </div>
         <a class="nav-item" [routerLink]="'/aiinterview'" routerLinkActive="active"
-          [routerLinkActiveOptions]="{ exact: false }" [title]="sidebarCollapsed() ? 'AI Interview' : ''">
+          (click)="closeSidebar()" [routerLinkActiveOptions]="{ exact: false }" [title]="sidebarCollapsed() ? 'AI Interview' : ''">
           <div class="nav-icon-box">
             <i class="pi pi-microchip-ai"></i>
           </div>
@@ -62,7 +62,7 @@
           <div class="active-indicator"></div>
         </a>
         <a class="nav-item" [routerLink]="'/interviewer-studio'" routerLinkActive="active"
-          [routerLinkActiveOptions]="{ exact: false }" [title]="sidebarCollapsed() ? 'Interviewer Studio' : ''">
+          (click)="closeSidebar()" [routerLinkActiveOptions]="{ exact: false }" [title]="sidebarCollapsed() ? 'Interviewer Studio' : ''">
           <div class="nav-icon-box">
             <i class="pi pi-users"></i>
           </div>
@@ -75,48 +75,68 @@
         <div class="section-header">
           <span>SYSTEM</span>
         </div>
-        <a class="nav-item" [routerLink]="'/settings'" routerLinkActive="active"
-          [routerLinkActiveOptions]="{ exact: true }" [title]="sidebarCollapsed() ? 'Settings' : ''">
-          <div class="nav-icon-box">
-            <i class="pi pi-cog"></i>
+        <div class="nav-group" [class.open]="!sidebarCollapsed() && (systemGroupExpanded() || isSystemRouteActive())">
+          <button type="button" class="nav-item group-header-btn"
+            [class.active]="isSystemRouteActive() && (sidebarCollapsed() || !systemGroupExpanded())"
+            (click)="toggleSystemGroup()"
+            [title]="sidebarCollapsed() ? 'Settings & Support' : ''">
+            <div class="nav-icon-box">
+              <i class="pi pi-sliders-h"></i>
+            </div>
+            <span class="nav-label">Settings & Support</span>
+            <i class="pi pi-chevron-down submenu-chevron" [class.rotated]="systemGroupExpanded() || isSystemRouteActive()"></i>
+            <div class="active-indicator"></div>
+          </button>
+
+          @if (!sidebarCollapsed() && (systemGroupExpanded() || isSystemRouteActive())) {
+          <div class="submenu-list">
+            <a class="nav-item submenu-item" [routerLink]="'/settings'" routerLinkActive="active"
+              (click)="closeSidebar()" [routerLinkActiveOptions]="{ exact: true }" [title]="sidebarCollapsed() ? 'Settings' : ''">
+              <div class="nav-icon-box">
+                <i class="pi pi-cog"></i>
+              </div>
+              <span class="nav-label">Settings</span>
+              <div class="active-indicator"></div>
+            </a>
+            <a class="nav-item submenu-item" [routerLink]="'/help'" routerLinkActive="active" (click)="closeSidebar()" [routerLinkActiveOptions]="{ exact: true }"
+              [title]="sidebarCollapsed() ? 'Help & Guide' : ''">
+              <div class="nav-icon-box">
+                <i class="pi pi-question-circle"></i>
+              </div>
+              <span class="nav-label">Help & Guide</span>
+              <div class="active-indicator"></div>
+            </a>
+            <a class="nav-item submenu-item" [routerLink]="'/about'" routerLinkActive="active"
+              (click)="closeSidebar()" [routerLinkActiveOptions]="{ exact: true }" [title]="sidebarCollapsed() ? 'About ImOnBench' : ''">
+              <div class="nav-icon-box">
+                <i class="pi pi-info-circle"></i>
+              </div>
+              <span class="nav-label">About Us</span>
+              <div class="active-indicator"></div>
+            </a>
           </div>
-          <span class="nav-label">Settings</span>
-          <div class="active-indicator"></div>
-        </a>
-        <a class="nav-item" [routerLink]="'/help'" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }"
-          [title]="sidebarCollapsed() ? 'Help & Guide' : ''">
-          <div class="nav-icon-box">
-            <i class="pi pi-question-circle"></i>
-          </div>
-          <span class="nav-label">Help & Guide</span>
-          <div class="active-indicator"></div>
-        </a>
-        <a class="nav-item" [routerLink]="'/about'" routerLinkActive="active"
-          [routerLinkActiveOptions]="{ exact: true }" [title]="sidebarCollapsed() ? 'About ImOnBench' : ''">
-          <div class="nav-icon-box">
-            <i class="pi pi-info-circle"></i>
-          </div>
-          <span class="nav-label">About Us</span>
-          <div class="active-indicator"></div>
-        </a>
+          }
+        </div>
       </div>
     </nav>
 
     <div class="sidebar-footer">
       @if(isAuthenticated()){
       @if(remainingTrialDays() !== null) {
-      <div
-        class="bg-linear-to-br from-emerald-500/15 to-emerald-600/15 border border-emerald-500/20 rounded-xl p-2.5 mb-3 flex items-center">
-        <i class="pi pi-clock text-emerald-500 text-base mr-2"></i>
-        <span class="text-emerald-500 font-bold text-xs">{{ remainingTrialDays() }} Days Left</span>
+      <div class="trial-widget" [title]="sidebarCollapsed() ? (remainingTrialDays() + ' Days Left') : ''">
+        <i class="pi pi-clock trial-icon"></i>
+        <span class="trial-text">{{ remainingTrialDays() }} Days Left</span>
       </div>
       }
-      <a class="nav-item h-9 px-3 mb-3 bg-linear-to-br from-amber-500/15 to-orange-600/15 border border-amber-500/20 rounded-xl flex items-center"
-        [routerLink]="'/pricing'" routerLinkActive="active" [title]="sidebarCollapsed() ? 'Upgrade Plan' : ''">
-        <i class="pi pi-bolt text-amber-500 text-base" [style.margin-right]="sidebarCollapsed() ? '0' : '8px'"></i>
+      <a class="nav-item upgrade-nav-item" [routerLink]="'/pricing'" routerLinkActive="active" (click)="closeSidebar()"
+        [title]="sidebarCollapsed() ? 'Upgrade Plan' : ''">
+        <div class="nav-icon-box">
+          <i class="pi pi-bolt text-amber-500"></i>
+        </div>
         <span class="nav-label text-amber-500 font-bold uppercase tracking-wider text-xs leading-none">Upgrade</span>
       </a>
-      <div class="user-profile-card">
+      <div class="user-profile-card" [title]="sidebarCollapsed() ? (currentUser()?.name + ' (Click to logout)') : ''"
+        (click)="sidebarCollapsed() ? logout() : null" [style.cursor]="sidebarCollapsed() ? 'pointer' : 'default'">
         <div class="avatar-container">
           <div class="avatar">{{ userInitials() }}</div>
           <span class="online-status" [class.offline]="!isOnline()" [title]="isOnline() ? 'Online' : 'Offline'"></span>
@@ -125,12 +145,12 @@
           <strong class="user-name">{{ currentUser()?.name }}</strong>
           <span class="user-role">Member</span>
         </div>
-        <button class="logout-btn" type="button" (click)="logout()" title="Logout" aria-label="Logout">
+        <button class="logout-btn" type="button" (click)="logout(); $event.stopPropagation()" title="Logout" aria-label="Logout">
           <i class="pi pi-sign-out"></i>
         </button>
       </div>
       } @else {
-      <a class="nav-item login-item" [routerLink]="'/login'" routerLinkActive="active"
+      <a class="nav-item login-item" [routerLink]="'/login'" routerLinkActive="active" (click)="closeSidebar()"
         [title]="sidebarCollapsed() ? 'Login' : ''">
         <div class="nav-icon-box">
           <i class="pi pi-sign-in"></i>
@@ -147,8 +167,13 @@
 
   <div class="content-shell">
     <div class="mobile-toolbar">
-      <button class="mobile-toggle" type="button" (click)="toggleSidebar()" aria-label="Toggle navigation menu">
-        <i class="pi pi-bars"></i>
+      <div class="mobile-brand">
+        <img src="assests/logo.png" alt="IMONBENCH Logo" class="mobile-brand-logo" />
+        <span class="mobile-brand-title">IMONBENCH</span>
+        <span class="brand-tag mobile-tag" [ngClass]="getPlanColorClass()">AI</span>
+      </div>
+      <button class="mobile-toggle" type="button" (click)="toggleMobileMenu()" [attr.aria-expanded]="mobileMenuOpen()" aria-label="Toggle navigation menu">
+        <i class="pi" [class.pi-bars]="!mobileMenuOpen()" [class.pi-times]="mobileMenuOpen()"></i>
       </button>
     </div>
     <div class="page-content">

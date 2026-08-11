@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, computed, inject, OnInit, signal, DestroyRef } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { ChartModule } from 'primeng/chart';
 import { FieldsetModule } from 'primeng/fieldset';
@@ -9,12 +10,15 @@ import { FloatLabelModule } from 'primeng/floatlabel';
 import { SelectModule } from 'primeng/select';
 import { TableModule } from 'primeng/table';
 import { KnobModule } from 'primeng/knob';
+import { DialogModule } from 'primeng/dialog';
+import { TooltipModule } from 'primeng/tooltip';
 import { QuizApiService } from '../../core/services/apis/quiz-api.service';
 import { Rating, RatingApiService } from '../../core/services/apis/rating-api.service';
 import { MessageService } from 'primeng/api';
 import { lastValueFrom } from 'rxjs';
 import { QuizStats } from '../quiz-view/quiz.model';
 import { GamificationService } from '../../core/services/gamification.service';
+import { ResumeParserService } from '../../core/services/resume-parser.service';
 
 export interface SkillPerformanceRow {
   skill: string;
@@ -23,6 +27,8 @@ export interface SkillPerformanceRow {
   quizRating: number;
   attempts: number;
   alignment: 'High Match' | 'Underestimating' | 'Overestimating' | 'Needs Quiz';
+  isFromResume?: boolean;
+  ratingSource: 'SELF' | 'SYSTEM' | 'UNRATED';
 }
 
 @Component({
@@ -38,6 +44,8 @@ export interface SkillPerformanceRow {
     ChartModule,
     TableModule,
     KnobModule,
+    DialogModule,
+    TooltipModule,
   ],
   templateUrl: './skill-rate.html',
   styleUrl: './skill-rate.css',
@@ -45,8 +53,10 @@ export interface SkillPerformanceRow {
 export class SkillRate implements OnInit {
   private readonly quizApiService = inject(QuizApiService);
   private readonly ratingApiService = inject(RatingApiService);
+  private readonly resumeParserService = inject(ResumeParserService);
   private readonly messageService = inject(MessageService);
   private readonly gamificationService = inject(GamificationService);
+  private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
 
   readonly selectedSkill = signal('');
@@ -65,6 +75,37 @@ export class SkillRate implements OnInit {
   readonly skillRatings = signal<Rating[]>([]);
   readonly quizAttempts = signal<QuizStats[]>([]);
   readonly searchQuery = signal<string>('');
+  readonly selectedFilter = signal<'all' | 'resume' | 'match' | 'needs-quiz'>('all');
+
+  // Tracking deleted skills locally so user-deleted skills (including from resume) remain deleted
+  readonly deletedSkillNames = signal<Set<string>>(this.loadDeletedSkillsFromStorage());
+
+  // Resume skill integration
+  readonly parsedResume = this.resumeParserService.parsedResume;
+  readonly rawResumeSkills = computed(() => this.parsedResume()?.extractedSkills || []);
+  readonly resumeSkills = computed(() => {
+    const deletedSet = this.deletedSkillNames();
+    return this.rawResumeSkills().filter((s) => !deletedSet.has(this.normalizeKey(s)));
+  });
+
+  // Delete modal state
+  readonly showDeleteConfirm = signal<boolean>(false);
+  readonly skillToDelete = signal<string | null>(null);
+  readonly isDeleting = signal<boolean>(false);
+
+  // Guide card state
+  readonly showGuide = signal<boolean>(false);
+
+  toggleGuide(): void {
+    this.showGuide.update((val) => !val);
+  }
+
+  // Edit modal state
+  readonly showEditModal = signal<boolean>(false);
+  readonly editingSkillOldName = signal<string>('');
+  readonly editingSkillNewName = signal<string>('');
+  readonly editingSkillRating = signal<number>(3);
+  readonly isSavingEdit = signal<boolean>(false);
 
   readonly quizBasedRatings = computed(() => {
     const attemptsByCategory = new Map<string, QuizStats[]>();
@@ -93,7 +134,9 @@ export class SkillRate implements OnInit {
   });
 
   readonly averageSelfRating = computed(() => {
-    const ratings = this.skillRatings().filter((entry) => entry.type?.toLowerCase() === 'self');
+    const ratings = this.skillRatings().filter((entry) =>
+      entry.type?.toLowerCase() === 'self' || entry.type?.toLowerCase() === 'system'
+    );
     if (!ratings.length) {
       return 0;
     }
@@ -120,9 +163,9 @@ export class SkillRate implements OnInit {
   });
 
   readonly skillPerformanceRows = computed<SkillPerformanceRow[]>(() => {
-    const ratingMap = new Map<string, number>();
+    const ratingEntryMap = new Map<string, Rating>();
     this.skillRatings().forEach((entry) => {
-      ratingMap.set(this.normalizeKey(entry.category), entry.rating);
+      ratingEntryMap.set(this.normalizeKey(entry.category), entry);
     });
 
     const quizRatingMap = new Map<string, number>();
@@ -139,45 +182,79 @@ export class SkillRate implements OnInit {
       performanceMap.set(key, current);
     });
 
-    const keys = new Set<string>([...ratingMap.keys(), ...performanceMap.keys()]);
+    const resumeSkillKeys = new Set(this.resumeSkills().map((s) => this.normalizeKey(s)));
+    const deletedSet = this.deletedSkillNames();
+    const keys = new Set<string>([...ratingEntryMap.keys(), ...performanceMap.keys(), ...resumeSkillKeys]);
 
-    return Array.from(keys).map((key) => {
-      const skillName =
-        this.skillRatings().find((entry) => this.normalizeKey(entry.category) === key)?.category ||
-        this.titleCase(key);
-      const quizMetrics = performanceMap.get(key);
+    return Array.from(keys)
+      .filter((key) => !deletedSet.has(key))
+      .map((key) => {
+        const existingRatingEntry = ratingEntryMap.get(key);
+        const skillName =
+          existingRatingEntry?.category ||
+          this.resumeSkills().find((s) => this.normalizeKey(s) === key) ||
+          this.titleCase(key);
+        const quizMetrics = performanceMap.get(key);
 
-      const selfRating = ratingMap.get(key) || 0;
-      const quizRating = quizRatingMap.get(key) || 0;
-      const quizScore = quizMetrics ? Math.round(quizMetrics.score / quizMetrics.attempts) : 0;
-      const attempts = quizMetrics?.attempts || 0;
+        const selfRating = existingRatingEntry ? existingRatingEntry.rating : 0;
+        const quizRating = quizRatingMap.get(key) || 0;
+        const quizScore = quizMetrics ? Math.round(quizMetrics.score / quizMetrics.attempts) : 0;
+        const attempts = quizMetrics?.attempts || 0;
+        const isFromResume = resumeSkillKeys.has(key);
 
-      let alignment: 'High Match' | 'Underestimating' | 'Overestimating' | 'Needs Quiz' = 'Needs Quiz';
-      if (quizRating > 0 && selfRating > 0) {
-        const diff = selfRating - quizRating;
-        if (Math.abs(diff) <= 0.5) {
-          alignment = 'High Match';
-        } else if (diff < -0.5) {
-          alignment = 'Underestimating';
-        } else {
-          alignment = 'Overestimating';
+        // Determine rating source: SYSTEM vs SELF vs UNRATED
+        let ratingSource: 'SELF' | 'SYSTEM' | 'UNRATED' = 'UNRATED';
+        if (existingRatingEntry) {
+          const typeUpper = (existingRatingEntry.type || '').toUpperCase();
+          if (typeUpper === 'SYSTEM' || typeUpper === 'RESUME') {
+            ratingSource = 'SYSTEM';
+          } else if (typeUpper === 'SELF') {
+            ratingSource = 'SELF';
+          } else {
+            ratingSource = 'SELF';
+          }
+        } else if (isFromResume) {
+          ratingSource = 'SYSTEM';
         }
-      }
 
-      return {
-        skill: skillName,
-        selfRating,
-        quizScore,
-        quizRating,
-        attempts,
-        alignment,
-      };
-    });
+        let alignment: 'High Match' | 'Underestimating' | 'Overestimating' | 'Needs Quiz' = 'Needs Quiz';
+        if (quizRating > 0 && selfRating > 0) {
+          const diff = selfRating - quizRating;
+          if (Math.abs(diff) <= 0.5) {
+            alignment = 'High Match';
+          } else if (diff < -0.5) {
+            alignment = 'Underestimating';
+          } else {
+            alignment = 'Overestimating';
+          }
+        }
+
+        return {
+          skill: skillName,
+          selfRating,
+          quizScore,
+          quizRating,
+          attempts,
+          alignment,
+          isFromResume,
+          ratingSource,
+        };
+      });
   });
 
   readonly filteredSkillPerformanceRows = computed(() => {
     const query = this.searchQuery().toLowerCase().trim();
-    const rows = this.skillPerformanceRows();
+    const filter = this.selectedFilter();
+    let rows = this.skillPerformanceRows();
+
+    if (filter === 'resume') {
+      rows = rows.filter((r) => r.isFromResume);
+    } else if (filter === 'match') {
+      rows = rows.filter((r) => r.alignment === 'High Match');
+    } else if (filter === 'needs-quiz') {
+      rows = rows.filter((r) => r.alignment === 'Needs Quiz');
+    }
+
     if (!query) return rows;
     return rows.filter((row) => row.skill.toLowerCase().includes(query));
   });
@@ -208,7 +285,7 @@ export class SkillRate implements OnInit {
     const unrated = rows.filter((r) => r.selfRating === 0).length;
 
     return {
-      labels: ['Expert (4-5★)', 'Proficient (3★)', 'Developing (1-2★)', 'Quiz-Only'],
+      labels: ['Expert (4-5★)', 'Proficient (3★)', 'Developing (1-2★)', 'Unrated'],
       datasets: [
         {
           data: [expert, proficient, developing, unrated],
@@ -275,11 +352,16 @@ export class SkillRate implements OnInit {
   };
 
   ngOnInit(): void {
+    this.resumeParserService.loadSavedResume();
     void this.loadData();
   }
 
   selectQuickSkill(skill: string): void {
     this.selectedSkill.set(skill);
+  }
+
+  setFilter(filter: 'all' | 'resume' | 'match' | 'needs-quiz'): void {
+    this.selectedFilter.set(filter);
   }
 
   onClickAdd(): void {
@@ -290,9 +372,27 @@ export class SkillRate implements OnInit {
       return;
     }
 
+    this.updateRatingDirectly(skill, rating);
+
+    this.availableSkills.update((skills) => (skills.includes(skill) ? skills : [...skills, skill]));
+    this.selectedSkill.set('');
+    this.selectedRating.set(null);
+  }
+
+  updateRatingDirectly(skillName: string, newRating: number): void {
+    const key = this.normalizeKey(skillName);
+    
+    // Clear from deleted skills set if re-adding/updating
+    if (this.deletedSkillNames().has(key)) {
+      const updatedSet = new Set(this.deletedSkillNames());
+      updatedSet.delete(key);
+      this.deletedSkillNames.set(updatedSet);
+      this.saveDeletedSkillsToStorage(updatedSet);
+    }
+
     const nextEntry: Rating = {
-      category: skill,
-      rating,
+      category: skillName,
+      rating: newRating,
       type: 'SELF',
     };
 
@@ -303,24 +403,218 @@ export class SkillRate implements OnInit {
         this.gamificationService.recordActivity('skill');
         this.messageService.add({
           severity: 'success',
-          summary: 'Rating Saved',
-          detail: `Rating for ${skill} updated to ${rating}/5`,
+          summary: 'Rating Updated',
+          detail: `Rating for ${skillName} updated to ${newRating}/5 ⭐ (Self-Assessed)`,
         });
         this.skillRatings.update((entries) => {
           const updatedEntries = entries.filter(
-            (entry) => entry.category !== skill || entry.type?.toLowerCase() !== 'self',
+            (entry) => this.normalizeKey(entry.category) !== key
           );
           return [...updatedEntries, nextEntry];
         });
       },
       error: (error) => {
-        this.messageService.add({ severity: 'error', summary: 'Error', detail: error.message });
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Update Failed',
+          detail: error?.error?.message || error.message || 'Could not update rating.',
+        });
       },
     });
+  }
 
-    this.availableSkills.update((skills) => (skills.includes(skill) ? skills : [...skills, skill]));
-    this.selectedSkill.set('');
-    this.selectedRating.set(null);
+  openEditModal(row: SkillPerformanceRow): void {
+    this.editingSkillOldName.set(row.skill);
+    this.editingSkillNewName.set(row.skill);
+    this.editingSkillRating.set(row.selfRating || 3);
+    this.showEditModal.set(true);
+  }
+
+  saveEdit(): void {
+    const oldName = this.editingSkillOldName().trim();
+    const newName = this.editingSkillNewName().trim();
+    const rating = this.editingSkillRating();
+
+    if (!newName) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Validation Error',
+        detail: 'Skill name cannot be empty.',
+      });
+      return;
+    }
+
+    this.isSavingEdit.set(true);
+    const oldKey = this.normalizeKey(oldName);
+    const newKey = this.normalizeKey(newName);
+
+    const nextEntry: Rating = {
+      category: newName,
+      rating,
+      type: 'SELF',
+    };
+
+    const deletePromise = (oldKey !== newKey && oldName)
+      ? lastValueFrom(this.ratingApiService.deleteSelfRating(oldName)).catch(() => {})
+      : Promise.resolve();
+
+    deletePromise.then(() => {
+      this.ratingApiService.createorUpdateSelfRating(nextEntry).pipe(
+        takeUntilDestroyed(this.destroyRef)
+      ).subscribe({
+        next: () => {
+          this.gamificationService.recordActivity('skill');
+          this.messageService.add({
+            severity: 'success',
+            summary: 'Skill Updated',
+            detail: `Updated "${newName}" to ${rating}/5 ⭐ (Self-Assessed)`,
+          });
+
+          // Un-delete if new key was previously deleted
+          if (this.deletedSkillNames().has(newKey)) {
+            const updatedSet = new Set(this.deletedSkillNames());
+            updatedSet.delete(newKey);
+            this.deletedSkillNames.set(updatedSet);
+            this.saveDeletedSkillsToStorage(updatedSet);
+          }
+
+          this.skillRatings.update((entries) => {
+            const filtered = entries.filter(
+              (e) => this.normalizeKey(e.category) !== oldKey && this.normalizeKey(e.category) !== newKey
+            );
+            return [...filtered, nextEntry];
+          });
+
+          this.availableSkills.update((skills) => {
+            const filtered = skills.filter((s) => this.normalizeKey(s) !== oldKey);
+            return filtered.includes(newName) ? filtered : [...filtered, newName];
+          });
+
+          this.showEditModal.set(false);
+          this.isSavingEdit.set(false);
+        },
+        error: (err) => {
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Update Failed',
+            detail: err?.error?.message || err.message || 'Could not update skill.',
+          });
+          this.isSavingEdit.set(false);
+        },
+      });
+    });
+  }
+
+  confirmDelete(skillName: string): void {
+    this.skillToDelete.set(skillName);
+    this.showDeleteConfirm.set(true);
+  }
+
+  executeDelete(): void {
+    const skill = this.skillToDelete();
+    if (!skill) return;
+
+    this.isDeleting.set(true);
+    const key = this.normalizeKey(skill);
+
+    this.ratingApiService.deleteSelfRating(skill).pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe({
+      next: () => {
+        this.finishDeleteSkill(skill, key);
+      },
+      error: () => {
+        // Remove locally even if backend rating wasn't saved yet
+        this.finishDeleteSkill(skill, key);
+      },
+    });
+  }
+
+  private finishDeleteSkill(skill: string, key: string): void {
+    this.messageService.add({
+      severity: 'info',
+      summary: 'Skill Removed',
+      detail: `Skill "${skill}" removed from your matrix.`,
+    });
+
+    this.skillRatings.update((entries) =>
+      entries.filter((entry) => this.normalizeKey(entry.category) !== key)
+    );
+
+    const updatedSet = new Set(this.deletedSkillNames());
+    updatedSet.add(key);
+    this.deletedSkillNames.set(updatedSet);
+    this.saveDeletedSkillsToStorage(updatedSet);
+
+    this.availableSkills.update((skills) =>
+      skills.filter((s) => this.normalizeKey(s) !== key)
+    );
+
+    this.showDeleteConfirm.set(false);
+    this.skillToDelete.set(null);
+    this.isDeleting.set(false);
+  }
+
+  cancelDelete(): void {
+    this.showDeleteConfirm.set(false);
+    this.skillToDelete.set(null);
+  }
+
+  syncResumeSkills(): void {
+    const extracted = this.rawResumeSkills();
+    if (!extracted.length) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'No Resume Data',
+        detail: 'Upload a resume first to extract skills.',
+      });
+      return;
+    }
+
+    let addedCount = 0;
+    const existingKeys = new Set(this.skillRatings().map((r) => this.normalizeKey(r.category)));
+    const deletedSet = new Set(this.deletedSkillNames());
+
+    for (const skill of extracted) {
+      const key = this.normalizeKey(skill);
+      // Remove from deleted set so user can sync them back
+      if (deletedSet.has(key)) {
+        deletedSet.delete(key);
+      }
+
+      if (!existingKeys.has(key)) {
+        addedCount++;
+        const nextEntry: Rating = { category: skill, rating: 4, type: 'SYSTEM' };
+        this.ratingApiService.createorUpdateSelfRating(nextEntry).pipe(
+          takeUntilDestroyed(this.destroyRef)
+        ).subscribe({
+          next: () => {
+            this.skillRatings.update((prev) => [...prev, nextEntry]);
+          },
+        });
+      }
+    }
+
+    this.deletedSkillNames.set(deletedSet);
+    this.saveDeletedSkillsToStorage(deletedSet);
+
+    if (addedCount > 0) {
+      this.messageService.add({
+        severity: 'success',
+        summary: 'Resume Skills Synced',
+        detail: `Added ${addedCount} skill(s) extracted from your resume as System-rated.`,
+      });
+    } else {
+      this.messageService.add({
+        severity: 'info',
+        summary: 'Already Synced',
+        detail: 'All extracted resume skills are present in your ratings matrix.',
+      });
+    }
+  }
+
+  takeQuiz(skillName: string): void {
+    this.router.navigate(['/quiz'], { queryParams: { category: skillName } });
   }
 
   getAlignmentBadgeClass(alignment: string): string {
@@ -357,9 +651,15 @@ export class SkillRate implements OnInit {
         lastValueFrom(this.quizApiService.getQuizAttempts()),
       ]);
 
-      const selfRatings = ratings.filter((entry: Rating) => entry.type?.toLowerCase() === 'self');
+      const selfRatings = ratings.filter((entry: Rating) =>
+        entry.type?.toLowerCase() === 'self' || entry.type?.toLowerCase() === 'system' || entry.type?.toLowerCase() === 'resume'
+      );
       const skillNames = Array.from(
-        new Set([...selfRatings.map((entry: Rating) => entry.category), ...this.availableSkills()]),
+        new Set([
+          ...selfRatings.map((entry: Rating) => entry.category),
+          ...this.resumeSkills(),
+          ...this.availableSkills(),
+        ]),
       ).filter(Boolean);
 
       this.skillRatings.set(selfRatings);
@@ -368,6 +668,23 @@ export class SkillRate implements OnInit {
     } catch (error) {
       console.error('Unable to load rating data', error);
     }
+  }
+
+  private loadDeletedSkillsFromStorage(): Set<string> {
+    try {
+      const raw = localStorage.getItem('mordenec_deleted_skills');
+      if (raw) {
+        const arr = JSON.parse(raw);
+        return new Set(arr.map((s: string) => this.normalizeKey(s)));
+      }
+    } catch {}
+    return new Set();
+  }
+
+  private saveDeletedSkillsToStorage(set: Set<string>): void {
+    try {
+      localStorage.setItem('mordenec_deleted_skills', JSON.stringify(Array.from(set)));
+    } catch {}
   }
 
   private normalizeKey(value: string): string {

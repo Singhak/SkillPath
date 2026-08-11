@@ -28,7 +28,7 @@
 
             <button type="button" (click)="openFlashcards()"
                 class="relative px-4 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-xs flex items-center space-x-2 shadow-lg shadow-purple-500/20 transition-all active:scale-95">
-                @if (authService.currentPlan() !== 'Gold') {
+                @if (!authService.hasMinPlan('Gold')) {
                     <span class="absolute -top-2 -right-2 bg-rose-500 rounded-full w-5 h-5 flex items-center justify-center border border-white text-[10px]">
                         <i class="pi pi-lock"></i>
                     </span>

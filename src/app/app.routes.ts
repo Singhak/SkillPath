@@ -74,6 +74,20 @@ export const routes: Routes = [
       import('./feature/login/sign-up-component/sign-up-component').then((m) => m.SignUpComponent),
   },
   {
+    path: 'forgot-password',
+    loadComponent: () =>
+      import('./feature/login/forgot-password/forgot-password.component').then(
+        (m) => m.ForgotPasswordComponent
+      ),
+  },
+  {
+    path: 'reset-password',
+    loadComponent: () =>
+      import('./feature/login/reset-password/reset-password.component').then(
+        (m) => m.ResetPasswordComponent
+      ),
+  },
+  {
     path: 'help',
     loadComponent: () => import('./feature/help/help.component').then((m) => m.HelpComponent),
   },

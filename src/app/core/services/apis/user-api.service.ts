@@ -9,6 +9,11 @@ export class UserApiService {
   private readonly http = inject(HttpClient);
   private readonly apiUrl = `${environment.apiUrl}/users`;
 
+  getUser(userId: number | string): Observable<User> {
+    const url = `${this.apiUrl}/${userId}`;
+    return this.http.get<User>(url);
+  }
+
   updateUser(userId: number | string, user: Partial<User>): Observable<User> {
     const url = `${this.apiUrl}/${userId}`;
     return this.http.put<User>(url, user);

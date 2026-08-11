@@ -1,338 +1,535 @@
-<p-panel header="Job Description" toggleable>
-  <div class="p-4 sm:p-6 lg:p-8 grid md:grid-cols-2 gap-8" [formGroup]="form">
-    <!-- Left Column for JD Input -->
-    <div class="space-y-5">
-      <div class="grid grid-cols gap-4">
-        <div (click)="changeMode('text')" class="cursor-pointer rounded-3xl border-2 p-6 transition-all duration-300"
-          [ngClass]="{
-            'border-indigo-600 bg-indigo-50 shadow-lg': mode() === 'text',
-            'border-slate-200 hover:border-indigo-300': mode() !== 'text',
-          }">
-          <div class="w-14 h-14 rounded-2xl bg-indigo-100 flex items-center justify-center">
-            <i class="pi pi-file-edit text-2xl text-indigo-600"></i>
-          </div>
-          <h3 class="mt-5 font-semibold text-lg">Write Job Description</h3>
-          <p class="text-slate-500 mt-2 text-sm">Paste the complete JD.</p>
-        </div>
-        <!-- //TODO -->
-        <!-- <div
-          (click)="changeMode('upload')"
-          class="cursor-pointer rounded-3xl border-2 p-6 transition-all duration-300"
-          [ngClass]="{
-            'border-indigo-600 bg-indigo-50 shadow-lg': mode() === 'upload',
-            'border-slate-200 hover:border-indigo-300': mode() !== 'upload',
-          }"
-        >
-          <div class="w-14 h-14 rounded-2xl bg-indigo-100 flex items-center justify-center">
-            <i class="pi pi-cloud-upload text-2xl text-indigo-600"></i>
-          </div>
-          <h3 class="mt-5 font-semibold text-lg">Upload Document</h3>
-          <p class="text-slate-500 mt-2 text-sm">Upload a DOCX or PDF file.</p>
-        </div> -->
-      </div>
-
-      @if (mode() === 'text') {
-      <label for="jobDescriptionTextarea" class="sr-only">Job Description</label>
-      <textarea id="jobDescriptionTextarea" pInputTextarea class="w-full h-96 rounded-3xl" formControlName="jobDescription"
-        placeholder="Paste your job description here..." rows="16"></textarea>
-      } @else {
-      @if (!selectedFile()) {
-      <div role="button" tabindex="0" (click)="fileInput.click()" (keydown.enter)="fileInput.click()" aria-label="Upload job description document"
-        class="rounded-3xl border-2 border-dashed border-slate-300 h-96 hover:border-indigo-500 hover:bg-indigo-50 transition-all flex flex-col justify-center items-center cursor-pointer">
-        <input #fileInput type="file" hidden (change)="onFileSelected($event)" accept=".pdf,.doc,.docx" />
-        <i class="pi pi-cloud-upload text-7xl text-indigo-600"></i>
-        <h2 class="mt-6 text-2xl font-bold">Drag & Drop</h2>
-        <p class="text-slate-500 mt-2">or click to browse</p>
-        <p-button type="button" label="Choose File" styleClass="mt-8"
-          (click)="$event.stopPropagation(); fileInput.click()"></p-button>
-      </div>
-      } @else {
+<div class="p-3 sm:p-6 lg:p-4 max-w-8xl mx-auto space-y-6">
+  <!-- Active Resume Banner -->
+  <div
+    class="p-4 sm:p-5 rounded-3xl bg-slate-900 text-white shadow-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border border-slate-800">
+    <div class="flex items-center gap-4">
       <div
-        class="rounded-3xl border-2 border-indigo-200 bg-indigo-50 h-96 p-6 flex flex-col justify-center items-center text-center">
-        <i class="pi pi-file-check text-7xl text-indigo-600"></i>
-        <h3 class="mt-5 font-semibold text-lg">File Selected</h3>
-        <p class="text-slate-600 mt-2 text-sm font-medium break-all">
-          {{ selectedFile()?.name }}
-        </p>
-        <p class="text-slate-500 text-xs mt-1">
-          {{ (selectedFile()?.size || 0) / 1024 | number: '1.0-2' }} KB
-        </p>
-        <p-button (click)="removeFile()" label="Remove File" severity="danger" [text]="true"
-          styleClass="mt-6"></p-button>
+        class="w-12 h-12 rounded-2xl bg-indigo-600/30 border border-indigo-500/40 flex items-center justify-center text-indigo-400 shrink-0">
+        <i class="pi pi-file text-2xl"></i>
       </div>
-      }
-      }
-    </div>
-
-    <!-- Right Column for Steps, Stats, and Tip -->
-    <div class="flex flex-col space-y-8">
-      <div class="space-y-5">
-        @for (step of stepstoFollow; track step) {
-        <div class="flex items-center gap-3">
-          <i class="pi pi-check-circle text-green-500"></i>
-          <span>{{ step }}</span>
+      <div>
+        @if (resumeService.parsedResume(); as resume) {
+        <div class="flex items-center gap-2 flex-wrap">
+          <span class="font-bold text-base text-white">{{ resume.candidateName || resume.fileName || 'Candidate Resume'
+            }}</span>
+          <span
+            class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">Active
+            Candidate Resume</span>
+          @if (resume.atsScore) {
+          <span
+            class="px-2 py-0.5 rounded-full text-xs bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">ATS
+            Score: {{ resume.atsScore }}/100</span>
+          }
         </div>
+        <div class="text-xs text-slate-300 mt-1 flex flex-wrap items-center gap-3">
+          <span><i class="pi pi-briefcase text-indigo-400 mr-1"></i> {{ resume.experienceYears }} Yrs Exp ({{
+            resume.experienceLevel || 'Mid-Level' }})</span>
+          <span><i class="pi pi-cog text-indigo-400 mr-1"></i> {{ resume.extractedSkills.slice(0, 6).join(', ')
+            }}</span>
+        </div>
+        } @else {
+        <div class="font-semibold text-slate-200">No active resume parsed yet</div>
+        <div class="text-xs text-slate-400">Your profile skills and experience will automatically match against job
+          descriptions here once uploaded.</div>
         }
       </div>
-      <div class="grid grid-cols-3 gap-4">
-        <span>
-          <label for="experienceLevelInput" class="font-semibold"> Experience Level </label>
-          <p-autoComplete inputId="experienceLevelInput" formControlName="experienceLevel" [suggestions]="filteredExperienceLevels"
-            (completeMethod)="search($event, experienceLevels, 'experienceLevel')" [dropdown]="true"
-            placeholder="Experience Level" class="w-full" appendTo="body"></p-autoComplete>
-        </span>
-        <span>
-          <label for="userRoleInput" class="font-semibold"> Role </label>
-          <p-autoComplete inputId="userRoleInput" formControlName="userRole" [suggestions]="filteredUserRoles"
-            (completeMethod)="search($event, userRoles, 'userRole')" [dropdown]="true" placeholder="Role"
-            class="w-full" appendTo="body"></p-autoComplete>
-        </span>
-        <span>
-          <label for="jobQuestionCountSelect" class="font-semibold">Number of questions</label>
-          <p-select inputId="jobQuestionCountSelect" class="w-full" formControlName="questionCount"
-            [options]="questionCountOptions" appendTo="body" />
-        </span>
+    </div>
+    <div class="flex items-center gap-2 shrink-0">
+      <button type="button" pButton label="Analyze Job Fit & Gaps" icon="pi pi-chart-bar"
+        class="p-button-outlined p-button-sm text-indigo-300 border-indigo-500/50 hover:bg-indigo-600/20 font-semibold"
+        (click)="analyzeJobFit()" [loading]="isAnalyzingFit()"></button>
+    </div>
+  </div>
+
+  <p-panel header="Job Description & AI Fit Evaluation" toggleable>
+    <div class="p-4 sm:p-6 lg:p-8 grid md:grid-cols-2 gap-8" [formGroup]="form">
+      <!-- Left Column for JD Input -->
+      <div class="space-y-5">
+        <div class="grid grid-cols gap-4">
+          <div (click)="changeMode('text')" class="cursor-pointer rounded-3xl border-2 p-6 transition-all duration-300"
+            [ngClass]="{
+            'border-indigo-600 dark:border-indigo-500 bg-indigo-50 dark:bg-indigo-950/40 shadow-lg': mode() === 'text',
+            'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 hover:border-indigo-300 dark:hover:border-indigo-600': mode() !== 'text',
+          }">
+            <div class="w-14 h-14 rounded-2xl bg-indigo-100 dark:bg-indigo-900/50 flex items-center justify-center">
+              <i class="pi pi-file-edit text-2xl text-indigo-600 dark:text-indigo-400"></i>
+            </div>
+            <h3 class="mt-5 font-semibold text-lg !text-slate-900 dark:!text-slate-100">Write Job Description</h3>
+            <p class="text-slate-500 dark:text-slate-400 mt-2 text-sm">Paste the complete JD to calculate your match
+              score and lacking areas.</p>
+          </div>
+        </div>
+
+        @if (mode() === 'text') {
+        <label for="jobDescriptionTextarea" class="sr-only">Job Description</label>
+        <textarea id="jobDescriptionTextarea" pInputTextarea class="w-full h-96 rounded-3xl"
+          formControlName="jobDescription" placeholder="Paste your job description here..." rows="16"></textarea>
+        } @else {
+        @if (!selectedFile()) {
+        <div role="button" tabindex="0" (click)="fileInput.click()" (keydown.enter)="fileInput.click()"
+          aria-label="Upload job description document"
+          class="rounded-3xl border-2 border-dashed border-slate-300 dark:border-slate-700 h-96 hover:border-indigo-500 dark:hover:border-indigo-400 bg-white dark:bg-slate-900/60 hover:bg-indigo-50 dark:hover:bg-indigo-950/30 transition-all flex flex-col justify-center items-center cursor-pointer">
+          <input #fileInput type="file" hidden (change)="onFileSelected($event)" accept=".pdf,.doc,.docx" />
+          <i class="pi pi-cloud-upload text-7xl text-indigo-600 dark:text-indigo-400"></i>
+          <h2 class="mt-6 text-2xl font-bold text-slate-900 dark:text-slate-100">Drag & Drop</h2>
+          <p class="text-slate-500 dark:text-slate-400 mt-2">or click to browse</p>
+          <p-button type="button" label="Choose File" styleClass="mt-8"
+            (click)="$event.stopPropagation(); fileInput.click()"></p-button>
+        </div>
+        } @else {
+        <div
+          class="rounded-3xl border-2 border-indigo-200 dark:border-indigo-900 bg-indigo-50 dark:bg-indigo-950/40 h-96 p-6 flex flex-col justify-center items-center text-center">
+          <i class="pi pi-file-check text-7xl text-indigo-600 dark:text-indigo-400"></i>
+          <h3 class="mt-5 font-semibold text-lg text-slate-900 dark:text-slate-100">File Selected</h3>
+          <p class="text-slate-600 dark:text-slate-300 mt-2 text-sm font-medium break-all">
+            {{ selectedFile()?.name }}
+          </p>
+          <p class="text-slate-500 dark:text-slate-400 text-xs mt-1">
+            {{ (selectedFile()?.size || 0) / 1024 | number: '1.0-2' }} KB
+          </p>
+          <p-button (click)="removeFile()" label="Remove File" severity="danger" [text]="true"
+            styleClass="mt-6"></p-button>
+        </div>
+        }
+        }
       </div>
-      @if (authService.currentPlan() === 'Silver') {
-        <div class="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+
+      <!-- Right Column for Steps, Stats, and Actions -->
+      <div class="flex flex-col space-y-8">
+        <div class="space-y-5">
+          @for (step of stepstoFollow; track step) {
+          <div class="flex items-center gap-3">
+            <i class="pi pi-check-circle text-green-500"></i>
+            <span class="text-slate-700 dark:text-slate-300">{{ step }}</span>
+          </div>
+          }
+        </div>
+        <div class="grid grid-cols-3 gap-4">
+          <span>
+            <label for="experienceLevelInput" class="font-semibold text-slate-800 dark:text-slate-200"> Experience Level
+            </label>
+            <p-autoComplete inputId="experienceLevelInput" formControlName="experienceLevel"
+              [suggestions]="filteredExperienceLevels"
+              (completeMethod)="search($event, experienceLevels, 'experienceLevel')" [dropdown]="true"
+              placeholder="Experience Level" class="w-full" appendTo="body"></p-autoComplete>
+          </span>
+          <span>
+            <label for="userRoleInput" class="font-semibold text-slate-800 dark:text-slate-200"> Role </label>
+            <p-autoComplete inputId="userRoleInput" formControlName="userRole" [suggestions]="filteredUserRoles"
+              (completeMethod)="search($event, userRoles, 'userRole')" [dropdown]="true" placeholder="Role"
+              class="w-full" appendTo="body"></p-autoComplete>
+          </span>
+          <span>
+            <label for="jobQuestionCountSelect" class="font-semibold text-slate-800 dark:text-slate-200">Number of
+              questions</label>
+            <p-select inputId="jobQuestionCountSelect" class="w-full" formControlName="questionCount"
+              [options]="questionCountOptions" appendTo="body" />
+          </span>
+        </div>
+        @if (!authService.hasMinPlan('Copper')) {
+        <div
+          class="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
           <div class="flex items-center space-x-3">
-            <div class="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center font-bold shrink-0">
+            <div
+              class="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center font-bold shrink-0">
               <i class="pi pi-lock text-lg"></i>
             </div>
             <div>
               <div class="font-bold text-amber-600 dark:text-amber-300 text-sm">Copper Plan Required</div>
-              <div class="text-xs text-slate-600 dark:text-slate-400">Job Profile Analysis & Question Generation requires at least the Copper plan.</div>
+              <div class="text-xs text-slate-600 dark:text-slate-400">Job Profile Analysis & Question Generation
+                requires at least the Copper plan.</div>
             </div>
           </div>
-          <button type="button" pButton label="Upgrade Plan" icon="pi pi-arrow-up-right" class="p-button-warning p-button-sm text-xs font-semibold shrink-0" (click)="navigateToPricing()"></button>
+          <button type="button" pButton label="Upgrade Plan" icon="pi pi-arrow-up-right"
+            class="p-button-warning p-button-sm text-xs font-semibold shrink-0" (click)="navigateToPricing()"></button>
         </div>
-      }
-      <button type="button" pButton class="w-full h-14 text-lg font-semibold"
-        [label]="authService.currentPlan() === 'Silver' ? 'Upgrade to Copper Plan to Generate AI Questions' : ('Generate AI Questions (⚡ ' + estimatedCredits + ' Credits)')"
-        [icon]="authService.currentPlan() === 'Silver' ? 'pi pi-lock' : 'pi pi-sparkles'"
-        iconPos="right"
-        (click)="generateQuestions()"
-        [disabled]="(mode() === 'text' && form.invalid) || loading()"
-        [loading]="loading()">
-      </button>
-      <div class="grid grid-cols-2 gap-4">
-        <div class="rounded-2xl bg-slate-50 p-5">
-          <div class="text-3xl font-bold text-indigo-600">10+</div>
-          <div class="text-sm text-slate-500">Question Types</div>
+        }
+
+        <div class="flex flex-col sm:flex-row gap-3">
+          <button type="button" pButton class="flex-1 h-14 text-base font-semibold p-button-outlined"
+            label="Analyze Fit & Lacking Skills" icon="pi pi-chart-bar" (click)="analyzeJobFit()"
+            [loading]="isAnalyzingFit()" [disabled]="!form.get('jobDescription')?.value">
+          </button>
+
+          <button type="button" pButton class="flex-1 h-14 text-base font-semibold"
+            [label]="!authService.hasMinPlan('Copper') ? 'Upgrade Plan' : ('Generate AI Questions (⚡ ' + estimatedCredits + ' Credits)')"
+            [icon]="!authService.hasMinPlan('Copper') ? 'pi pi-lock' : 'pi pi-sparkles'" iconPos="right"
+            (click)="generateQuestions()" [disabled]="(mode() === 'text' && form.invalid) || loading()"
+            [loading]="loading()">
+          </button>
         </div>
-        <div class="rounded-2xl bg-slate-50 p-5">
-          <div class="text-3xl font-bold text-green-600">AI</div>
-          <div class="text-sm text-slate-500">Powered</div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div
+            class="rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/50 dark:border-slate-700/60 p-5">
+            <div class="text-3xl font-bold text-indigo-600 dark:text-indigo-400">10+</div>
+            <div class="text-sm text-slate-500 dark:text-slate-400">Question Types</div>
+          </div>
+          <div
+            class="rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/50 dark:border-slate-700/60 p-5">
+            <div class="text-3xl font-bold text-green-600 dark:text-green-400">AI</div>
+            <div class="text-sm text-slate-500 dark:text-slate-400">Powered Matching</div>
+          </div>
         </div>
-      </div>
-      <div class="rounded-2xl bg-indigo-50 p-5">
-        <div class="flex gap-3">
-          <i class="pi pi-lightbulb text-indigo-600 mt-1"></i>
-          <div>
-            <div class="font-semibold">AI Tip</div>
-            <div class="text-sm text-slate-500">
-              The more detailed your Job Description, the more relevant interview questions will be
-              generated.
+        <div
+          class="rounded-2xl bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-100 dark:border-indigo-900/50 p-5">
+          <div class="flex gap-3">
+            <i class="pi pi-lightbulb text-indigo-600 dark:text-indigo-400 mt-1"></i>
+            <div>
+              <div class="font-semibold text-indigo-950 dark:text-indigo-200">AI Fit Insight</div>
+              <div class="text-sm text-slate-600 dark:text-slate-300">
+                Paste the complete Job Description above and click "Analyze Fit & Lacking Skills" to see how well your
+                active resume fits the job requirements before generating questions.
+              </div>
             </div>
           </div>
         </div>
       </div>
     </div>
-  </div>
-</p-panel>
-<div class="mt-8 bg-white rounded-3xl border border-slate-200 shadow-sm p-6 sm:p-8 space-y-6">
-  <!-- Header Section with Title, Subtitle and Action Buttons -->
-  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100">
-    <div class="flex items-center gap-3">
-      <div class="w-12 h-12 rounded-2xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600 shadow-xs">
-        <i class="pi pi-list-check text-xl"></i>
+  </p-panel>
+
+  <!-- Job Fit & Gap Dashboard -->
+  @if (jobFitResult(); as fit) {
+  <div
+    class="rounded-3xl bg-gradient-to-br from-slate-900 via-slate-800 to-indigo-950 text-white p-6 sm:p-8 shadow-2xl border border-indigo-500/30 space-y-6">
+    <!-- Top Row: Score + Seniority + Quick Stats -->
+    <div
+      class="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 pb-6 border-b border-slate-700/60">
+      <div class="flex items-center gap-5">
+        <div
+          class="relative w-20 h-20 rounded-2xl bg-indigo-600/30 border-2 border-indigo-400 flex flex-col items-center justify-center text-center shadow-lg shrink-0">
+          <span class="text-2xl font-black text-white leading-none">{{ fit.fitScore }}%</span>
+          <span class="text-[10px] font-bold tracking-wider uppercase text-indigo-300 mt-1">FIT SCORE</span>
+        </div>
+        <div>
+          <div class="flex items-center gap-3 flex-wrap">
+            <h3 class="text-xl font-bold text-white">Job Profile Compatibility</h3>
+            <span class="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider" [ngClass]="{
+                'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40': fit.verdict === 'Strong Match',
+                'bg-indigo-500/20 text-indigo-300 border border-indigo-500/40': fit.verdict === 'Good Fit',
+                'bg-amber-500/20 text-amber-300 border border-amber-500/40': fit.verdict === 'Moderate Match',
+                'bg-rose-500/20 text-rose-300 border border-rose-500/40': fit.verdict === 'Gap Identified'
+              }">
+              {{ fit.verdict }}
+            </span>
+          </div>
+          <p class="text-slate-300 text-sm mt-1">
+            Seniority Alignment: <strong class="text-white">{{ fit.seniorityMatch }}</strong> • ATS Keyword Overlap:
+            <strong class="text-indigo-300">{{ fit.atsKeywordMatchPercentage }}%</strong>
+          </p>
+        </div>
       </div>
-      <div>
-        <h2 class="text-xl font-bold text-slate-800 tracking-tight">Generated Questions</h2>
-        <p class="text-xs sm:text-sm text-slate-500">Review, practice, or export AI-generated interview questions</p>
+
+      <div class="flex items-center gap-3 text-xs bg-slate-800/80 p-3 rounded-2xl border border-slate-700 shrink-0">
+        <div class="text-center px-3 border-r border-slate-700">
+          <div class="text-emerald-400 font-bold text-lg">{{ fit.matchedSkills.length }}</div>
+          <div class="text-slate-400">Matched Skills</div>
+        </div>
+        <div class="text-center px-3 border-r border-slate-700">
+          <div class="text-rose-400 font-bold text-lg">{{ fit.missingSkills.length }}</div>
+          <div class="text-slate-400">Missing Gaps</div>
+        </div>
+        <div class="text-center px-3">
+          <div class="text-indigo-400 font-bold text-lg">{{ fit.experienceCandidate }} / {{ fit.experienceRequired }}
+            yrs</div>
+          <div class="text-slate-400">Exp Match</div>
+        </div>
       </div>
     </div>
 
-    @if (technicalQuestions.length || behaviouralQuestions.length || scenarioQuestions.length) {
-    <div class="flex flex-wrap items-center gap-2">
-      <p-button icon="pi pi-download" (click)="exportSingleCategoryAsCsv('All')" label="Export All CSV" severity="secondary" [outlined]="true" size="small"></p-button>
-      <p-button icon="pi pi-play" label="Practice Questions" (click)="practiceGeneratedQuestions()" size="small"></p-button>
-      <p-button icon="pi pi-microphone" label="Take Mock Interview" severity="success" (click)="takeMockInterview()" size="small"></p-button>
+    <!-- 2 Column Breakdown: Matched vs Lacking Skills -->
+    <div class="grid md:grid-cols-2 gap-6">
+      <!-- Matched Skills -->
+      <div class="bg-slate-800/60 rounded-2xl p-5 border border-emerald-500/20">
+        <div class="flex items-center gap-2 font-bold text-emerald-400 text-sm mb-3">
+          <i class="pi pi-check-circle text-base"></i>
+          <span>Matched Profile Skills & Strengths</span>
+        </div>
+        <div class="flex flex-wrap gap-2">
+          @for (skill of fit.matchedSkills; track skill) {
+          <span
+            class="px-3 py-1 rounded-xl text-xs font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 flex items-center gap-1.5">
+            <i class="pi pi-check text-[10px]"></i> {{ skill }}
+          </span>
+          }
+          @if (fit.matchedSkills.length === 0) {
+          <span class="text-xs text-slate-400">No exact skill keywords matched yet.</span>
+          }
+        </div>
+        <div class="mt-4 space-y-1.5">
+          @for (s of fit.strengths; track s) {
+          <div class="text-xs text-slate-300 flex items-start gap-2">
+            <i class="pi pi-thumbs-up text-emerald-400 mt-0.5 shrink-0"></i>
+            <span>{{ s }}</span>
+          </div>
+          }
+        </div>
+      </div>
+
+      <!-- Missing / Lacking Skills -->
+      <div class="bg-slate-800/60 rounded-2xl p-5 border border-rose-500/20">
+        <div class="flex items-center gap-2 font-bold text-rose-400 text-sm mb-3">
+          <i class="pi pi-exclamation-triangle text-base"></i>
+          <span>Lacking Skills & Skill Gaps</span>
+        </div>
+        <div class="flex flex-wrap gap-2">
+          @for (skill of fit.missingSkills; track skill) {
+          <span
+            class="px-3 py-1 rounded-xl text-xs font-semibold bg-rose-500/20 text-rose-300 border border-rose-500/30 flex items-center gap-1.5">
+            <i class="pi pi-times text-[10px]"></i> {{ skill }}
+          </span>
+          }
+          @if (fit.missingSkills.length === 0) {
+          <span class="text-xs text-emerald-400 font-medium">Great job! No major technical skill gaps identified.</span>
+          }
+        </div>
+
+        <div class="mt-4 space-y-2">
+          @for (lack of fit.lackingAreas; track lack.title) {
+          <div class="p-3 rounded-xl bg-rose-500/10 border border-rose-500/20">
+            <div class="font-semibold text-rose-300 text-xs flex items-center justify-between">
+              <span>{{ lack.title }}</span>
+              <span class="uppercase text-[10px] px-1.5 py-0.5 rounded bg-rose-500/20 font-bold">{{ lack.severity
+                }}</span>
+            </div>
+            <p class="text-slate-300 text-xs mt-1 leading-relaxed">{{ lack.description }}</p>
+          </div>
+          }
+        </div>
+      </div>
     </div>
+
+    <!-- Targeted AI Advice Box -->
+    <div class="bg-indigo-950/60 rounded-2xl p-5 border border-indigo-500/30">
+      <div class="flex items-center gap-2 font-bold text-indigo-300 text-sm mb-3">
+        <i class="pi pi-sparkles text-amber-400"></i>
+        <span>AI Action Strategy for this Job Interview</span>
+      </div>
+      <div class="grid sm:grid-cols-2 gap-3">
+        @for (rec of fit.recommendations; track rec) {
+        <div class="flex items-start gap-2.5 text-xs text-slate-200">
+          <span
+            class="w-5 h-5 rounded-full bg-indigo-500/30 text-indigo-300 flex items-center justify-center font-bold text-[10px] shrink-0 mt-0.5">✓</span>
+          <span class="leading-relaxed">{{ rec }}</span>
+        </div>
+        }
+      </div>
+    </div>
+  </div>
+  }
+  <div
+    class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm p-6 sm:p-8 space-y-6">
+    <!-- Header Section with Title, Subtitle and Action Buttons -->
+    <div
+      class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100 dark:border-slate-800">
+      <div class="flex items-center gap-3">
+        <div
+          class="w-12 h-12 rounded-2xl bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-100 dark:border-indigo-900/50 flex items-center justify-center text-indigo-600 dark:text-indigo-400 shadow-xs">
+          <i class="pi pi-list-check text-xl"></i>
+        </div>
+        <div>
+          <h2 class="text-xl font-bold text-slate-800 dark:text-slate-100 tracking-tight">Generated Questions</h2>
+          <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400">Review, practice, or export AI-generated
+            interview questions</p>
+        </div>
+      </div>
+
+      @if (technicalQuestions.length || behaviouralQuestions.length || scenarioQuestions.length) {
+      <div class="flex flex-wrap items-center gap-2">
+        <p-button icon="pi pi-download" (click)="exportSingleCategoryAsCsv('All')" label="Export All CSV"
+          severity="secondary" [outlined]="true" size="small"></p-button>
+        <p-button icon="pi pi-play" label="Practice Questions" (click)="practiceGeneratedQuestions()"
+          size="small"></p-button>
+        <p-button icon="pi pi-microphone" label="Take Mock Interview" severity="success" (click)="takeMockInterview()"
+          size="small"></p-button>
+      </div>
+      }
+    </div>
+
+    @if (!technicalQuestions.length && !behaviouralQuestions.length && !scenarioQuestions.length) {
+    <!-- Empty State when no questions have been generated -->
+    <div class="py-14 text-center flex flex-col items-center justify-center">
+      <div
+        class="w-20 h-20 rounded-full bg-gradient-to-tr from-indigo-50 to-purple-50 dark:from-indigo-950/50 dark:to-purple-950/50 flex items-center justify-center border border-indigo-100 dark:border-indigo-900/50 mb-4 shadow-xs">
+        <i class="pi pi-sparkles text-3xl text-indigo-500 dark:text-indigo-400"></i>
+      </div>
+      <h3 class="text-lg font-bold text-slate-700 dark:text-slate-200">No Questions Generated Yet</h3>
+      <p class="text-slate-500 dark:text-slate-400 text-sm max-w-md mt-1 leading-relaxed">
+        Fill out the job details above and click <span
+          class="font-semibold text-indigo-600 dark:text-indigo-400">"Generate AI Questions"</span> to generate custom
+        technical, behavioural, and scenario-based interview questions.
+      </p>
+    </div>
+    } @else {
+    <!-- Tabs & Question Tables -->
+    <p-tabs value="Technical">
+      <p-tablist>
+        <p-tab value="Technical">
+          <div class="flex items-center gap-2 font-medium py-1">
+            <i class="pi pi-code text-indigo-600 dark:text-indigo-400"></i>
+            <span>Technical</span>
+            <span
+              class="px-2 py-0.5 text-xs font-semibold rounded-full bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 border border-indigo-100 dark:border-indigo-800/50">
+              {{ technicalQuestions.length }}
+            </span>
+          </div>
+        </p-tab>
+        <p-tab value="Behavioural">
+          <div class="flex items-center gap-2 font-medium py-1">
+            <i class="pi pi-users text-purple-600 dark:text-purple-400"></i>
+            <span>Behavioural</span>
+            <span
+              class="px-2 py-0.5 text-xs font-semibold rounded-full bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border border-purple-100 dark:border-purple-800/50">
+              {{ behaviouralQuestions.length }}
+            </span>
+          </div>
+        </p-tab>
+        <p-tab value="Scenario">
+          <div class="flex items-center gap-2 font-medium py-1">
+            <i class="pi pi-compass text-amber-600 dark:text-amber-400"></i>
+            <span>Scenario Based</span>
+            <span
+              class="px-2 py-0.5 text-xs font-semibold rounded-full bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-100 dark:border-amber-800/50">
+              {{ scenarioQuestions.length }}
+            </span>
+          </div>
+        </p-tab>
+      </p-tablist>
+
+      <p-tabpanels>
+        <!-- Technical Panel -->
+        <p-tabpanel value="Technical">
+          <div class="pt-4">
+            <p-table [value]="technicalQuestions" stripedRows [paginator]="true" [rows]="5"
+              [tableStyle]="{ 'min-width': '45rem' }" [rowsPerPageOptions]="[5, 10, 20]">
+              <ng-template pTemplate="caption">
+                <div class="flex items-center justify-between py-1">
+                  <span class="text-sm font-semibold text-slate-600 dark:text-slate-300 flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full bg-indigo-500"></span>
+                    Technical Questions
+                  </span>
+                  <p-button icon="pi pi-download" (click)="exportSingleCategoryAsCsv('Technical')" label="Export CSV"
+                    severity="secondary" [outlined]="true" size="small" [disabled]="!technicalQuestions.length" />
+                </div>
+              </ng-template>
+              <ng-template pTemplate="header">
+                <tr>
+                  <th style="width: 4rem" class="text-center">#</th>
+                  <th>Question</th>
+                  <th style="width: 10rem" class="text-center">Difficulty</th>
+                </tr>
+              </ng-template>
+              <ng-template pTemplate="body" let-question let-rowIndex="rowIndex">
+                <tr class="hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition-colors">
+                  <td class="text-center font-mono text-xs text-slate-400 dark:text-slate-500 font-semibold">{{ rowIndex
+                    + 1 }}</td>
+                  <td class="font-medium text-slate-700 dark:text-slate-200 text-sm leading-relaxed py-3">{{
+                    question.question }}</td>
+                  <td class="text-center">
+                    <p-tag [value]="question.level" [severity]="getSeverity(question.level)" [rounded]="true"></p-tag>
+                  </td>
+                </tr>
+              </ng-template>
+              <ng-template pTemplate="emptymessage">
+                <tr>
+                  <td colspan="3" class="text-center py-8 text-slate-400 dark:text-slate-500 text-sm">
+                    No technical questions generated.
+                  </td>
+                </tr>
+              </ng-template>
+            </p-table>
+          </div>
+        </p-tabpanel>
+
+        <!-- Behavioural Panel -->
+        <p-tabpanel value="Behavioural">
+          <div class="pt-4">
+            <p-table [value]="behaviouralQuestions" stripedRows [paginator]="true" [rows]="5"
+              [tableStyle]="{ 'min-width': '45rem' }" [rowsPerPageOptions]="[5, 10, 20]">
+              <ng-template pTemplate="caption">
+                <div class="flex items-center justify-between py-1">
+                  <span class="text-sm font-semibold text-slate-600 dark:text-slate-300 flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full bg-purple-500"></span>
+                    Behavioural Questions
+                  </span>
+                  <p-button icon="pi pi-download" (click)="exportSingleCategoryAsCsv('Behavioural')" label="Export CSV"
+                    severity="secondary" [outlined]="true" size="small" [disabled]="!behaviouralQuestions.length" />
+                </div>
+              </ng-template>
+              <ng-template pTemplate="header">
+                <tr>
+                  <th style="width: 4rem" class="text-center">#</th>
+                  <th>Question</th>
+                  <th style="width: 10rem" class="text-center">Difficulty</th>
+                </tr>
+              </ng-template>
+              <ng-template pTemplate="body" let-question let-rowIndex="rowIndex">
+                <tr class="hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition-colors">
+                  <td class="text-center font-mono text-xs text-slate-400 dark:text-slate-500 font-semibold">{{ rowIndex
+                    + 1 }}</td>
+                  <td class="font-medium text-slate-700 dark:text-slate-200 text-sm leading-relaxed py-3">{{
+                    question.question }}</td>
+                  <td class="text-center">
+                    <p-tag [value]="question.level" [severity]="getSeverity(question.level)" [rounded]="true"></p-tag>
+                  </td>
+                </tr>
+              </ng-template>
+              <ng-template pTemplate="emptymessage">
+                <tr>
+                  <td colspan="3" class="text-center py-8 text-slate-400 dark:text-slate-500 text-sm">
+                    No behavioural questions generated.
+                  </td>
+                </tr>
+              </ng-template>
+            </p-table>
+          </div>
+        </p-tabpanel>
+
+        <!-- Scenario Panel -->
+        <p-tabpanel value="Scenario">
+          <div class="pt-4">
+            <p-table [value]="scenarioQuestions" stripedRows [paginator]="true" [rows]="5"
+              [tableStyle]="{ 'min-width': '45rem' }" [rowsPerPageOptions]="[5, 10, 20]">
+              <ng-template pTemplate="caption">
+                <div class="flex items-center justify-between py-1">
+                  <span class="text-sm font-semibold text-slate-600 dark:text-slate-300 flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full bg-amber-500"></span>
+                    Scenario Based Questions
+                  </span>
+                  <p-button icon="pi pi-download" (click)="exportSingleCategoryAsCsv('Scenario')" label="Export CSV"
+                    severity="secondary" [outlined]="true" size="small" [disabled]="!scenarioQuestions.length" />
+                </div>
+              </ng-template>
+              <ng-template pTemplate="header">
+                <tr>
+                  <th style="width: 4rem" class="text-center">#</th>
+                  <th>Question</th>
+                  <th style="width: 10rem" class="text-center">Difficulty</th>
+                </tr>
+              </ng-template>
+              <ng-template pTemplate="body" let-question let-rowIndex="rowIndex">
+                <tr class="hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition-colors">
+                  <td class="text-center font-mono text-xs text-slate-400 dark:text-slate-500 font-semibold">{{ rowIndex
+                    + 1 }}</td>
+                  <td class="font-medium text-slate-700 dark:text-slate-200 text-sm leading-relaxed py-3">{{
+                    question.question }}</td>
+                  <td class="text-center">
+                    <p-tag [value]="question.level" [severity]="getSeverity(question.level)" [rounded]="true"></p-tag>
+                  </td>
+                </tr>
+              </ng-template>
+              <ng-template pTemplate="emptymessage">
+                <tr>
+                  <td colspan="3" class="text-center py-8 text-slate-400 dark:text-slate-500 text-sm">
+                    No scenario based questions generated.
+                  </td>
+                </tr>
+              </ng-template>
+            </p-table>
+          </div>
+        </p-tabpanel>
+      </p-tabpanels>
+    </p-tabs>
     }
   </div>
-
-  @if (!technicalQuestions.length && !behaviouralQuestions.length && !scenarioQuestions.length) {
-  <!-- Empty State when no questions have been generated -->
-  <div class="py-14 text-center flex flex-col items-center justify-center">
-    <div class="w-20 h-20 rounded-full bg-gradient-to-tr from-indigo-50 to-purple-50 flex items-center justify-center border border-indigo-100 mb-4 shadow-xs">
-      <i class="pi pi-sparkles text-3xl text-indigo-500"></i>
-    </div>
-    <h3 class="text-lg font-bold text-slate-700">No Questions Generated Yet</h3>
-    <p class="text-slate-500 text-sm max-w-md mt-1 leading-relaxed">
-      Fill out the job details above and click <span class="font-semibold text-indigo-600">"Generate AI Questions"</span> to generate custom technical, behavioural, and scenario-based interview questions.
-    </p>
-  </div>
-  } @else {
-  <!-- Tabs & Question Tables -->
-  <p-tabs value="Technical">
-    <p-tablist>
-      <p-tab value="Technical">
-        <div class="flex items-center gap-2 font-medium py-1">
-          <i class="pi pi-code text-indigo-600"></i>
-          <span>Technical</span>
-          <span class="px-2 py-0.5 text-xs font-semibold rounded-full bg-indigo-50 text-indigo-700 border border-indigo-100">
-            {{ technicalQuestions.length }}
-          </span>
-        </div>
-      </p-tab>
-      <p-tab value="Behavioural">
-        <div class="flex items-center gap-2 font-medium py-1">
-          <i class="pi pi-users text-purple-600"></i>
-          <span>Behavioural</span>
-          <span class="px-2 py-0.5 text-xs font-semibold rounded-full bg-purple-50 text-purple-700 border border-purple-100">
-            {{ behaviouralQuestions.length }}
-          </span>
-        </div>
-      </p-tab>
-      <p-tab value="Scenario">
-        <div class="flex items-center gap-2 font-medium py-1">
-          <i class="pi pi-compass text-amber-600"></i>
-          <span>Scenario Based</span>
-          <span class="px-2 py-0.5 text-xs font-semibold rounded-full bg-amber-50 text-amber-700 border border-amber-100">
-            {{ scenarioQuestions.length }}
-          </span>
-        </div>
-      </p-tab>
-    </p-tablist>
-
-    <p-tabpanels>
-      <!-- Technical Panel -->
-      <p-tabpanel value="Technical">
-        <div class="pt-4">
-          <p-table [value]="technicalQuestions" stripedRows [paginator]="true" [rows]="5"
-            [tableStyle]="{ 'min-width': '45rem' }" [rowsPerPageOptions]="[5, 10, 20]">
-            <ng-template pTemplate="caption">
-              <div class="flex items-center justify-between py-1">
-                <span class="text-sm font-semibold text-slate-600 flex items-center gap-2">
-                  <span class="w-2 h-2 rounded-full bg-indigo-500"></span>
-                  Technical Questions
-                </span>
-                <p-button icon="pi pi-download" (click)="exportSingleCategoryAsCsv('Technical')" label="Export CSV"
-                  severity="secondary" [outlined]="true" size="small" [disabled]="!technicalQuestions.length" />
-              </div>
-            </ng-template>
-            <ng-template pTemplate="header">
-              <tr>
-                <th style="width: 4rem" class="text-center">#</th>
-                <th>Question</th>
-                <th style="width: 10rem" class="text-center">Difficulty</th>
-              </tr>
-            </ng-template>
-            <ng-template pTemplate="body" let-question let-rowIndex="rowIndex">
-              <tr class="hover:bg-slate-50/80 transition-colors">
-                <td class="text-center font-mono text-xs text-slate-400 font-semibold">{{ rowIndex + 1 }}</td>
-                <td class="font-medium text-slate-700 text-sm leading-relaxed py-3">{{ question.question }}</td>
-                <td class="text-center">
-                  <p-tag [value]="question.level" [severity]="getSeverity(question.level)" [rounded]="true"></p-tag>
-                </td>
-              </tr>
-            </ng-template>
-            <ng-template pTemplate="emptymessage">
-              <tr>
-                <td colspan="3" class="text-center py-8 text-slate-400 text-sm">
-                  No technical questions generated.
-                </td>
-              </tr>
-            </ng-template>
-          </p-table>
-        </div>
-      </p-tabpanel>
-
-      <!-- Behavioural Panel -->
-      <p-tabpanel value="Behavioural">
-        <div class="pt-4">
-          <p-table [value]="behaviouralQuestions" stripedRows [paginator]="true" [rows]="5"
-            [tableStyle]="{ 'min-width': '45rem' }" [rowsPerPageOptions]="[5, 10, 20]">
-            <ng-template pTemplate="caption">
-              <div class="flex items-center justify-between py-1">
-                <span class="text-sm font-semibold text-slate-600 flex items-center gap-2">
-                  <span class="w-2 h-2 rounded-full bg-purple-500"></span>
-                  Behavioural Questions
-                </span>
-                <p-button icon="pi pi-download" (click)="exportSingleCategoryAsCsv('Behavioural')" label="Export CSV"
-                  severity="secondary" [outlined]="true" size="small" [disabled]="!behaviouralQuestions.length" />
-              </div>
-            </ng-template>
-            <ng-template pTemplate="header">
-              <tr>
-                <th style="width: 4rem" class="text-center">#</th>
-                <th>Question</th>
-                <th style="width: 10rem" class="text-center">Difficulty</th>
-              </tr>
-            </ng-template>
-            <ng-template pTemplate="body" let-question let-rowIndex="rowIndex">
-              <tr class="hover:bg-slate-50/80 transition-colors">
-                <td class="text-center font-mono text-xs text-slate-400 font-semibold">{{ rowIndex + 1 }}</td>
-                <td class="font-medium text-slate-700 text-sm leading-relaxed py-3">{{ question.question }}</td>
-                <td class="text-center">
-                  <p-tag [value]="question.level" [severity]="getSeverity(question.level)" [rounded]="true"></p-tag>
-                </td>
-              </tr>
-            </ng-template>
-            <ng-template pTemplate="emptymessage">
-              <tr>
-                <td colspan="3" class="text-center py-8 text-slate-400 text-sm">
-                  No behavioural questions generated.
-                </td>
-              </tr>
-            </ng-template>
-          </p-table>
-        </div>
-      </p-tabpanel>
-
-      <!-- Scenario Panel -->
-      <p-tabpanel value="Scenario">
-        <div class="pt-4">
-          <p-table [value]="scenarioQuestions" stripedRows [paginator]="true" [rows]="5"
-            [tableStyle]="{ 'min-width': '45rem' }" [rowsPerPageOptions]="[5, 10, 20]">
-            <ng-template pTemplate="caption">
-              <div class="flex items-center justify-between py-1">
-                <span class="text-sm font-semibold text-slate-600 flex items-center gap-2">
-                  <span class="w-2 h-2 rounded-full bg-amber-500"></span>
-                  Scenario Based Questions
-                </span>
-                <p-button icon="pi pi-download" (click)="exportSingleCategoryAsCsv('Scenario')" label="Export CSV"
-                  severity="secondary" [outlined]="true" size="small" [disabled]="!scenarioQuestions.length" />
-              </div>
-            </ng-template>
-            <ng-template pTemplate="header">
-              <tr>
-                <th style="width: 4rem" class="text-center">#</th>
-                <th>Question</th>
-                <th style="width: 10rem" class="text-center">Difficulty</th>
-              </tr>
-            </ng-template>
-            <ng-template pTemplate="body" let-question let-rowIndex="rowIndex">
-              <tr class="hover:bg-slate-50/80 transition-colors">
-                <td class="text-center font-mono text-xs text-slate-400 font-semibold">{{ rowIndex + 1 }}</td>
-                <td class="font-medium text-slate-700 text-sm leading-relaxed py-3">{{ question.question }}</td>
-                <td class="text-center">
-                  <p-tag [value]="question.level" [severity]="getSeverity(question.level)" [rounded]="true"></p-tag>
-                </td>
-              </tr>
-            </ng-template>
-            <ng-template pTemplate="emptymessage">
-              <tr>
-                <td colspan="3" class="text-center py-8 text-slate-400 text-sm">
-                  No scenario based questions generated.
-                </td>
-              </tr>
-            </ng-template>
-          </p-table>
-        </div>
-      </p-tabpanel>
-    </p-tabpanels>
-  </p-tabs>
-  }
 </div>
