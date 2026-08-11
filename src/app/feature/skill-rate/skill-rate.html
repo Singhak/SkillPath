@@ -366,13 +366,13 @@
           [paginator]="filteredSkillPerformanceRows().length > 5" class="p-datatable-sm custom-table">
           <ng-template pTemplate="header">
             <tr>
-              <th>Skill</th>
-              <th pTooltip="Your confidence rating (1-5 stars). Click any star to change to Self-rated.">Rating (Click to Update)</th>
-              <th pTooltip="Calculated rating from actual quiz scores.">Quiz Rating</th>
-              <th pTooltip="Rating source: System (Resume AI) vs Self (User edited).">Rated By</th>
-              <th pTooltip="Number of quiz attempts for this skill.">Attempts</th>
-              <th pTooltip="Comparison between self-rating and quiz performance.">Alignment</th>
-              <th style="width: 160px; text-align: center;">Actions</th>
+              <th scope="col">Skill</th>
+              <th scope="col"pTooltip="Your confidence rating (1-5 stars). Click any star to change to Self-rated.">Rating (Click to Update)</th>
+              <th scope="col" pTooltip="Calculated rating from actual quiz scores.">Quiz Rating</th>
+              <th scope="col"pTooltip="Rating source: System (Resume AI) vs Self (User edited).">Rated By</th>
+              <th scope="col" pTooltip="Number of quiz attempts for this skill.">Attempts</th>
+              <th scope="col" pTooltip="Comparison between self-rating and quiz performance.">Alignment</th>
+              <th scope="col" style="width: 160px; text-align: center;">Actions</th>
             </tr>
           </ng-template>
 
