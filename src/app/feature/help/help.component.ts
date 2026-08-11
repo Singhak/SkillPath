@@ -24,7 +24,7 @@ export interface FaqItem {
   id: number;
   question: string;
   answer: string;
-  category: 'general' | 'interview' | 'scoring' | 'technical';
+  category: 'general' | 'interview' | 'scoring' | 'technical' | 'billing';
   expanded?: boolean;
 }
 
@@ -43,40 +43,47 @@ export class HelpComponent {
   readonly selectedFeatureId = signal<string>('ai-interview');
   readonly expandedFaqId = signal<number | null>(1);
 
+  // Dynamic Category Counts
+  readonly countAll = computed(() => this.features.length);
+  readonly countInterview = computed(() => this.features.filter((f) => f.category === 'interview').length);
+  readonly countLearning = computed(() => this.features.filter((f) => f.category === 'learning').length);
+  readonly countAnalytics = computed(() => this.features.filter((f) => f.category === 'analytics').length);
+  readonly countCustomization = computed(() => this.features.filter((f) => f.category === 'customization').length);
+
   // Workflow Diagram Nodes
   readonly workflowNodes = [
     {
       step: 1,
       title: 'Job Profile & Resume Input',
-      desc: 'Paste a Job Description or upload PDF/Image resume',
+      desc: 'Paste JD text, upload PDF/Image resume, or load STAR story bank',
       icon: 'pi pi-file-import',
       badge: 'Input Phase',
     },
     {
       step: 2,
-      title: 'AI Competency Extraction',
-      desc: 'AI parses key skills, seniority, and question matrix',
+      title: 'AI Extraction & Studio Setup',
+      desc: 'AI parses key skills, seniority, or custom interviewer persona',
       icon: 'pi pi-spin pi-cog',
       badge: 'Processing',
     },
     {
       step: 3,
-      title: 'Interactive Mock Interview',
-      desc: 'Real-time audio & text response simulator',
+      title: 'Interactive Audio & Text Session',
+      desc: 'Live mic recording, speech clarity analysis, & copilot mode',
       icon: 'pi pi-microphone',
       badge: 'Execution',
     },
     {
       step: 4,
       title: 'STAR Method AI Evaluation',
-      desc: 'Instant scoring, detailed feedback & sample model answer',
+      desc: 'Instant scoring, detailed STAR breakdown, & model answer',
       icon: 'pi pi-chart-line',
       badge: 'Analysis',
     },
     {
       step: 5,
-      title: 'Skill Growth & Flashcards',
-      desc: 'Skill matrix upgrade, quiz practice & review deck',
+      title: 'XP Rewards & Skill Mastery',
+      desc: 'Earn XP points, unlock badges, upgrade skill radar & flashcards',
       icon: 'pi pi-trophy',
       badge: 'Mastery',
     },
@@ -91,15 +98,15 @@ export class HelpComponent {
       badge: 'CORE FEATURE',
       badgeType: 'hot',
       icon: 'pi pi-microchip-ai',
-      description: 'Simulates real-world technical and behavioral interviews with an interactive AI interviewer. Offers audio and text input, live feedback, and STAR-based evaluation.',
+      description: 'Simulates real-world technical and behavioral interviews with an interactive AI interviewer. Offers live audio microphone recording, real-time speech analytics, text response input, instant feedback, and STAR-based scoring.',
       timeCommitment: '15 - 30 Mins',
-      targetAudience: 'Job seekers, Developers preparing for interviews',
+      targetAudience: 'Job seekers, Developers preparing for company interviews',
       route: '/aiinterview',
       useCases: [
-        'Preparing for an upcoming interview for a specific job title or company.',
+        'Preparing for an upcoming technical or behavioral interview for a specific job posting.',
         'Practicing verbal articulation under time pressure with audio voice answers.',
         'Getting objective, AI-driven evaluation on answer structure (STAR method).',
-        'Identifying knowledge gaps in technical concepts before real interviews.',
+        'Identifying knowledge gaps in technical concepts before real candidate screenings.',
       ],
       howToSteps: [
         {
@@ -149,7 +156,7 @@ export class HelpComponent {
       badge: 'AI POWERED',
       badgeType: 'primary',
       icon: 'pi pi-file-pdf',
-      description: 'Extracts critical technical competencies, key responsibilities, and experience requirements automatically from uploaded PDFs, PNG images, or pasted text.',
+      description: 'Extracts critical technical competencies, key responsibilities, and experience requirements automatically from uploaded PDFs, PNG/JPG images, or pasted text JDs.',
       timeCommitment: '2 - 3 Mins',
       targetAudience: 'Candidates customizing prep for specific job postings',
       route: '/aiinterview/job-profile',
@@ -188,13 +195,195 @@ export class HelpComponent {
       expectedOutput: 'List of detected tech stack skills, difficulty weighting, and customized interview question set.',
     },
     {
+      id: 'star-story-bank',
+      title: 'STAR Story Bank & AI Behavioral Coach',
+      category: 'interview',
+      badge: 'NEW FEATURE',
+      badgeType: 'hot',
+      icon: 'pi pi-star',
+      description: 'Dedicated repository to craft, organize, tag, and AI-polish your personal STAR behavioral interview stories (Situation, Task, Action, Result) for quick recall during real interviews.',
+      timeCommitment: '5 - 10 Mins per story',
+      targetAudience: 'Engineers & professionals preparing behavioral responses',
+      route: '/aiinterview',
+      useCases: [
+        'Organizing past project achievements and conflict resolution stories into clear STAR format.',
+        'Using AI polishing to convert raw notes into impactful, high-scoring behavioral answers.',
+        'Tagging stories by technical competency (e.g., Leadership, Problem Solving, System Crash, Team Conflict).',
+      ],
+      howToSteps: [
+        {
+          step: 1,
+          title: 'Open AI Tools / STAR Story Bank',
+          detail: 'Access the STAR Story Bank widget from AI Tools inside AI Interview.',
+          icon: 'pi pi-star-fill',
+        },
+        {
+          step: 2,
+          title: 'Add New Story',
+          detail: 'Click "Create New Story" and enter Situation, Task, Action, and Result details.',
+          icon: 'pi pi-plus',
+        },
+        {
+          step: 3,
+          title: 'Apply AI Refinement',
+          detail: 'Click "AI Enhance" to let the STAR Coach polish phrasing and highlight metrics.',
+          icon: 'pi pi-sparkles',
+        },
+        {
+          step: 4,
+          title: 'Tag & Save Story',
+          detail: 'Assign relevant skills/categories and save to your personal behavioral bank.',
+          icon: 'pi pi-tag',
+        },
+      ],
+      proTip: 'Ensure your Result pillar includes measurable metrics (e.g. "reduced latency by 35%", "saved 10 hours/week").',
+      expectedOutput: 'Organized, tagged library of polished behavioral stories ready to use in mock or real interviews.',
+    },
+    {
+      id: 'interviewer-studio',
+      title: 'Interviewer Studio & Candidate View',
+      category: 'customization',
+      badge: 'RECRUITER SUITE',
+      badgeType: 'primary',
+      icon: 'pi pi-desktop',
+      description: 'Comprehensive interviewer studio for creating custom AI interviewer personas, defining evaluation rubrics, conducting candidate screening sessions, and generating detailed candidate reports.',
+      timeCommitment: '10 - 20 Mins',
+      targetAudience: 'Hiring managers, Technical interviewers, & Recruiters',
+      route: '/interviewer-studio',
+      useCases: [
+        'Creating custom interviewer personas (e.g., Strict System Architect, Friendly HR Lead).',
+        'Setting up standardized candidate evaluation rubrics for team interviews.',
+        'Running real-time candidate copilot sessions with live AI response evaluation.',
+        'Generating comprehensive candidate assessment reports with scoring breakdown.',
+      ],
+      howToSteps: [
+        {
+          step: 1,
+          title: 'Launch Interviewer Studio',
+          detail: 'Click "Interviewer Studio" in the sidebar navigation.',
+          icon: 'pi pi-th-large',
+        },
+        {
+          step: 2,
+          title: 'Run Persona Wizard',
+          detail: 'Configure role description, difficulty level, rubric weights, and interviewer tone.',
+          icon: 'pi pi-sliders-h',
+        },
+        {
+          step: 3,
+          title: 'Start Copilot / Candidate Session',
+          detail: 'Launch live candidate view room or conduct a copilot-assisted interview.',
+          icon: 'pi pi-video',
+        },
+        {
+          step: 4,
+          title: 'Review Candidate Report',
+          detail: 'Inspect auto-generated candidate assessment report with strengths, weaknesses, and hiring recommendation.',
+          icon: 'pi pi-file-check',
+        },
+      ],
+      proTip: 'Define custom rubric criteria to evaluate candidates against exact team standards.',
+      expectedOutput: 'Custom interviewer persona template, live candidate interview room, and downloadable Candidate Report.',
+    },
+    {
+      id: 'gamification',
+      title: 'Gamification, XP & Badges Engine',
+      category: 'analytics',
+      badge: 'GAMIFIED PREP',
+      badgeType: 'success',
+      icon: 'pi pi-trophy',
+      description: 'Motivational reward system tracking XP points, level titles (Novice to Master Architect), daily practice streaks, unlockable achievement badges, and offline activity synchronization.',
+      timeCommitment: 'Automatic on practice',
+      targetAudience: 'All users aiming for consistent daily preparation',
+      route: '/',
+      useCases: [
+        'Building daily practice streaks to maintain momentum before real job interviews.',
+        'Earning XP points for completing quizzes, mock interviews, and skill updates.',
+        'Unlocking achievement badges as you master key technical milestones.',
+        'Syncing offline practice activities automatically once back online.',
+      ],
+      howToSteps: [
+        {
+          step: 1,
+          title: 'View Gamification Bar',
+          detail: 'Check top header or Gamification Panel for your level title, current XP, and streak count.',
+          icon: 'pi pi-crown',
+        },
+        {
+          step: 2,
+          title: 'Complete Daily Activities',
+          detail: 'Take quizzes (+50 XP), complete AI mock interviews (+150 XP), or update skill ratings (+20 XP).',
+          icon: 'pi pi-check-circle',
+        },
+        {
+          step: 3,
+          title: 'Unlock Achievement Badges',
+          detail: 'Earn badges like "Interview Novice", "STAR Master", "Quiz Master", or "Streak Champion".',
+          icon: 'pi pi-shield',
+        },
+        {
+          step: 4,
+          title: 'Level Up',
+          detail: 'Accumulate XP to climb rank titles from Novice Explorer up to Master Architect.',
+          icon: 'pi pi-chart-line',
+        },
+      ],
+      proTip: 'Practice at least once every 24 hours to keep your streak active and earn streak bonus multiplier XP.',
+      expectedOutput: 'Level progression bar, unlocked badge showcase, streak counter, and activity sync status.',
+    },
+    {
+      id: 'ai-tools-widget',
+      title: 'AI Speech Analytics & ATS Resume Suite',
+      category: 'analytics',
+      badge: 'AI WIDGET',
+      badgeType: 'info',
+      icon: 'pi pi-sliders-v',
+      description: 'Multilingual speech analytics tool evaluating speaking pace, clarity, filler words, and vocal confidence alongside an ATS Resume Parser & Optimizer.',
+      timeCommitment: '3 - 5 Mins',
+      targetAudience: 'Candidates improving verbal clarity & resume ATS match',
+      route: '/aiinterview',
+      useCases: [
+        'Analyzing speaking cadence (WPM) and filler word frequency (e.g. "um", "like") during voice answers.',
+        'Testing speech recognition in multiple supported languages.',
+        'Parsing uploaded resumes to calculate ATS compatibility scores against target job profiles.',
+      ],
+      howToSteps: [
+        {
+          step: 1,
+          title: 'Open AI Tools Widget',
+          detail: 'Click the AI Tools floating widget or tab inside AI Interview.',
+          icon: 'pi pi-cog',
+        },
+        {
+          step: 2,
+          title: 'Select Speech or Resume Tab',
+          detail: 'Switch between Speech Analytics or Resume ATS Optimizer.',
+          icon: 'pi pi-sliders-h',
+        },
+        {
+          step: 3,
+          title: 'Record Speech or Upload Resume',
+          detail: 'Speak into microphone or drag-and-drop resume file.',
+          icon: 'pi pi-microphone',
+        },
+        {
+          step: 4,
+          title: 'Review Detailed Metrics',
+          detail: 'Examine WPM speed graph, clarity percentage, filler count, and ATS optimization suggestions.',
+          icon: 'pi pi-chart-bar',
+        },
+      ],
+      proTip: 'Aim for a speaking pace of 120-150 words per minute for optimal interviewer engagement.',
+      expectedOutput: 'Speech cadence score, filler word breakdown, and ATS Resume optimization score.',
+    },
+    {
       id: 'review-deck',
       title: 'Review Deck & Flashcard Question Bank',
       category: 'learning',
       badge: 'SMART REVISION',
       badgeType: 'success',
       icon: 'pi pi-book',
-      description: 'Flip-card study deck for fast revision of interview questions, key technical concepts, and saved AI interview responses.',
+      description: 'Flip-card study deck for fast revision of technical interview questions, key concepts, and saved AI interview responses.',
       timeCommitment: '5 - 10 Mins',
       targetAudience: 'Quick daily refreshers, final pre-interview review',
       route: '/aiinterview',
@@ -323,20 +512,59 @@ export class HelpComponent {
       expectedOutput: 'Quiz score (%), time per question metrics, detailed breakdown of correct/incorrect answers with explanations.',
     },
     {
+      id: 'pricing-billing',
+      title: 'Plans, Credits & Billing Management',
+      category: 'customization',
+      badge: 'ACCOUNT',
+      badgeType: 'info',
+      icon: 'pi pi-wallet',
+      description: 'Manage subscription tiers (Free, Pro, Enterprise), track AI credit usage balances, purchase add-on credits, and inspect billing history transaction logs.',
+      timeCommitment: '1 - 2 Mins',
+      targetAudience: 'All users managing subscription & credit usage',
+      route: '/pricing',
+      useCases: [
+        'Checking remaining AI interview generation and resume parsing credits.',
+        'Upgrading from Free tier to Pro tier for unlimited mock interviews.',
+        'Viewing invoice logs and transaction history in the Billing History modal.',
+      ],
+      howToSteps: [
+        {
+          step: 1,
+          title: 'Open Pricing Page',
+          detail: 'Click "Pricing" or Credit badge in header.',
+          icon: 'pi pi-credit-card',
+        },
+        {
+          step: 2,
+          title: 'Compare Plan Options',
+          detail: 'Review features included in Free, Pro, and Enterprise tiers.',
+          icon: 'pi pi-list',
+        },
+        {
+          step: 3,
+          title: 'View Billing History',
+          detail: 'Click "Billing History" to inspect transaction logs and credit receipts.',
+          icon: 'pi pi-history',
+        },
+      ],
+      proTip: 'Subscribing to Pro unlocks unlimited AI mock interviews, custom Interviewer Studio personas, and advanced speech analytics.',
+      expectedOutput: 'Current credit balance, plan tier status, and billing receipt modal.',
+    },
+    {
       id: 'dashboard',
       title: 'Performance Overview Dashboard',
       category: 'analytics',
       badge: 'CENTRAL HUB',
       badgeType: 'hot',
       icon: 'pi pi-home',
-      description: 'Central command center displaying overall Interview Readiness score, total practice hours, recent sessions, and quick shortcuts.',
+      description: 'Central command center displaying overall Interview Readiness score, total practice hours, recent sessions, gamification rank, and quick shortcuts.',
       timeCommitment: '1 - 2 Mins check',
       targetAudience: 'All users monitoring preparation health',
       route: '/',
       useCases: [
         'Checking overall preparation progress at a glance.',
         'Monitoring your interview readiness index score trend.',
-        'Quickly launching next recommended action (Interview, Quiz, or Revision).',
+        'Quickly launching next recommended action (Interview, Quiz, STAR story, or Revision).',
       ],
       howToSteps: [
         {
@@ -439,10 +667,42 @@ export class HelpComponent {
       icon: 'pi pi-file-pdf',
     },
     {
-      feature: 'Review Deck',
+      feature: 'STAR Story Bank & Coach',
+      time: '5-10 Mins',
+      input: 'Text & Situation Details',
+      output: 'Polished STAR Story & Tags',
+      useCase: 'Behavioral interview prep',
+      icon: 'pi pi-star',
+    },
+    {
+      feature: 'Interviewer Studio & Copilot',
+      time: '10-20 Mins',
+      input: 'Persona & Rubric Config',
+      output: 'Custom Candidate Assessment',
+      useCase: 'Recruiter & Hiring screening',
+      icon: 'pi pi-desktop',
+    },
+    {
+      feature: 'Gamification & XP Engine',
+      time: 'Real-time',
+      input: 'Practice Activities',
+      output: 'XP, Badges, Level Titles & Streaks',
+      useCase: 'Gamified study motivation',
+      icon: 'pi pi-trophy',
+    },
+    {
+      feature: 'Speech Analytics & ATS Suite',
+      time: '3-5 Mins',
+      input: 'Mic Speech / Resume File',
+      output: 'Speech Pace/Clarity & ATS Score',
+      useCase: 'Vocal & Resume optimization',
+      icon: 'pi pi-sliders-v',
+    },
+    {
+      feature: 'Review Deck Flashcards',
       time: '5-10 Mins',
       input: 'Click / Flip Cards',
-      output: 'Flashcards & Concept Mastery',
+      output: 'Flashcard Concept Mastery',
       useCase: 'Rapid pre-interview revision',
       icon: 'pi pi-book',
     },
@@ -455,12 +715,20 @@ export class HelpComponent {
       icon: 'pi pi-play',
     },
     {
-      feature: 'Skill Matrix',
+      feature: 'Skill Matrix & Gap Analysis',
       time: '5 Mins',
       input: 'Self / AI Ratings',
-      output: 'Radar & Gap Analysis',
+      output: 'Skill Radar & Target Gap Analysis',
       useCase: 'Long-term career tracking',
       icon: 'pi pi-bolt',
+    },
+    {
+      feature: 'Plans, Credits & Billing',
+      time: '1-2 Mins',
+      input: 'Credit Packages',
+      output: 'Credits, Plan Tiers & Invoice Log',
+      useCase: 'Subscription & resource management',
+      icon: 'pi pi-wallet',
     },
   ];
 
@@ -475,31 +743,55 @@ export class HelpComponent {
     {
       id: 2,
       question: 'What file formats can I upload for Job Descriptions or Resumes?',
-      answer: 'You can upload PDF files, PNG images, JPG images, or simply copy & paste raw text directly into the Job Profile generator. The AI OCR engine extracts skills and generates role-tailored questions instantly.',
+      answer: 'You can upload PDF files, PNG images, JPG images, or simply copy & paste raw text directly into the Job Profile generator or ATS Resume parser. The AI OCR engine extracts skills and generates role-tailored questions instantly.',
       category: 'interview',
     },
     {
       id: 3,
       question: 'Can I practice interviews using Voice/Audio instead of typing?',
-      answer: 'Yes! The AI Mock Interview simulator supports real-time audio microphone input. You can speak naturally, and the system converts your voice to text, analyzes speech clarity, and scores your response.',
+      answer: 'Yes! The AI Mock Interview simulator supports real-time audio microphone input. You can speak naturally, and the system converts your voice to text, analyzes speech pace (WPM), clarity, and filler words, and scores your response.',
       category: 'interview',
     },
     {
       id: 4,
-      question: 'What is the STAR method and why is it important?',
-      answer: 'STAR stands for Situation, Task, Action, and Result. It is the universally recommended structure for answering behavioral and technical scenario questions. IMONBENCH AI automatically breaks down your response into these 4 pillars to show you where you excelled or missed context.',
+      question: 'How does the STAR Story Bank work and how do I build behavioral stories?',
+      answer: 'The STAR Story Bank allows you to record past professional experiences in 4 distinct pillars (Situation, Task, Action, Result). Click "AI Enhance" to polish phrasing, highlight metrics, and tag stories by topic (Leadership, Problem Solving, Incident Management) for quick recall during interviews.',
       category: 'general',
     },
     {
       id: 5,
+      question: 'What is the Interviewer Studio and how can I create custom interviewer personas?',
+      answer: 'Interviewer Studio is designed for hiring managers and recruiters to build custom AI candidate screening experiences. You can select interviewer tone (Strict, Supportive, Technical), define custom evaluation rubrics, launch live candidate rooms, and receive automated candidate evaluation reports.',
+      category: 'technical',
+    },
+    {
+      id: 6,
+      question: 'How do XP points, daily streaks, levels, and badges work in Gamification?',
+      answer: 'Every time you complete a quiz (+50 XP), finish an AI interview (+150 XP), or log practice sessions, you earn XP. You level up through titles (Novice Explorer to Master Architect), unlock achievement badges, and build daily streaks. Activities completed offline are automatically synced once you reconnect.',
+      category: 'general',
+    },
+    {
+      id: 7,
+      question: 'How does Speech Analytics evaluate my voice responses?',
+      answer: 'Speech Analytics analyzes your microphone recording for words per minute (WPM), articulation clarity percentage, filler word count (such as "um", "uh", "like"), and overall vocal delivery confidence across multiple supported languages.',
+      category: 'scoring',
+    },
+    {
+      id: 8,
+      question: 'How do AI credits and subscription billing work?',
+      answer: 'Each AI interview generation and deep resume analysis consumes credits from your account balance. You can track remaining credits in the app header or Pricing page. Upgrading to Pro unlocks higher credit allocations and advanced recruiter tools.',
+      category: 'billing',
+    },
+    {
+      id: 9,
       question: 'How do I change the theme (Dark/Light mode) or accent color?',
       answer: 'Navigate to Settings in the sidebar under SYSTEM. In the "Appearance" tab, you can toggle between Light, Dark, or System Default modes and select from 5 curated color palettes (Indigo, Emerald, Cyan, Amber, Rose).',
       category: 'general',
     },
     {
-      id: 6,
-      question: 'Are my uploaded job descriptions and interview practice data private?',
-      answer: 'Yes, your uploaded documents and mock interview responses are processed securely and stored strictly within your session/account workspace.',
+      id: 10,
+      question: 'Are my uploaded job descriptions, resumes, and interview responses private?',
+      answer: 'Yes, your uploaded documents, resume text, STAR stories, and mock interview responses are processed securely and stored strictly within your account workspace.',
       category: 'technical',
     },
   ];
@@ -581,3 +873,4 @@ export class HelpComponent {
     this.searchQuery.set('');
   }
 }
+

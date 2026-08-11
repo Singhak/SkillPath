@@ -108,23 +108,23 @@
     <span class="filter-label"><i class="pi pi-filter"></i> Filter Category:</span>
     <button type="button" class="filter-pill" [class.active]="activeCategory() === 'all'"
       (click)="setCategoryFilter('all')">
-      All Features ({{ features.length }})
+      All Features ({{ countAll() }})
     </button>
     <button type="button" class="filter-pill" [class.active]="activeCategory() === 'interview'"
       (click)="setCategoryFilter('interview')">
-      <i class="pi pi-microchip-ai"></i> AI Interview & JD (2)
+      <i class="pi pi-microchip-ai"></i> AI Interview & JD ({{ countInterview() }})
     </button>
     <button type="button" class="filter-pill" [class.active]="activeCategory() === 'learning'"
       (click)="setCategoryFilter('learning')">
-      <i class="pi pi-book"></i> Learning & Quizzes (2)
+      <i class="pi pi-book"></i> Learning & Quizzes ({{ countLearning() }})
     </button>
     <button type="button" class="filter-pill" [class.active]="activeCategory() === 'analytics'"
       (click)="setCategoryFilter('analytics')">
-      <i class="pi pi-chart-line"></i> Analytics & Skills (2)
+      <i class="pi pi-chart-line"></i> Analytics & Gamification ({{ countAnalytics() }})
     </button>
     <button type="button" class="filter-pill" [class.active]="activeCategory() === 'customization'"
       (click)="setCategoryFilter('customization')">
-      <i class="pi pi-sliders-h"></i> Settings & Theme (1)
+      <i class="pi pi-sliders-h"></i> Settings & Studio ({{ countCustomization() }})
     </button>
   </div>
 
@@ -322,14 +322,17 @@
   <!-- Call to Action Banner -->
   <section class="cta-banner">
     <div class="cta-content">
-      <h2>Ready to Test Your Skill Readiness?</h2>
-      <p>Launch your personalized AI Mock Interview now and get immediate feedback on your answers.</p>
+      <h2>Ready to Accelerate Your Interview Readiness?</h2>
+      <p>Launch an interactive AI Mock Interview, build your STAR Story Bank, or set up custom candidate rubrics in Interviewer Studio.</p>
       <div class="cta-actions">
         <a routerLink="/aiinterview" class="btn-primary cta-btn">
           <i class="pi pi-microchip-ai"></i> Start AI Interview
         </a>
+        <a routerLink="/interviewer-studio" class="btn-secondary cta-btn">
+          <i class="pi pi-desktop"></i> Interviewer Studio
+        </a>
         <a routerLink="/quiz" class="btn-secondary cta-btn">
-          <i class="pi pi-play"></i> Take a Quick Quiz
+          <i class="pi pi-play"></i> Technical Quizzes
         </a>
       </div>
     </div>
