@@ -53,6 +53,17 @@
       >
         <span>⭐️</span> <span>STAR Coach</span>
       </button>
+
+      <button
+        type="button"
+        (click)="activeTab.set('storybank')"
+        [class.bg-indigo-600]="activeTab() === 'storybank'"
+        [class.text-white]="activeTab() === 'storybank'"
+        [class.text-slate-400]="activeTab() !== 'storybank'"
+        class="px-3.5 py-2 rounded-lg text-xs font-bold transition-all flex items-center space-x-1.5"
+      >
+        <span>📖</span> <span>STAR Story Bank</span>
+      </button>
     </div>
   </div>
 
@@ -1069,14 +1080,27 @@
               </h3>
             </div>
             @if (starCoachService.latestEvaluation(); as eval) {
-              <span
-                class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium bg-slate-800 border border-slate-700/80 text-slate-300"
-              >
-                Engine:
-                <strong class="text-indigo-400 flex items-center gap-1">
-                  {{ eval.evaluationMode === 'ai_groq' ? '🤖 AI Groq' : '⚡ Instant Logic' }}
-                </strong>
-              </span>
+              <div class="flex items-center space-x-2">
+                <button
+                  type="button"
+                  (click)="saveCurrentEvaluationToStoryBank()"
+                  class="px-2.5 py-1 rounded-lg bg-indigo-600/30 hover:bg-indigo-600 border border-indigo-500/50 text-indigo-200 text-xs font-bold transition-all flex items-center space-x-1"
+                >
+                  @if (savedToBank()) {
+                    <span class="text-emerald-300">✓ Saved to Bank!</span>
+                  } @else {
+                    <span>💾 Save to Story Bank</span>
+                  }
+                </button>
+                <span
+                  class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium bg-slate-800 border border-slate-700/80 text-slate-300"
+                >
+                  Engine:
+                  <strong class="text-indigo-400 flex items-center gap-1">
+                    {{ eval.evaluationMode === 'ai_groq' ? '🤖 AI Groq' : '⚡ Instant Logic' }}
+                  </strong>
+                </span>
+              </div>
             }
           </div>
 
@@ -1358,6 +1382,13 @@
           }
         </div>
       </div>
+    </div>
+  }
+
+  <!-- TAB 4: STAR Story Bank Repository -->
+  @if (activeTab() === 'storybank') {
+    <div class="animate-fadeIn">
+      <app-star-story-bank></app-star-story-bank>
     </div>
   }
 </div>
