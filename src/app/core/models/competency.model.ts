@@ -30,4 +30,11 @@ export interface FlashcardQuestion {
   nextReviewDate: string;
   intervalDays: number;
   repetitionCount: number;
+  cardType?: 'standard' | 'cloze';
+  clozePrompt?: string;
+  clozeAnswer?: string;
+  clozeOptions?: string[];
+  easeFactor?: number;
+  masteryLevel?: number; // 0 to 100%
+  lastReviewedDate?: string;
 }

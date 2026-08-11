@@ -18,6 +18,7 @@ import { VoiceService } from '../../../shared/services/voice-service';
 import { MockInterviewService } from '../../../core/services/mock-interview.service';
 import { InterviewReportService } from '../../../core/services/interview-report.service';
 import { GamificationService } from '../../../core/services/gamification.service';
+import { ReviewDeckService } from '../../../core/services/review-deck.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { MessageService } from 'primeng/api';
 import { AI_CREDIT_COST, EXPERIENCE_LEVELS, USER_ROLES } from '../../../shared/constants';
@@ -57,6 +58,7 @@ export class MockInterviewComponent {
   private readonly reportService = inject(InterviewReportService);
   private readonly gamificationService = inject(GamificationService);
   private readonly authService = inject(AuthService);
+  private readonly reviewDeckService = inject(ReviewDeckService);
   private readonly messageService = inject(MessageService);
 
   readonly voiceState$ = this.voiceService.state$;
@@ -342,12 +344,41 @@ export class MockInterviewComponent {
         // Track gamification interview activity
         this.gamificationService.recordActivity('interview', 1);
 
+        // AI Automated Flashcard Creator from Interview Mistakes
+        let autoCardCount = 0;
+        evalList.forEach((item: any, idx: number) => {
+          const q = resultsWithAns[idx];
+          const itemScore = item?.score ?? 0;
+          if (itemScore < 70 || item?.isCorrect === false) {
+            autoCardCount++;
+            this.reviewDeckService.addFlashcard({
+              question: q?.question || item?.question || `Interview Question on ${currentTopic}`,
+              category: currentTopic,
+              correctAnswer: item?.expectedAnswer || item?.correctAnswer || item?.feedback || 'Review fundamental concepts for this topic.',
+              explanation: item?.feedback || `Recorded from AI Mock Interview mistake (Score: ${itemScore}%).`,
+              difficulty: itemScore < 40 ? 'hard' : 'medium',
+              cardType: 'standard',
+              easeFactor: 2.1,
+              masteryLevel: 0,
+            });
+          }
+        });
+
         this.messageService.add({
           severity: 'success',
           summary: 'Interview Report Saved',
           detail: `Mock interview evaluated successfully (${overallScore}% Score). Report saved to profile database.`,
           life: 5000,
         });
+
+        if (autoCardCount > 0) {
+          this.messageService.add({
+            severity: 'info',
+            summary: 'Review Deck Cards Generated 📇',
+            detail: `Created ${autoCardCount} personalized review flashcard(s) from your interview mistakes!`,
+            life: 6000,
+          });
+        }
 
         this.endInterview();
       },
