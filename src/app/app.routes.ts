@@ -18,6 +18,7 @@ export const routes: Routes = [
       import('./feature/ai-interview/ai-interview-layout.component').then(
         (m) => m.AiInterviewLayoutComponent,
       ),
+    canActivate: [authGuard],
     children: [
       {
         path: '',
@@ -134,11 +135,17 @@ export const routes: Routes = [
       ),
   },
   {
-    path: 'create',
+    path: 'interview-builder',
     loadComponent: () =>
       import('./feature/ai-interview/jobposting/create-interview.component').then(
         (m) => m.CreateInterviewComponent,
       ),
+    canActivate: [authGuard],
+  },
+  {
+    path: 'create',
+    redirectTo: 'interview-builder',
+    pathMatch: 'full',
   },
   {
     path: 'pricing',
