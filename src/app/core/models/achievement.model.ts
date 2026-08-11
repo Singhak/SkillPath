@@ -36,9 +36,35 @@ export interface InterviewReportData {
   technicalAccuracyScore: number;
   communicationScore: number;
   confidenceScore: number;
+  problemSolvingScore?: number;
+  category?: 'mock' | 'practice' | 'real';
+  technologyScores?: { topic: string; score: number }[];
+  categoryScores?: { category: string; score: number }[];
+  detailedQuestionScores?: any[];
   summaryFeedback: string;
   strengths: string[];
   improvementAreas: string[];
   recommendedTopics: string[];
   shareToken: string;
 }
+
+export interface LearnerProgressReportData {
+  userName: string;
+  userEmail: string;
+  targetRole: string;
+  userPlan: string;
+  level: number;
+  levelTitle: string;
+  totalXp: number;
+  currentStreak: number;
+  quizCompletedCount: number;
+  interviewCompletedCount: number;
+  skillsRatedCount: number;
+  unlockedBadgesCount: number;
+  topicScores?: { topic: string; score: number; status: string }[];
+  recentInterviews?: { date: string; role: string; score: number; category?: string; feedback: string }[];
+  strengths?: string[];
+  improvementAreas?: string[];
+  recommendedFocusTopics?: string[];
+}
+
