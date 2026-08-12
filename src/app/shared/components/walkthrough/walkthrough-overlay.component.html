@@ -1,0 +1,204 @@
+@if (walkthroughService.isTourActive(); as active) {
+<div class="walkthrough-wrapper" role="dialog" aria-modal="true" aria-labelledby="tourStepTitle">
+  <!-- Translucent Backdrop -->
+  <div class="walkthrough-backdrop"></div>
+
+  <!-- Dynamic Spotlight Frame around Target -->
+  @if (spotlight(); as spot) {
+  <div class="spotlight-ring" [style.top.px]="spot.top" [style.left.px]="spot.left"
+    [style.width.px]="spot.width" [style.height.px]="spot.height">
+    <div class="spotlight-beacon"></div>
+  </div>
+  }
+
+  <!-- Floating Glassmorphism Tooltip Card -->
+  @if (currentStep(); as step) {
+  <div class="walkthrough-popover" [ngStyle]="getPopoverStyle()" (click)="$event.stopPropagation()">
+    <!-- Visual Step Progress Bar at top edge -->
+    <div class="progress-bar-track" title="Tour Progress: {{ progressPercentage() }}%">
+      <div class="progress-bar-fill" [style.width.%]="progressPercentage()"></div>
+    </div>
+
+    <!-- Header: Tour Title, Category & Step Counter -->
+    <div class="popover-header">
+      <div class="header-badge">
+        <i [class]="step.icon || 'pi pi-compass'" aria-hidden="true"></i>
+        <span>{{ activeTour()?.title }}</span>
+      </div>
+      <div class="header-right-meta">
+        <span class="tour-category-chip">{{ activeTour()?.category || 'Guide' }}</span>
+        <button type="button" class="close-btn" (click)="onSkipTour($event)" title="Close walkthrough (Esc)">
+          <i class="pi pi-times"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Step Content -->
+    <div class="popover-body">
+      <div class="step-meta">
+        <span class="step-counter">Step {{ currentStepIndex() + 1 }} of {{ totalSteps() }}</span>
+        
+        <!-- Quick Jump Step Dots Navigation -->
+        @if (totalSteps() > 1) {
+        <div class="step-dots-bar">
+          @for (s of activeTour()?.steps; track $index) {
+          <button type="button" class="step-dot-btn" [class.active]="$index === currentStepIndex()"
+            [class.completed]="$index < currentStepIndex()" (click)="goToStep($index, $event)"
+            [title]="'Jump to Step ' + ($index + 1) + ': ' + s.title">
+          </button>
+          }
+        </div>
+        }
+
+        @if (isStepLocked()) {
+        <span class="locked-badge" title="Locked Feature">
+          <i class="pi pi-lock text-xs"></i> Locked ({{ step.requiredPlan }} Plan)
+        </span>
+        }
+      </div>
+
+      <h3 id="tourStepTitle" class="step-title">
+        <i [class]="step.icon || 'pi pi-sparkles'" class="title-icon"></i>
+        {{ step.title }}
+      </h3>
+      <p class="step-desc">{{ step.description }}</p>
+
+      @if (step.actionHint) {
+      <div class="action-hint">
+        <i class="pi pi-bolt pulse-icon"></i>
+        <span><strong>Interactive Action:</strong> {{ step.actionHint }}</span>
+      </div>
+      }
+
+      <!-- Dedicated STAR Story Coach & Behavioral Method Interactive Control Panel -->
+      @if (activeTour()?.id === 'star_coach') {
+      <div class="star-interactive-panel">
+        <div class="star-panel-header">
+          <div class="star-pillars-mini">
+            <span class="pillar-dot situation" title="Situation: Set clear background & context">🔵 S</span>
+            <span class="pillar-dot task" title="Task: Define your specific goal or challenge">🟣 T</span>
+            <span class="pillar-dot action" title="Action: Highlight individual contribution">🟢 A</span>
+            <span class="pillar-dot result" title="Result: Quantify outcome & metrics">🟡 R</span>
+          </div>
+        </div>
+
+        <!-- Step-Specific Contextual Quick Actions -->
+        <div class="star-actions-row">
+          @if (step.id === 'star-question-input' || step.id === 'star-answer-input' || step.id === 'star-intro') {
+            <button type="button" class="star-quick-act-btn highlight" (click)="injectSampleStarData($event)" title="Auto-fill sample behavioral question and structured STAR answer">
+              <i class="pi pi-sparkles text-amber-400"></i> Inject Sample Answer
+            </button>
+          }
+
+          @if (step.id === 'star-grade-btn' || step.id === 'star-breakdown-card' || step.id === 'star-mode-switcher') {
+            <button type="button" class="star-quick-act-btn highlight" (click)="triggerGradeButton($event)" title="Run STAR evaluator immediately">
+              <i class="pi pi-bolt text-indigo-400"></i> Grade Response Now
+            </button>
+          }
+
+          @if (step.id === 'star-repository' || step.id === 'star-bank-search-bar') {
+            <button type="button" class="star-quick-act-btn alt" (click)="switchToStarTab('storybank', $event)" title="Jump to STAR Story Bank Repository">
+              <i class="pi pi-bookmark text-emerald-400"></i> Open Story Bank
+            </button>
+          } @else {
+            <button type="button" class="star-quick-act-btn alt" (click)="switchToStarTab('storybank', $event)" title="Jump to STAR Story Bank Repository">
+              <i class="pi pi-bookmark text-emerald-400"></i> Story Bank
+            </button>
+          }
+        </div>
+      </div>
+      }
+
+      <!-- Dedicated Quizzes & Technical Drills Interactive Control Panel -->
+      @if (activeTour()?.id === 'quizzes') {
+      <div class="quiz-interactive-panel">
+        <div class="quiz-panel-header-row">
+          <i class="pi pi-bolt quiz-panel-bolt"></i>
+          <span class="quiz-panel-label">Quick Try:</span>
+          @if (step.id === 'quiz-modes') {
+            <span class="quiz-panel-hint">Click to switch modes</span>
+          }
+          @if (step.id === 'quiz-filters') {
+            <span class="quiz-panel-hint">Selects category + first sub-category</span>
+          }
+          @if (step.id === 'quiz-start') {
+            <span class="quiz-panel-hint">Launch your drill session</span>
+          }
+        </div>
+
+        <div class="quiz-actions-row">
+          @if (step.id === 'quiz-modes') {
+            <button type="button" class="quiz-quick-act-btn highlight" (click)="selectQuizMode('standard', $event)" [class.active-mode]="isQuizModeActive('standard')" title="Switch to Standard Practice Mode">
+              <i class="pi pi-target"></i> Standard Practice
+            </button>
+            <button type="button" class="quiz-quick-act-btn speed" (click)="selectQuizMode('speed_bot', $event)" [class.active-mode]="isQuizModeActive('speed_bot')" title="Switch to 60s Speed Attack vs AI Bot">
+              <i class="pi pi-bolt"></i> 60s Speed Attack
+            </button>
+          }
+
+          @if (step.id === 'quiz-filters') {
+            <button type="button" class="quiz-quick-act-btn cat-btn" (click)="selectSampleCategory('Angular', $event)" title="Select Angular + auto-pick sub-category">
+              <i class="pi pi-code"></i> Angular
+            </button>
+            <button type="button" class="quiz-quick-act-btn cat-btn" (click)="selectSampleCategory('Node.js', $event)" title="Select Node.js + auto-pick sub-category">
+              <i class="pi pi-server"></i> Node.js
+            </button>
+          }
+
+          @if (step.id === 'quiz-start') {
+            <button type="button" class="quiz-quick-act-btn launch-btn" (click)="triggerQuizLaunch($event)" title="Launch selected Quiz session immediately">
+              <i class="pi pi-play-circle"></i> Launch Quiz Now
+            </button>
+          }
+
+          <button type="button" class="quiz-quick-act-btn nav-btn" (click)="navigateToQuizPage($event)" title="Jump to Quiz Arena">
+            <i class="pi pi-compass"></i> Quiz Arena
+          </button>
+        </div>
+      </div>
+      }
+
+      @if (isStepLocked()) {
+      <div class="locked-banner">
+        <div class="locked-text font-medium text-amber-300 text-xs mb-2">
+          <i class="pi pi-shield mr-1"></i> Unlock this capability with a {{ step.requiredPlan }} subscription upgrade.
+        </div>
+        <button type="button" class="upgrade-cta-btn" (click)="goToUpgrade($event)">
+          <i class="pi pi-bolt"></i> Upgrade Plan Now
+        </button>
+      </div>
+      }
+    </div>
+
+    <!-- Footer Controls & Shortcuts -->
+    <div class="popover-footer">
+      <div class="footer-left-shortcuts">
+        <button type="button" class="btn-skip" (click)="onSkipTour($event)">
+          Skip Tour
+        </button>
+        <span class="keyboard-tip" title="Use Arrow keys or Esc to navigate">
+          <kbd class="kbd-key">←</kbd> <kbd class="kbd-key">→</kbd>
+        </span>
+      </div>
+
+      <div class="nav-controls">
+        @if (currentStepIndex() > 0) {
+        <button type="button" class="btn-nav secondary" (click)="onPreviousStep($event)">
+          <i class="pi pi-chevron-left"></i> Back
+        </button>
+        }
+
+        <button type="button" class="btn-nav primary" (click)="onNextStep($event)">
+          <span>{{ isLastStep() ? 'Finish Tour' : 'Next' }}</span>
+          @if (!isLastStep()) {
+          <i class="pi pi-chevron-right"></i>
+          } @else {
+          <i class="pi pi-check-circle"></i>
+          }
+        </button>
+      </div>
+    </div>
+  </div>
+  }
+</div>
+}

@@ -1,0 +1,83 @@
+@if (isOpen()) {
+<div class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="guideCentralTitle">
+  <div class="modal-backdrop" (click)="close()"></div>
+
+  <div class="modal-container">
+    <!-- Header -->
+    <div class="modal-header">
+      <div class="header-title-box">
+        <div class="header-icon">
+          <i class="pi pi-compass"></i>
+        </div>
+        <div>
+          <h2 id="guideCentralTitle" class="modal-title">Interactive Feature Guide Central</h2>
+          <p class="modal-subtitle">Take step-by-step guided tours of ImOnBench features anytime.</p>
+        </div>
+      </div>
+      <button type="button" class="close-modal-btn" (click)="close()" title="Close guide modal">
+        <i class="pi pi-times"></i>
+      </button>
+    </div>
+
+    <!-- Body: Tours Grid -->
+    <div class="modal-body">
+      <div class="tours-grid">
+        @for (tour of toursCatalog; track tour.id) {
+        <div class="tour-card" [class.completed]="isCompleted(tour.id)" [class.locked]="!isUnlocked(tour)">
+          <div class="card-top">
+            <div class="card-icon" [class.unlocked]="isUnlocked(tour)">
+              <i [class]="tour.icon"></i>
+            </div>
+            <div class="status-badge-container">
+              @if (!isUnlocked(tour)) {
+              <span class="badge locked">
+                <i class="pi pi-lock"></i> Requires {{ tour.requiredPlan }} Plan
+              </span>
+              } @else if (isCompleted(tour.id)) {
+              <span class="badge completed">
+                <i class="pi pi-check-circle"></i> Completed
+              </span>
+              } @else {
+              <span class="badge ready">
+                <i class="pi pi-sparkles"></i> Ready to Tour
+              </span>
+              }
+            </div>
+          </div>
+
+          <div class="card-info">
+            <h3 class="tour-name">{{ tour.title }}</h3>
+            <p class="tour-desc">{{ tour.description }}</p>
+            <span class="steps-count">{{ tour.steps.length }} Interactive Steps</span>
+          </div>
+
+          <div class="card-action">
+            @if (!isUnlocked(tour)) {
+            <button type="button" class="btn-tour upgrade" (click)="goToUpgrade()">
+              <i class="pi pi-bolt"></i> Upgrade to Unlock
+            </button>
+            } @else {
+            <button type="button" class="btn-tour start" (click)="startTour(tour.id)">
+              <i class="pi pi-play"></i>
+              <span>{{ isCompleted(tour.id) ? 'Retake Walkthrough' : 'Start Walkthrough' }}</span>
+            </button>
+            }
+          </div>
+        </div>
+        }
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="modal-footer">
+      <button type="button" class="btn-reset" (click)="resetProgress()" title="Reset all tour completion statuses">
+        <i class="pi pi-refresh"></i> Reset Tour Progress
+      </button>
+
+      <button type="button" class="btn-close" (click)="close()">
+        Close
+      </button>
+    </div>
+  </div>
+</div>
+}

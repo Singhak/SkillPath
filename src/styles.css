@@ -1631,4 +1631,11 @@ html[data-theme='dark'] .help-hero {
   border-color: transparent;
   color: #ffffff;
   box-shadow: 0 4px 14px var(--primary-accent-ring, rgba(99, 102, 241, 0.35));
+}
+
+/* Active Walkthrough Spotlight Target Elevation */
+.walkthrough-active-target {
+  position: relative !important;
+  z-index: 99991 !important;
+  box-shadow: 0 0 25px rgba(6, 182, 212, 0.4) !important;
 }
