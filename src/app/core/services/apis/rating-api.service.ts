@@ -26,6 +26,6 @@ export class RatingApiService {
 export interface Rating {
   category: string;
   rating: number;
-  type: 'SELF' | 'SYSTEM' | 'RESUME' | 'OTHER';
+  type: 'SELF' | 'SYSTEM' | 'RESUME' | 'TARGET' | 'OTHER';
   userId?: string;
 }
