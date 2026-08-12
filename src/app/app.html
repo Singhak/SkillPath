@@ -2,7 +2,7 @@
   <p-toast />
   <aside class="sidebar" [class.collapsed]="sidebarCollapsed()" [class.mobile-open]="mobileMenuOpen()">
     <div class="sidebar-header">
-      <div class="brand">
+      <div class="brand" data-tour="brand-logo">
         <div class="brand-icon-wrapper">
           <img src="assests/logo.png" alt="IMONBENCH Logo" class="brand-logo" />
         </div>
@@ -23,7 +23,7 @@
           <span>MAIN MENU</span>
         </div>
         <a class="nav-item" [routerLink]="'/'" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }"
-          (click)="closeSidebar()" [title]="sidebarCollapsed() ? 'Overview' : ''">
+          (click)="closeSidebar()" [title]="sidebarCollapsed() ? 'Overview' : ''" data-tour="overview-nav-item">
           <div class="nav-icon-box">
             <i class="pi pi-home"></i>
           </div>
@@ -31,7 +31,7 @@
           <div class="active-indicator"></div>
         </a>
         <a class="nav-item" [routerLink]="'/quiz'" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }"
-          (click)="closeSidebar()" [title]="sidebarCollapsed() ? 'Quizzes' : ''">
+          (click)="closeSidebar()" [title]="sidebarCollapsed() ? 'Quizzes' : ''" data-tour="quiz-nav-item">
           <div class="nav-icon-box">
             <i class="pi pi-play"></i>
           </div>
@@ -39,7 +39,7 @@
           <div class="active-indicator"></div>
         </a>
         <a class="nav-item" [routerLink]="'/skills'" routerLinkActive="active"
-          (click)="closeSidebar()" [routerLinkActiveOptions]="{ exact: true }" [title]="sidebarCollapsed() ? 'Skills' : ''">
+          (click)="closeSidebar()" [routerLinkActiveOptions]="{ exact: true }" [title]="sidebarCollapsed() ? 'Skills' : ''" data-tour="skills-nav-item">
           <div class="nav-icon-box">
             <i class="pi pi-bolt"></i>
           </div>
@@ -53,7 +53,7 @@
           <span>PREPARATION</span>
         </div>
         <a class="nav-item" [routerLink]="'/aiinterview'" routerLinkActive="active"
-          (click)="closeSidebar()" [routerLinkActiveOptions]="{ exact: false }" [title]="sidebarCollapsed() ? 'AI Interview' : ''">
+          (click)="closeSidebar()" [routerLinkActiveOptions]="{ exact: false }" [title]="sidebarCollapsed() ? 'AI Interview' : ''" data-tour="ai-interview-nav-item">
           <div class="nav-icon-box">
             <i class="pi pi-microchip-ai"></i>
           </div>
@@ -62,7 +62,7 @@
           <div class="active-indicator"></div>
         </a>
         <a class="nav-item" [routerLink]="'/interviewer-studio'" routerLinkActive="active"
-          (click)="closeSidebar()" [routerLinkActiveOptions]="{ exact: false }" [title]="sidebarCollapsed() ? 'Interviewer Studio' : ''">
+          (click)="closeSidebar()" [routerLinkActiveOptions]="{ exact: false }" [title]="sidebarCollapsed() ? 'Interviewer Studio' : ''" data-tour="interviewer-studio-nav-item">
           <div class="nav-icon-box">
             <i class="pi pi-users"></i>
           </div>
@@ -75,6 +75,17 @@
         <div class="section-header">
           <span>SYSTEM</span>
         </div>
+
+        <button type="button" class="nav-item guide-btn-item text-cyan-400 font-semibold" data-tour="guide-nav-btn"
+          (click)="walkthroughService.openGuideModal(); closeSidebar()"
+          [title]="sidebarCollapsed() ? 'Interactive Guide' : ''">
+          <div class="nav-icon-box text-cyan-400">
+            <i class="pi pi-compass text-lg animate-pulse"></i>
+          </div>
+          <span class="nav-label text-cyan-300">Interactive Guide</span>
+          <span class="nav-badge bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 text-[10px]">TOUR</span>
+        </button>
+
         <div class="nav-group" [class.open]="!sidebarCollapsed() && (systemGroupExpanded() || isSystemRouteActive())">
           <button type="button" class="nav-item group-header-btn"
             [class.active]="isSystemRouteActive() && (sidebarCollapsed() || !systemGroupExpanded())"
@@ -136,7 +147,7 @@
         <span class="nav-label text-amber-500 font-bold uppercase tracking-wider text-xs leading-none">Upgrade</span>
       </a>
       <div class="user-profile-card" [title]="sidebarCollapsed() ? (currentUser()?.name + ' (Click to logout)') : ''"
-        (click)="sidebarCollapsed() ? logout() : null" [style.cursor]="sidebarCollapsed() ? 'pointer' : 'default'">
+        (click)="sidebarCollapsed() ? logout() : null" [style.cursor]="sidebarCollapsed() ? 'pointer' : 'default'" data-tour="user-profile-card">
         <div class="avatar-container">
           <div class="avatar">{{ userInitials() }}</div>
           <span class="online-status" [class.offline]="!isOnline()" [title]="isOnline() ? 'Online' : 'Offline'"></span>
@@ -172,9 +183,15 @@
         <span class="mobile-brand-title">IMONBENCH</span>
         <span class="brand-tag mobile-tag" [ngClass]="getPlanColorClass()">AI</span>
       </div>
-      <button class="mobile-toggle" type="button" (click)="toggleMobileMenu()" [attr.aria-expanded]="mobileMenuOpen()" aria-label="Toggle navigation menu">
-        <i class="pi" [class.pi-bars]="!mobileMenuOpen()" [class.pi-times]="mobileMenuOpen()"></i>
-      </button>
+      <div class="flex items-center gap-2">
+        <button type="button" class="p-2 rounded-lg bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 text-xs flex items-center gap-1" (click)="walkthroughService.openGuideModal()" title="Take Interactive Tour">
+          <i class="pi pi-compass"></i>
+          <span>Guide</span>
+        </button>
+        <button class="mobile-toggle" type="button" (click)="toggleMobileMenu()" [attr.aria-expanded]="mobileMenuOpen()" aria-label="Toggle navigation menu">
+          <i class="pi" [class.pi-bars]="!mobileMenuOpen()" [class.pi-times]="mobileMenuOpen()"></i>
+        </button>
+      </div>
     </div>
     <div class="page-content">
       <router-outlet />
@@ -218,4 +235,9 @@
     </div>
   </div>
   }
+
+  <!-- Walkthrough Overlay, Guide Central Modal & Unlock Alert -->
+  <app-walkthrough-overlay />
+  <app-walkthrough-guide-modal />
+  <app-walkthrough-unlock-modal />
 </main>

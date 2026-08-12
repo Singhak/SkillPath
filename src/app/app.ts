@@ -7,6 +7,10 @@ import { CommonModule } from '@angular/common';
 import { ButtonModule } from 'primeng/button';
 import { RippleModule } from 'primeng/ripple';
 import { HealthService } from './core/services/health.service';
+import { WalkthroughService } from './core/services/walkthrough.service';
+import { WalkthroughOverlayComponent } from './shared/components/walkthrough/walkthrough-overlay.component';
+import { WalkthroughGuideModalComponent } from './shared/components/walkthrough/walkthrough-guide-modal.component';
+import { WalkthroughUnlockModalComponent } from './shared/components/walkthrough/walkthrough-unlock-modal.component';
 
 @Component({
   selector: 'app-root',
@@ -19,6 +23,9 @@ import { HealthService } from './core/services/health.service';
     ToastModule,
     ButtonModule,
     RippleModule,
+    WalkthroughOverlayComponent,
+    WalkthroughGuideModalComponent,
+    WalkthroughUnlockModalComponent,
   ],
   templateUrl: './app.html',
   styleUrl: './app.css',
@@ -28,6 +35,7 @@ export class App {
   private readonly healthService = inject(HealthService);
   private readonly router = inject(Router);
   protected readonly paymentService = inject(PaymentService);
+  protected readonly walkthroughService = inject(WalkthroughService);
   readonly isWakingUp$ = this.healthService.isWakingUp$;
   readonly isOnline = signal(typeof navigator !== 'undefined' ? navigator.onLine : true);
 
