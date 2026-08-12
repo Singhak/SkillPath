@@ -20,6 +20,58 @@ import { QuizStats } from '../quiz-view/quiz.model';
 import { GamificationService } from '../../core/services/gamification.service';
 import { ResumeParserService } from '../../core/services/resume-parser.service';
 
+export interface RoleBenchmark {
+  roleName: string;
+  icon: string;
+  description: string;
+  targets: Record<string, number>;
+}
+
+export const TARGET_ROLE_BENCHMARKS: RoleBenchmark[] = [
+  {
+    roleName: 'Fullstack Architect',
+    icon: 'pi pi-server',
+    description: 'Senior fullstack engineer leading Angular & Node.js architecture',
+    targets: {
+      angular: 5,
+      typescript: 5,
+      'html/css': 4,
+      react: 3,
+      'node.js': 5,
+      rxjs: 4,
+      git: 5,
+    },
+  },
+  {
+    roleName: 'Frontend Lead',
+    icon: 'pi pi-desktop',
+    description: 'Frontend expert specialized in Angular, Modern Web & UI performance',
+    targets: {
+      angular: 5,
+      typescript: 5,
+      'html/css': 5,
+      react: 4,
+      'node.js': 3,
+      rxjs: 5,
+      git: 4,
+    },
+  },
+  {
+    roleName: 'Backend Specialist',
+    icon: 'pi pi-database',
+    description: 'Backend engineer focused on Node.js services & architecture',
+    targets: {
+      angular: 2,
+      typescript: 4,
+      'html/css': 2,
+      react: 2,
+      'node.js': 5,
+      rxjs: 3,
+      git: 5,
+    },
+  },
+];
+
 export interface SkillPerformanceRow {
   skill: string;
   selfRating: number;
@@ -29,6 +81,11 @@ export interface SkillPerformanceRow {
   alignment: 'High Match' | 'Underestimating' | 'Overestimating' | 'Needs Quiz';
   isFromResume?: boolean;
   ratingSource: 'SELF' | 'SYSTEM' | 'UNRATED';
+  masteryTier: 'Legend' | 'Master' | 'Practitioner' | 'Novice' | 'Unrated';
+  achievementBadges: string[];
+  targetRating: number;
+  gapScore: number;
+  gapStatus: 'Goal Met' | 'Minor Gap' | 'Critical Gap';
 }
 
 @Component({
@@ -75,7 +132,25 @@ export class SkillRate implements OnInit {
   readonly skillRatings = signal<Rating[]>([]);
   readonly quizAttempts = signal<QuizStats[]>([]);
   readonly searchQuery = signal<string>('');
-  readonly selectedFilter = signal<'all' | 'resume' | 'match' | 'needs-quiz'>('all');
+  readonly selectedFilter = signal<'all' | 'resume' | 'match' | 'needs-quiz' | 'legend' | 'master' | 'practitioner' | 'novice'>('all');
+
+  // Target Role Benchmarks
+  readonly targetRoles = TARGET_ROLE_BENCHMARKS;
+  readonly selectedTargetRole = signal<string>('Frontend Lead');
+
+  // Custom Target Goals per skill
+  readonly customTargetGoals = signal<Map<string, number>>(this.loadTargetGoalsFromStorage());
+
+  // Compare Skills Modal State
+  readonly showCompareModal = signal<boolean>(false);
+  readonly compareSkillNames = signal<Set<string>>(new Set<string>());
+
+  // Chart visual perspective tab
+  readonly activeChartTab = signal<'bar' | 'radar' | 'doughnut'>('bar');
+
+  // Attempt History Modal state
+  readonly showAttemptsModal = signal<boolean>(false);
+  readonly selectedSkillForAttempts = signal<string | null>(null);
 
   // Tracking deleted skills locally so user-deleted skills (including from resume) remain deleted
   readonly deletedSkillNames = signal<Set<string>>(this.loadDeletedSkillsFromStorage());
@@ -98,6 +173,66 @@ export class SkillRate implements OnInit {
 
   toggleGuide(): void {
     this.showGuide.update((val) => !val);
+  }
+
+  setChartTab(tab: 'bar' | 'radar' | 'doughnut'): void {
+    this.activeChartTab.set(tab);
+  }
+
+  setTargetRole(roleName: string): void {
+    this.selectedTargetRole.set(roleName);
+  }
+
+  toggleSkillForCompare(skillName: string): void {
+    const current = new Set(this.compareSkillNames());
+    if (current.has(skillName)) {
+      current.delete(skillName);
+    } else {
+      if (current.size >= 4) {
+        this.messageService.add({
+          severity: 'warn',
+          summary: 'Comparison Limit',
+          detail: 'You can compare up to 4 skills at a time.',
+        });
+        return;
+      }
+      current.add(skillName);
+    }
+    this.compareSkillNames.set(current);
+  }
+
+  isSkillSelectedForCompare(skillName: string): boolean {
+    return this.compareSkillNames().has(skillName);
+  }
+
+  openCompareModal(): void {
+    if (this.compareSkillNames().size < 2) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Select Skills to Compare',
+        detail: 'Please select at least 2 skills to compare side-by-side.',
+      });
+      return;
+    }
+    this.showCompareModal.set(true);
+  }
+
+  closeCompareModal(): void {
+    this.showCompareModal.set(false);
+  }
+
+  clearCompareSelection(): void {
+    this.compareSkillNames.set(new Set<string>());
+  }
+
+  openAttemptsModal(skillName: string): void {
+    this.selectedSkillForAttempts.set(skillName);
+    this.showAttemptsModal.set(true);
+  }
+
+  closeAttemptsModal(): void {
+    this.showAttemptsModal.set(false);
+    this.selectedSkillForAttempts.set(null);
   }
 
   // Edit modal state
@@ -134,13 +269,11 @@ export class SkillRate implements OnInit {
   });
 
   readonly averageSelfRating = computed(() => {
-    const ratings = this.skillRatings().filter((entry) =>
-      entry.type?.toLowerCase() === 'self' || entry.type?.toLowerCase() === 'system'
-    );
-    if (!ratings.length) {
+    const rows = this.skillPerformanceRows().filter((r) => r.selfRating > 0);
+    if (!rows.length) {
       return 0;
     }
-    const avg = ratings.reduce((sum, entry) => sum + entry.rating, 0) / ratings.length;
+    const avg = rows.reduce((sum, r) => sum + r.selfRating, 0) / rows.length;
     return Math.round(avg * 10) / 10;
   });
 
@@ -151,6 +284,29 @@ export class SkillRate implements OnInit {
     }
     const avg = quizRatings.reduce((sum, entry) => sum + entry.rating, 0) / quizRatings.length;
     return Math.round(avg * 10) / 10;
+  });
+
+  readonly skillGapIndex = computed(() => {
+    const rows = this.skillPerformanceRows();
+    if (!rows.length) return 100;
+    const metCount = rows.filter((r) => r.gapStatus === 'Goal Met').length;
+    return Math.round((metCount / rows.length) * 100);
+  });
+
+  readonly overallMasteryRank = computed(() => {
+    const avgSelf = this.averageSelfRating();
+    const avgQuiz = this.averageQuizRating();
+    const overallAvg = (avgSelf + avgQuiz) / 2;
+
+    if (overallAvg >= 4.2) {
+      return { title: 'Senior Architect', icon: 'pi pi-crown', tier: 'Legend' };
+    } else if (overallAvg >= 3.5) {
+      return { title: 'Lead Specialist', icon: 'pi pi-trophy', tier: 'Master' };
+    } else if (overallAvg >= 2.5) {
+      return { title: 'Fullstack Engineer', icon: 'pi pi-bolt', tier: 'Practitioner' };
+    } else {
+      return { title: 'Junior Developer', icon: 'pi pi-shield', tier: 'Novice' };
+    }
   });
 
   readonly totalAssessedSkills = computed(() => this.skillPerformanceRows().length);
@@ -165,7 +321,17 @@ export class SkillRate implements OnInit {
   readonly skillPerformanceRows = computed<SkillPerformanceRow[]>(() => {
     const ratingEntryMap = new Map<string, Rating>();
     this.skillRatings().forEach((entry) => {
-      ratingEntryMap.set(this.normalizeKey(entry.category), entry);
+      const typeUpper = (entry.type || '').toUpperCase();
+      if (typeUpper === 'TARGET') return; // Skip TARGET entries
+
+      const key = this.normalizeKey(entry.category);
+      if (!key) return;
+      const existing = ratingEntryMap.get(key);
+
+      // A SELF rating takes precedence over non-SELF, and newer entries overwrite older entries
+      if (!existing || typeUpper === 'SELF' || (existing.type || '').toUpperCase() !== 'SELF') {
+        ratingEntryMap.set(key, entry);
+      }
     });
 
     const quizRatingMap = new Map<string, number>();
@@ -186,6 +352,8 @@ export class SkillRate implements OnInit {
     const deletedSet = this.deletedSkillNames();
     const keys = new Set<string>([...ratingEntryMap.keys(), ...performanceMap.keys(), ...resumeSkillKeys]);
 
+    const selectedRoleObj = this.targetRoles.find((r) => r.roleName === this.selectedTargetRole());
+
     return Array.from(keys)
       .filter((key) => !deletedSet.has(key))
       .map((key) => {
@@ -201,6 +369,23 @@ export class SkillRate implements OnInit {
         const quizScore = quizMetrics ? Math.round(quizMetrics.score / quizMetrics.attempts) : 0;
         const attempts = quizMetrics?.attempts || 0;
         const isFromResume = resumeSkillKeys.has(key);
+
+        // Target Rating Calculation (Role Benchmark vs Custom Goal)
+        const roleTarget = selectedRoleObj?.targets[key] || 4;
+        const customTarget = this.customTargetGoals().get(key);
+        const targetRating = customTarget !== undefined ? customTarget : roleTarget;
+
+        const effectiveRating = Math.max(selfRating, quizRating);
+        const gapScore = targetRating - effectiveRating;
+
+        let gapStatus: 'Goal Met' | 'Minor Gap' | 'Critical Gap' = 'Goal Met';
+        if (gapScore <= 0) {
+          gapStatus = 'Goal Met';
+        } else if (gapScore === 1) {
+          gapStatus = 'Minor Gap';
+        } else {
+          gapStatus = 'Critical Gap';
+        }
 
         // Determine rating source: SYSTEM vs SELF vs UNRATED
         let ratingSource: 'SELF' | 'SYSTEM' | 'UNRATED' = 'UNRATED';
@@ -229,6 +414,31 @@ export class SkillRate implements OnInit {
           }
         }
 
+        let masteryTier: 'Legend' | 'Master' | 'Practitioner' | 'Novice' | 'Unrated' = 'Unrated';
+        if (selfRating >= 4 && quizRating >= 4) {
+          masteryTier = 'Legend';
+        } else if (selfRating >= 4 || quizRating >= 4) {
+          masteryTier = 'Master';
+        } else if (selfRating === 3 || quizRating === 3) {
+          masteryTier = 'Practitioner';
+        } else if (selfRating > 0 || quizRating > 0) {
+          masteryTier = 'Novice';
+        }
+
+        const achievementBadges: string[] = [];
+        if (attempts >= 3) {
+          achievementBadges.push('Quiz Veteran');
+        }
+        if (quizScore >= 90) {
+          achievementBadges.push('Perfect Score');
+        }
+        if (isFromResume) {
+          achievementBadges.push('AI Resume');
+        }
+        if (ratingSource === 'SELF') {
+          achievementBadges.push('Self Rated');
+        }
+
         return {
           skill: skillName,
           selfRating,
@@ -238,6 +448,11 @@ export class SkillRate implements OnInit {
           alignment,
           isFromResume,
           ratingSource,
+          masteryTier,
+          achievementBadges,
+          targetRating,
+          gapScore,
+          gapStatus,
         };
       });
   });
@@ -253,6 +468,14 @@ export class SkillRate implements OnInit {
       rows = rows.filter((r) => r.alignment === 'High Match');
     } else if (filter === 'needs-quiz') {
       rows = rows.filter((r) => r.alignment === 'Needs Quiz');
+    } else if (filter === 'legend') {
+      rows = rows.filter((r) => r.masteryTier === 'Legend');
+    } else if (filter === 'master') {
+      rows = rows.filter((r) => r.masteryTier === 'Master');
+    } else if (filter === 'practitioner') {
+      rows = rows.filter((r) => r.masteryTier === 'Practitioner');
+    } else if (filter === 'novice') {
+      rows = rows.filter((r) => r.masteryTier === 'Novice');
     }
 
     if (!query) return rows;
@@ -276,6 +499,83 @@ export class SkillRate implements OnInit {
       },
     ],
   }));
+
+  readonly radarChartData = computed(() => {
+    const rows = this.skillPerformanceRows();
+    const topRows = rows.length > 8 ? rows.slice(0, 8) : rows;
+
+    return {
+      labels: topRows.map((r) => r.skill),
+      datasets: [
+        {
+          label: 'Self Rating',
+          data: topRows.map((r) => r.selfRating),
+          borderColor: '#6366f1',
+          backgroundColor: 'rgba(99, 102, 241, 0.25)',
+          pointBackgroundColor: '#6366f1',
+          pointBorderColor: '#fff',
+          pointHoverBackgroundColor: '#fff',
+          pointHoverBorderColor: '#6366f1',
+        },
+        {
+          label: 'Quiz Rating',
+          data: topRows.map((r) => r.quizRating),
+          borderColor: '#0ea5e9',
+          backgroundColor: 'rgba(14, 165, 233, 0.25)',
+          pointBackgroundColor: '#0ea5e9',
+          pointBorderColor: '#fff',
+          pointHoverBackgroundColor: '#fff',
+          pointHoverBorderColor: '#0ea5e9',
+        },
+        {
+          label: `${this.selectedTargetRole()} Target`,
+          data: topRows.map((r) => r.targetRating),
+          borderColor: '#f59e0b',
+          backgroundColor: 'rgba(245, 158, 11, 0.15)',
+          borderDash: [5, 5],
+          pointBackgroundColor: '#f59e0b',
+          pointBorderColor: '#fff',
+          pointHoverBackgroundColor: '#fff',
+          pointHoverBorderColor: '#f59e0b',
+        },
+      ],
+    };
+  });
+
+  readonly compareRows = computed(() => {
+    const names = this.compareSkillNames();
+    return this.skillPerformanceRows().filter((r) => names.has(r.skill));
+  });
+
+  readonly compareRadarChartData = computed(() => {
+    const rows = this.compareRows();
+    return {
+      labels: rows.map((r) => r.skill),
+      datasets: [
+        {
+          label: 'Self Rating',
+          data: rows.map((r) => r.selfRating),
+          borderColor: '#6366f1',
+          backgroundColor: 'rgba(99, 102, 241, 0.25)',
+          pointBackgroundColor: '#6366f1',
+        },
+        {
+          label: 'Quiz Rating',
+          data: rows.map((r) => r.quizRating),
+          borderColor: '#0ea5e9',
+          backgroundColor: 'rgba(14, 165, 233, 0.25)',
+          pointBackgroundColor: '#0ea5e9',
+        },
+        {
+          label: 'Target Goal',
+          data: rows.map((r) => r.targetRating),
+          borderColor: '#f59e0b',
+          backgroundColor: 'rgba(245, 158, 11, 0.2)',
+          pointBackgroundColor: '#f59e0b',
+        },
+      ],
+    };
+  });
 
   readonly doughnutChartData = computed(() => {
     const rows = this.skillPerformanceRows();
@@ -334,6 +634,38 @@ export class SkillRate implements OnInit {
     },
   };
 
+  readonly radarChartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        position: 'bottom' as const,
+        labels: {
+          usePointStyle: true,
+          font: { family: 'Plus Jakarta Sans', size: 12 },
+        },
+      },
+    },
+    scales: {
+      r: {
+        angleLines: { color: 'rgba(226, 232, 240, 0.6)' },
+        grid: { color: 'rgba(226, 232, 240, 0.6)' },
+        pointLabels: {
+          font: { family: 'Plus Jakarta Sans', size: 11, weight: '600' },
+          color: '#475569',
+        },
+        ticks: {
+          stepSize: 1,
+          display: true,
+          backdropColor: 'transparent',
+          font: { size: 10 },
+        },
+        min: 0,
+        max: 5,
+      },
+    },
+  };
+
   readonly doughnutChartOptions = {
     responsive: true,
     maintainAspectRatio: false,
@@ -351,6 +683,129 @@ export class SkillRate implements OnInit {
     },
   };
 
+  readonly attemptsForSelectedSkill = computed<QuizStats[]>(() => {
+    const skill = this.selectedSkillForAttempts();
+    if (!skill) return [];
+    const targetKey = this.normalizeKey(skill);
+
+    return this.quizAttempts()
+      .filter((attempt) => this.normalizeKey(attempt.category) === targetKey)
+      .sort((a, b) => new Date(b.attempedDate).getTime() - new Date(a.attempedDate).getTime());
+  });
+
+  readonly attemptsSummary = computed(() => {
+    const attempts = this.attemptsForSelectedSkill();
+    if (!attempts.length) {
+      return {
+        total: 0,
+        bestScore: 0,
+        avgScore: 0,
+        avgTimeSec: 0,
+        totalCoins: 0,
+        totalHints: 0,
+        accuracy: 0,
+      };
+    }
+
+    const total = attempts.length;
+    const scores = attempts.map((a) => {
+      if (a.totalQuestions > 0) {
+        return Math.round((a.correctAnswerCount / a.totalQuestions) * 100);
+      }
+      return Number(a.totalScore || 0);
+    });
+
+    const bestScore = Math.max(...scores);
+    const avgScore = Math.round(scores.reduce((sum, s) => sum + s, 0) / total);
+    const avgTimeSec = Math.round(
+      attempts.reduce((sum, a) => sum + Number(a.totalTimeTakenInSeconds || 0), 0) / total
+    );
+    const totalCoins = attempts.reduce((sum, a) => sum + Number(a.totalCoinsEarned || 0), 0);
+    const totalHints = attempts.reduce((sum, a) => sum + Number(a.hintsUsedCount || 0), 0);
+    
+    const totalQuestions = attempts.reduce((sum, a) => sum + Number(a.totalQuestions || 0), 0);
+    const totalCorrect = attempts.reduce((sum, a) => sum + Number(a.correctAnswerCount || 0), 0);
+    const accuracy = totalQuestions > 0 ? Math.round((totalCorrect / totalQuestions) * 100) : 0;
+
+    return {
+      total,
+      bestScore,
+      avgScore,
+      avgTimeSec,
+      totalCoins,
+      totalHints,
+      accuracy,
+    };
+  });
+
+  readonly attemptTrendChartData = computed(() => {
+    const attempts = [...this.attemptsForSelectedSkill()].reverse(); // Chronological order
+    if (!attempts.length) {
+      return { labels: [], datasets: [] };
+    }
+
+    const labels = attempts.map((a, i) => {
+      const dateStr = new Date(a.attempedDate).toLocaleDateString(undefined, {
+        month: 'short',
+        day: 'numeric',
+      });
+      return `#${i + 1} (${dateStr})`;
+    });
+
+    const scores = attempts.map((a) => {
+      if (a.totalQuestions > 0) {
+        return Math.round((a.correctAnswerCount / a.totalQuestions) * 100);
+      }
+      return Number(a.totalScore || 0);
+    });
+
+    return {
+      labels,
+      datasets: [
+        {
+          label: 'Score Accuracy %',
+          data: scores,
+          borderColor: '#10b981',
+          backgroundColor: 'rgba(16, 185, 129, 0.15)',
+          fill: true,
+          tension: 0.35,
+          pointRadius: 5,
+          pointBackgroundColor: '#10b981',
+        },
+      ],
+    };
+  });
+
+  readonly attemptTrendChartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        backgroundColor: 'rgba(15, 23, 42, 0.9)',
+        padding: 10,
+        cornerRadius: 8,
+      },
+    },
+    scales: {
+      x: {
+        grid: { display: false },
+        ticks: { font: { family: 'Plus Jakarta Sans', size: 10 }, color: '#64748b' },
+      },
+      y: {
+        min: 0,
+        max: 100,
+        border: { dash: [4, 4] },
+        grid: { color: 'rgba(226, 232, 240, 0.6)' },
+        ticks: {
+          callback: (value: any) => `${value}%`,
+          font: { family: 'Plus Jakarta Sans', size: 10 },
+          color: '#64748b',
+        },
+      },
+    },
+  };
+
   ngOnInit(): void {
     this.resumeParserService.loadSavedResume();
     void this.loadData();
@@ -360,7 +815,7 @@ export class SkillRate implements OnInit {
     this.selectedSkill.set(skill);
   }
 
-  setFilter(filter: 'all' | 'resume' | 'match' | 'needs-quiz'): void {
+  setFilter(filter: 'all' | 'resume' | 'match' | 'needs-quiz' | 'legend' | 'master' | 'practitioner' | 'novice'): void {
     this.selectedFilter.set(filter);
   }
 
@@ -372,16 +827,33 @@ export class SkillRate implements OnInit {
       return;
     }
 
-    this.updateRatingDirectly(skill, rating);
+    const canonicalSkill =
+      this.availableSkills().find((s) => this.normalizeKey(s) === this.normalizeKey(skill)) || skill;
 
-    this.availableSkills.update((skills) => (skills.includes(skill) ? skills : [...skills, skill]));
+    this.updateRatingDirectly(canonicalSkill, rating);
+
+    this.availableSkills.update((skills) =>
+      skills.some((s) => this.normalizeKey(s) === this.normalizeKey(canonicalSkill))
+        ? skills
+        : [...skills, canonicalSkill]
+    );
     this.selectedSkill.set('');
     this.selectedRating.set(null);
   }
 
   updateRatingDirectly(skillName: string, newRating: number): void {
     const key = this.normalizeKey(skillName);
-    
+
+    // Get current rating for this skill from computed rows
+    const currentRow = this.skillPerformanceRows().find((r) => this.normalizeKey(r.skill) === key);
+    const currentSelfRating = currentRow ? currentRow.selfRating : 0;
+
+    // Toggle rating: if clicking the active rating star, reset to 0 (Unrated)
+    let finalRating = newRating;
+    if (currentSelfRating === newRating) {
+      finalRating = 0;
+    }
+
     // Clear from deleted skills set if re-adding/updating
     if (this.deletedSkillNames().has(key)) {
       const updatedSet = new Set(this.deletedSkillNames());
@@ -390,37 +862,86 @@ export class SkillRate implements OnInit {
       this.saveDeletedSkillsToStorage(updatedSet);
     }
 
-    const nextEntry: Rating = {
-      category: skillName,
-      rating: newRating,
-      type: 'SELF',
-    };
+    const previousEntries = this.skillRatings();
 
-    this.ratingApiService.createorUpdateSelfRating(nextEntry).pipe(
-      takeUntilDestroyed(this.destroyRef)
-    ).subscribe({
-      next: () => {
-        this.gamificationService.recordActivity('skill');
-        this.messageService.add({
-          severity: 'success',
-          summary: 'Rating Updated',
-          detail: `Rating for ${skillName} updated to ${newRating}/5 ⭐ (Self-Assessed)`,
+    if (finalRating === 0) {
+      // Optimistic update: remove self rating from state
+      this.skillRatings.update((entries) =>
+        entries.filter(
+          (entry) => this.normalizeKey(entry.category) !== key || (entry.type || '').toUpperCase() === 'TARGET'
+        )
+      );
+
+      this.ratingApiService
+        .deleteSelfRating(skillName)
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe({
+          next: () => {
+            this.messageService.add({
+              severity: 'info',
+              summary: 'Rating Reset',
+              detail: `Rating for ${skillName} reset to Unrated.`,
+            });
+          },
+          error: (error) => {
+            // Roll back state if API call fails
+            this.skillRatings.set(previousEntries);
+            this.messageService.add({
+              severity: 'error',
+              summary: 'Reset Failed',
+              detail: error?.error?.message || error.message || 'Could not reset rating.',
+            });
+          },
         });
-        this.skillRatings.update((entries) => {
-          const updatedEntries = entries.filter(
-            (entry) => this.normalizeKey(entry.category) !== key
-          );
-          return [...updatedEntries, nextEntry];
+    } else {
+      const nextEntry: Rating = {
+        category: skillName,
+        rating: finalRating,
+        type: 'SELF',
+      };
+
+      // OPTIMISTIC UPDATE: Update signal state IMMEDIATELY so stars reflect instantly!
+      this.skillRatings.update((entries) => {
+        const updatedEntries = entries.filter(
+          (entry) => this.normalizeKey(entry.category) !== key || (entry.type || '').toUpperCase() === 'TARGET'
+        );
+        return [...updatedEntries, nextEntry];
+      });
+
+      this.ratingApiService
+        .createorUpdateSelfRating(nextEntry)
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe({
+          next: (savedRating) => {
+            this.gamificationService.recordActivity('skill');
+
+            // Sync with backend response payload if provided
+            if (savedRating && savedRating.category) {
+              this.skillRatings.update((entries) => {
+                const filtered = entries.filter(
+                  (entry) => this.normalizeKey(entry.category) !== key || (entry.type || '').toUpperCase() === 'TARGET'
+                );
+                return [...filtered, savedRating];
+              });
+            }
+
+            this.messageService.add({
+              severity: 'success',
+              summary: 'Rating Updated',
+              detail: `Rating for ${skillName} updated to ${finalRating}/5 ⭐ (Self-Assessed)`,
+            });
+          },
+          error: (error) => {
+            // Roll back state if API call fails
+            this.skillRatings.set(previousEntries);
+            this.messageService.add({
+              severity: 'error',
+              summary: 'Update Failed',
+              detail: error?.error?.message || error.message || 'Could not update rating.',
+            });
+          },
         });
-      },
-      error: (error) => {
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Update Failed',
-          detail: error?.error?.message || error.message || 'Could not update rating.',
-        });
-      },
-    });
+    }
   }
 
   openEditModal(row: SkillPerformanceRow): void {
@@ -644,6 +1165,99 @@ export class SkillRate implements OnInit {
     return stars;
   }
 
+  getMasteryBadgeClass(tier: string): string {
+    switch (tier) {
+      case 'Legend':
+        return 'badge-legend';
+      case 'Master':
+        return 'badge-master';
+      case 'Practitioner':
+        return 'badge-practitioner';
+      case 'Novice':
+        return 'badge-novice';
+      default:
+        return 'badge-neutral';
+    }
+  }
+
+  getMasteryBadgeIcon(tier: string): string {
+    switch (tier) {
+      case 'Legend':
+        return 'pi pi-crown';
+      case 'Master':
+        return 'pi pi-trophy';
+      case 'Practitioner':
+        return 'pi pi-bolt';
+      case 'Novice':
+        return 'pi pi-shield';
+      default:
+        return 'pi pi-circle';
+    }
+  }
+
+  formatDuration(seconds: number): string {
+    if (!seconds || seconds <= 0) return '0s';
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    if (mins > 0) {
+      return `${mins}m ${secs}s`;
+    }
+    return `${secs}s`;
+  }
+
+  setSkillTargetGoal(skillName: string, newTargetGoal: number): void {
+    const key = this.normalizeKey(skillName);
+    const currentTarget = this.customTargetGoals().get(key);
+
+    let targetGoal = newTargetGoal;
+    if (currentTarget === newTargetGoal) {
+      targetGoal = 0;
+    }
+
+    const updatedMap = new Map(this.customTargetGoals());
+    if (targetGoal === 0) {
+      updatedMap.delete(key);
+    } else {
+      updatedMap.set(key, targetGoal);
+    }
+
+    // 1. Optimistic UI update
+    this.customTargetGoals.set(updatedMap);
+
+    // 2. Client storage (localStorage backup)
+    this.saveTargetGoalsToStorage(updatedMap);
+
+    // 3. Database persistence
+    if (targetGoal > 0) {
+      const targetEntry: Rating = {
+        category: skillName,
+        rating: targetGoal,
+        type: 'TARGET',
+      };
+      this.ratingApiService
+        .createorUpdateSelfRating(targetEntry)
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe({
+          next: () => {
+            this.messageService.add({
+              severity: 'success',
+              summary: 'Target Goal Set',
+              detail: `Target goal for ${skillName} updated to ${targetGoal}/5 ⭐`,
+            });
+          },
+          error: (err) => {
+            console.warn('Backend DB target goal sync fallback:', err);
+          },
+        });
+    } else {
+      this.messageService.add({
+        severity: 'info',
+        summary: 'Target Reset',
+        detail: `Custom target goal for ${skillName} reset to role benchmark default.`,
+      });
+    }
+  }
+
   private async loadData(): Promise<void> {
     try {
       const [ratings, attempts] = await Promise.all([
@@ -654,6 +1268,17 @@ export class SkillRate implements OnInit {
       const selfRatings = ratings.filter((entry: Rating) =>
         entry.type?.toLowerCase() === 'self' || entry.type?.toLowerCase() === 'system' || entry.type?.toLowerCase() === 'resume'
       );
+      const targetRatings = ratings.filter((entry: Rating) => entry.type?.toLowerCase() === 'target');
+      
+      if (targetRatings.length > 0) {
+        const dbTargetsMap = new Map(this.customTargetGoals());
+        targetRatings.forEach((tr: Rating) => {
+          dbTargetsMap.set(this.normalizeKey(tr.category), tr.rating);
+        });
+        this.customTargetGoals.set(dbTargetsMap);
+        this.saveTargetGoalsToStorage(dbTargetsMap);
+      }
+
       const skillNames = Array.from(
         new Set([
           ...selfRatings.map((entry: Rating) => entry.category),
@@ -684,6 +1309,24 @@ export class SkillRate implements OnInit {
   private saveDeletedSkillsToStorage(set: Set<string>): void {
     try {
       localStorage.setItem('imonbench_deleted_skills', JSON.stringify(Array.from(set)));
+    } catch {}
+  }
+
+  private loadTargetGoalsFromStorage(): Map<string, number> {
+    try {
+      const raw = localStorage.getItem('mordenec_skill_target_goals');
+      if (raw) {
+        const obj = JSON.parse(raw);
+        return new Map(Object.entries(obj));
+      }
+    } catch {}
+    return new Map();
+  }
+
+  private saveTargetGoalsToStorage(map: Map<string, number>): void {
+    try {
+      const obj = Object.fromEntries(map);
+      localStorage.setItem('mordenec_skill_target_goals', JSON.stringify(obj));
     } catch {}
   }
 

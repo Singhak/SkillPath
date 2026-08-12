@@ -1,25 +1,40 @@
 <div class="skill-page-wrapper">
   <main class="skill-container">
     <!-- Hero Header Banner -->
-    <section class="hero-banner">
+    <section class="hero-banner" data-tour="skill-gap-card">
       <div class="hero-content">
         <div class="hero-header-badge">
           <i class="pi pi-compass"></i>
-          <span>Self Assessment Hub</span>
+          <span>Self Assessment & Skill Gap Hub</span>
         </div>
-        <h1 class="hero-title">Skill Matrix & <span class="highlight">Self Reflection</span></h1>
+        <h1 class="hero-title">Skill Matrix & <span class="highlight">Target Role Benchmark</span></h1>
         <p class="hero-subtitle">
-          Track how confident you feel in each technical area, edit or delete skills extracted from your resume or added manually, and compare your self-ratings against objective quiz outcomes.
+          Track confidence ratings, set target skill goals, benchmark against target developer roles, and eliminate technical skill gaps with verified quiz assessments.
         </p>
         <div class="hero-actions-row">
-          <button type="button" class="action-btn guide-toggle-btn" (click)="toggleGuide()">
+          <button type="button" class="action-btn guide-toggle-btn" (click)="toggleGuide()" data-tour="skill-guide-btn">
             <i class="pi" [ngClass]="showGuide() ? 'pi-times-circle' : 'pi-info-circle'"></i>
-            <span>{{ showGuide() ? 'Close Guide' : 'How Skill Alignment Works' }}</span>
+            <span>{{ showGuide() ? 'Close Guide' : 'How Target Alignment Works' }}</span>
           </button>
+        </div>
+
+        <!-- Target Role Benchmark Switcher -->
+        <div class="target-role-bar mt-3" data-tour="skill-target-role-bar">
+          <span class="role-bar-label"><i class="pi pi-briefcase"></i> Target Role Benchmark:</span>
+          <div class="role-chips-list">
+            @for (role of targetRoles; track role.roleName) {
+            <button type="button" class="role-chip-btn" [class.active]="selectedTargetRole() === role.roleName"
+              (click)="setTargetRole(role.roleName)" [pTooltip]="role.description">
+              <i [class]="role.icon"></i>
+              <span>{{ role.roleName }}</span>
+            </button>
+            }
+          </div>
         </div>
       </div>
 
-      <div class="hero-widgets">
+      <!-- 4 Hero Glass KPI Widgets -->
+      <div class="hero-widgets grid-4-widgets" data-tour="skill-kpi-widgets">
         <div class="glass-widget">
           <div class="widget-icon star-icon">
             <i class="pi pi-star-fill"></i>
@@ -35,8 +50,28 @@
             <i class="pi pi-bullseye"></i>
           </div>
           <div class="widget-details">
-            <span class="widget-label">Avg Quiz Rating</span>
+            <span class="widget-label">Avg Quiz Score</span>
             <strong class="widget-val">{{ averageQuizRating() }}/5</strong>
+          </div>
+        </div>
+
+        <div class="glass-widget">
+          <div class="widget-icon gap-icon">
+            <i class="pi pi-chart-line"></i>
+          </div>
+          <div class="widget-details">
+            <span class="widget-label">Skill Goal Index</span>
+            <strong class="widget-val">{{ skillGapIndex() }}% Met</strong>
+          </div>
+        </div>
+
+        <div class="glass-widget">
+          <div class="widget-icon rank-icon">
+            <i [class]="overallMasteryRank().icon"></i>
+          </div>
+          <div class="widget-details">
+            <span class="widget-label">Mastery Rank</span>
+            <strong class="widget-val rank-val">{{ overallMasteryRank().title }}</strong>
           </div>
         </div>
       </div>
@@ -49,9 +84,9 @@
         <div>
           <div class="section-tag guide-tag">
             <i class="pi pi-book"></i>
-            <span>Skill Matrix Guide</span>
+            <span>Skill Matrix & Gap Guide</span>
           </div>
-          <h3 class="card-title">Understanding Skill Ratings & Alignment</h3>
+          <h3 class="card-title">Understanding Skill Ratings, Goals & Gap Index</h3>
         </div>
         <button type="button" class="close-guide-btn" (click)="toggleGuide()" aria-label="Close guide">
           <i class="pi pi-times"></i>
@@ -74,38 +109,28 @@
             <i class="pi pi-check-circle"></i>
           </div>
           <div class="guide-item-content">
-            <h4>🎯 High Match</h4>
-            <p>Your self-perceived rating matches your objective quiz test results (within 0.5 stars). Confirms accurate self-awareness!</p>
-          </div>
-        </div>
-
-        <div class="guide-item">
-          <div class="guide-icon-box quiz-bg">
-            <i class="pi pi-minus-circle"></i>
-          </div>
-          <div class="guide-item-content">
-            <h4>⚡ Needs Quiz</h4>
-            <p>Skills you rated yourself in, but haven't tested via a quiz yet. Click the <strong>Quiz</strong> button to test your knowledge!</p>
+            <h4>🟢 Goal Achieved</h4>
+            <p>Your current effective rating meets or exceeds your benchmark target goal. Outstanding mastery!</p>
           </div>
         </div>
 
         <div class="guide-item">
           <div class="guide-icon-box under-bg">
-            <i class="pi pi-arrow-up-right"></i>
+            <i class="pi pi-exclamation-triangle"></i>
           </div>
           <div class="guide-item-content">
-            <h4>↗️ Underestimating</h4>
-            <p>Your quiz score is higher than your self-rating! You have stronger technical mastery than you realize.</p>
+            <h4>🟡 Minor Gap</h4>
+            <p>You are within 1 star of your role target goal. Take a practice quiz to close this gap!</p>
           </div>
         </div>
 
         <div class="guide-item">
           <div class="guide-icon-box over-bg">
-            <i class="pi pi-arrow-down-right"></i>
+            <i class="pi pi-times-circle"></i>
           </div>
           <div class="guide-item-content">
-            <h4>↘️ Overestimating</h4>
-            <p>Your self-rating is higher than your actual quiz score. Take practice quizzes to strengthen your knowledge.</p>
+            <h4>🔴 Critical Gap</h4>
+            <p>Significant competency gap (2+ stars) compared to target benchmark. Prioritize learning & quizzes in this area.</p>
           </div>
         </div>
       </div>
@@ -114,7 +139,7 @@
 
     <!-- Resume Skills Extraction Banner (If Resume Uploaded) -->
     @if (resumeSkills().length > 0) {
-    <section class="glass-card resume-sync-card">
+    <section class="glass-card resume-sync-card" data-tour="resume-sync-card">
       <div class="resume-sync-header">
         <div class="resume-info">
           <div class="section-tag resume-tag">
@@ -142,7 +167,7 @@
     }
 
     <!-- Quick Add / Edit Skill Rating Form -->
-    <section class="glass-card add-skill-card">
+    <section class="glass-card add-skill-card" data-tour="skill-add-form">
       <div class="card-header">
         <div>
           <div class="section-tag">
@@ -211,109 +236,106 @@
       </div>
     </section>
 
-    <!-- Key Performance Metrics Grid -->
-    <section class="stats-grid">
-      <div class="kpi-card">
-        <div class="kpi-icon-box accent-indigo">
-          <i class="pi pi-star-fill"></i>
-        </div>
-        <div class="kpi-info">
-          <span class="kpi-label">Avg Self Rating</span>
-          <h3 class="kpi-value">{{ averageSelfRating() }} / 5</h3>
-          <span class="kpi-subtitle">Personal perception</span>
-        </div>
-      </div>
-
-      <div class="kpi-card">
-        <div class="kpi-icon-box accent-sky">
-          <i class="pi pi-chart-bar"></i>
-        </div>
-        <div class="kpi-info">
-          <span class="kpi-label">Avg Quiz Score</span>
-          <h3 class="kpi-value">{{ averageQuizRating() }} / 5</h3>
-          <span class="kpi-subtitle">Measured performance</span>
-        </div>
-      </div>
-
-      <div class="kpi-card">
-        <div class="kpi-icon-box accent-emerald">
-          <i class="pi pi-sliders-h"></i>
-        </div>
-        <div class="kpi-info">
-          <span class="kpi-label">Skills Assessed</span>
-          <h3 class="kpi-value">{{ totalAssessedSkills() }}</h3>
-          <span class="kpi-subtitle">Total track records</span>
-        </div>
-      </div>
-
-      <div class="kpi-card">
-        <div class="kpi-icon-box accent-violet">
-          <i class="pi pi-shield-check"></i>
-        </div>
-        <div class="kpi-info">
-          <span class="kpi-label">Rating Alignment</span>
-          <h3 class="kpi-value">{{ alignmentScore() }}%</h3>
-          <span class="kpi-subtitle">Quiz match accuracy</span>
-        </div>
-      </div>
-    </section>
 
     <!-- Analytics Charts Section -->
-    <div class="analytics-grid">
-      <!-- Comparative Bar Chart -->
-      <div class="glass-card chart-card flex-2">
-        <div class="card-header">
-          <div>
-            <div class="section-tag">
-              <i class="pi pi-chart-bar"></i>
-              <span>Comparative Analytics</span>
-            </div>
-            <h3 class="card-title">Self Rating vs. Quiz Performance</h3>
+    <div class="analytics-section glass-card" data-tour="skill-analytics-section">
+      <div class="card-header chart-section-header">
+        <div>
+          <div class="section-tag">
+            <i class="pi pi-chart-line"></i>
+            <span>Skill Analytics & Visualizations</span>
           </div>
+          <h3 class="card-title">Performance & Target Gap Coverage</h3>
         </div>
-        <div class="chart-wrapper">
-          @if (skillPerformanceRows().length) {
-          <p-chart type="bar" [data]="barChartData()" [options]="barChartOptions" height="260px"></p-chart>
-          } @else {
-          <div class="chart-empty">Add a few skill ratings to see comparison graph</div>
-          }
+
+        <div class="chart-tab-switcher">
+          <button type="button" class="chart-tab-btn" [class.active]="activeChartTab() === 'bar'"
+            (click)="setChartTab('bar')">
+            <i class="pi pi-chart-bar"></i> Bar Chart
+          </button>
+          <button type="button" class="chart-tab-btn" [class.active]="activeChartTab() === 'radar'"
+            (click)="setChartTab('radar')">
+            <i class="pi pi-compass"></i> Radar Matrix (3-Way)
+          </button>
+          <button type="button" class="chart-tab-btn" [class.active]="activeChartTab() === 'doughnut'"
+            (click)="setChartTab('doughnut')">
+            <i class="pi pi-chart-pie"></i> Proficiency Spread
+          </button>
         </div>
       </div>
 
-      <!-- Skill Level Breakdown Doughnut Chart -->
-      <div class="glass-card chart-card flex-1">
-        <div class="card-header">
-          <div>
-            <div class="section-tag">
-              <i class="pi pi-chart-pie"></i>
-              <span>Distribution</span>
-            </div>
-            <h3 class="card-title">Proficiency Spread</h3>
+      <div class="chart-container-body">
+        @if (activeChartTab() === 'bar') {
+        <div class="single-chart-view animate-fade">
+          <div class="chart-view-info">
+            <h4>Self Rating vs. Objective Quiz Rating</h4>
+            <p>Compare how your self-confidence scores map against real quiz performance across all skills.</p>
+          </div>
+          <div class="chart-wrapper">
+            @if (skillPerformanceRows().length) {
+            <p-chart type="bar" [data]="barChartData()" [options]="barChartOptions" height="280px"></p-chart>
+            } @else {
+            <div class="chart-empty">Add a few skill ratings to see comparison graph</div>
+            }
           </div>
         </div>
-        <div class="chart-wrapper doughnut-wrapper">
-          @if (skillPerformanceRows().length) {
-          <p-chart type="doughnut" [data]="doughnutChartData()" [options]="doughnutChartOptions"
-            height="260px"></p-chart>
-          } @else {
-          <div class="chart-empty">No proficiency data</div>
-          }
+        } @else if (activeChartTab() === 'radar') {
+        <div class="single-chart-view animate-fade">
+          <div class="chart-view-info">
+            <h4>3-Way Spider Matrix: Self vs Quiz vs {{ selectedTargetRole() }} Target</h4>
+            <p>Multi-dimensional view comparing your actual skills against target role requirements.</p>
+          </div>
+          <div class="chart-wrapper radar-wrapper">
+            @if (skillPerformanceRows().length) {
+            <p-chart type="radar" [data]="radarChartData()" [options]="radarChartOptions" height="300px"></p-chart>
+            } @else {
+            <div class="chart-empty">Add skill ratings to display radar matrix</div>
+            }
+          </div>
         </div>
+        } @else {
+        <div class="single-chart-view animate-fade">
+          <div class="chart-view-info">
+            <h4>Skill Level Distribution</h4>
+            <p>Spread of technical skills across Expert (4-5★), Proficient (3★), Developing (1-2★), and Unrated levels.</p>
+          </div>
+          <div class="chart-wrapper doughnut-wrapper">
+            @if (skillPerformanceRows().length) {
+            <p-chart type="doughnut" [data]="doughnutChartData()" [options]="doughnutChartOptions" height="280px"></p-chart>
+            } @else {
+            <div class="chart-empty">No proficiency data available</div>
+            }
+          </div>
+        </div>
+        }
       </div>
     </div>
 
     <!-- Detailed Skill Performance Matrix Table -->
-    <section class="glass-card table-card">
+    <section class="glass-card table-card" data-tour="skill-matrix-table">
       <div class="card-header table-header-flex">
         <div>
           <div class="section-tag">
             <i class="pi pi-table"></i>
             <span>Skill Matrix</span>
           </div>
-          <h3 class="card-title">Detailed Competency Overview</h3>
+          <h3 class="card-title">Detailed Competency & Skill Gap Matrix</h3>
         </div>
 
         <div class="table-actions-header">
+          <!-- Side-by-Side Compare Action Button -->
+          <div class="compare-action-box" data-tour="skill-compare-box">
+            @if (compareSkillNames().size > 0) {
+            <button type="button" class="action-btn compare-btn" (click)="openCompareModal()">
+              <i class="pi pi-sliders-h"></i>
+              <span>Compare Skills ({{ compareSkillNames().size }})</span>
+            </button>
+            <button type="button" class="clear-compare-btn" (click)="clearCompareSelection()" pTooltip="Clear comparison selection">
+              <i class="pi pi-times"></i>
+            </button>
+            }
+          </div>
+
           <!-- Filter Tabs -->
           <div class="filter-chips">
             <button type="button" class="filter-chip" [class.active]="selectedFilter() === 'all'"
@@ -326,9 +348,21 @@
               Resume ({{ resumeSkills().length }})
             </button>
             }
+            <button type="button" class="filter-chip" [class.active]="selectedFilter() === 'legend'"
+              (click)="setFilter('legend')">
+              👑 Legend
+            </button>
+            <button type="button" class="filter-chip" [class.active]="selectedFilter() === 'master'"
+              (click)="setFilter('master')">
+              🏆 Master
+            </button>
+            <button type="button" class="filter-chip" [class.active]="selectedFilter() === 'practitioner'"
+              (click)="setFilter('practitioner')">
+              ⚡ Practitioner
+            </button>
             <button type="button" class="filter-chip" [class.active]="selectedFilter() === 'match'"
               (click)="setFilter('match')">
-              Match
+              🎯 High Match
             </button>
             <button type="button" class="filter-chip" [class.active]="selectedFilter() === 'needs-quiz'"
               (click)="setFilter('needs-quiz')">
@@ -352,34 +386,47 @@
 
       <!-- Matrix Quick Legend Bar -->
       <div class="matrix-legend-bar">
-        <span class="legend-title"><i class="pi pi-info-circle"></i> Badge Legend:</span>
+        <span class="legend-title"><i class="pi pi-info-circle"></i> Status Badges:</span>
         <div class="legend-items">
-          <span class="legend-item"><span class="source-badge system-source"><i class="pi pi-desktop"></i> System</span> AI Resume Rated</span>
-          <span class="legend-item"><span class="source-badge self-source"><i class="pi pi-user"></i> Self</span> User Rated / Edited</span>
-          <span class="legend-item"><span class="alignment-badge badge-match"><i class="pi pi-check-circle"></i> High Match</span> Self = Quiz</span>
-          <span class="legend-item"><span class="alignment-badge badge-neutral"><i class="pi pi-minus-circle"></i> Needs Quiz</span> No Quiz Taken</span>
+          <span class="legend-item"><span class="gap-badge gap-achieved"><i class="pi pi-check-circle"></i> Goal Met</span> Rating >= Target</span>
+          <span class="legend-item"><span class="gap-badge gap-minor"><i class="pi pi-exclamation-triangle"></i> Minor Gap</span> 1★ below Target</span>
+          <span class="legend-item"><span class="gap-badge gap-critical"><i class="pi pi-times-circle"></i> Critical Gap</span> 2+★ below Target</span>
+          <span class="legend-item"><span class="mastery-badge badge-legend"><i class="pi pi-crown"></i> Legend</span> 4-5★ Self + Quiz</span>
+          <span class="legend-item"><span class="source-badge system-source"><i class="pi pi-desktop"></i> System</span> AI Resume</span>
         </div>
       </div>
 
       <div class="table-responsive">
-        <p-table [value]="filteredSkillPerformanceRows()" [tableStyle]="{ 'min-width': '100%' }" [rows]="5"
-          [paginator]="filteredSkillPerformanceRows().length > 5" class="p-datatable-sm custom-table">
+        <p-table [value]="filteredSkillPerformanceRows()" [tableStyle]="{ 'min-width': '100%' }" [rows]="6"
+          [paginator]="filteredSkillPerformanceRows().length > 6" class="p-datatable-sm custom-table">
           <ng-template pTemplate="header">
-            <tr>
-              <th scope="col">Skill</th>
-              <th scope="col"pTooltip="Your confidence rating (1-5 stars). Click any star to change to Self-rated.">Rating (Click to Update)</th>
-              <th scope="col" pTooltip="Calculated rating from actual quiz scores.">Quiz Rating</th>
-              <th scope="col"pTooltip="Rating source: System (Resume AI) vs Self (User edited).">Rated By</th>
-              <th scope="col" pTooltip="Number of quiz attempts for this skill.">Attempts</th>
-              <th scope="col" pTooltip="Comparison between self-rating and quiz performance.">Alignment</th>
-              <th scope="col" style="width: 160px; text-align: center;">Actions</th>
+            <tr class="table-header-row">
+              <th scope="col" style="width: 48px; text-align: center;" pTooltip="Select skills to compare side-by-side">
+                <i class="pi pi-sliders-h"></i>
+              </th>
+              <th scope="col" style="min-width: 150px;">Skill</th>
+              <th scope="col" style="min-width: 140px;" pTooltip="Target goal for this skill. Click stars to adjust." data-tour="skill-target-stars">Target Goal</th>
+              <th scope="col" style="min-width: 140px;" pTooltip="Your confidence rating (1-5★). Click stars to edit." data-tour="skill-self-stars">Self Rating</th>
+              <th scope="col" style="min-width: 130px;" pTooltip="Calculated rating from actual quiz outcomes.">Quiz Rating</th>
+              <th scope="col" style="min-width: 110px;" pTooltip="Click to view detailed attempt history & trend graphs.">Attempts</th>
+              <th scope="col" style="min-width: 120px;" pTooltip="Gap status between target goal and actual rating.">Gap Status</th>
+              <th scope="col" style="width: 130px; text-align: center;">Actions</th>
             </tr>
           </ng-template>
 
           <ng-template pTemplate="body" let-row>
-            <tr class="table-row">
+            <tr class="table-row" [class.row-selected-compare]="isSkillSelectedForCompare(row.skill)">
+              <!-- Compare Checkbox -->
+              <td style="text-align: center;">
+                <button type="button" class="compare-checkbox-btn" [class.checked]="isSkillSelectedForCompare(row.skill)"
+                  (click)="toggleSkillForCompare(row.skill)" pTooltip="Select to compare side-by-side">
+                  <i class="pi" [ngClass]="isSkillSelectedForCompare(row.skill) ? 'pi-check-square' : 'pi-stop'"></i>
+                </button>
+              </td>
+
+              <!-- Skill Name Inline -->
               <td>
-                <div class="skill-name-wrapper">
+                <div class="skill-name-cell">
                   <span class="skill-pill">{{ row.skill }}</span>
                   @if (row.isFromResume) {
                   <span class="source-tag resume-source" pTooltip="Extracted from your resume">
@@ -389,13 +436,31 @@
                 </div>
               </td>
 
-              <!-- Interactive Star Rating Column -->
+              <!-- Target Goal Rating Column -->
+              <td>
+                <div class="target-rating-container">
+                  <div class="stars-interactive target-stars" pTooltip="Click to set custom target goal for {{ row.skill }}">
+                    @for (star of [1,2,3,4,5]; track star) {
+                    <button type="button" class="star-btn target-star-btn" [class.active]="star <= row.targetRating"
+                      (click)="setSkillTargetGoal(row.skill, star); $event.stopPropagation()"
+                      [attr.aria-label]="'Set target goal for ' + row.skill + ' to ' + star">
+                      <i class="pi" [ngClass]="star <= row.targetRating ? 'pi-star-fill' : 'pi-star'"></i>
+                    </button>
+                    }
+                  </div>
+                  <span class="target-val-badge">
+                    {{ row.targetRating }}/5★
+                  </span>
+                </div>
+              </td>
+
+              <!-- Self Rating Column -->
               <td>
                 <div class="interactive-rating-container">
-                  <div class="stars-interactive" pTooltip="Click a star to update rating to Self">
+                  <div class="stars-interactive" pTooltip="Click a star to update confidence rating">
                     @for (star of [1,2,3,4,5]; track star) {
                     <button type="button" class="star-btn" [class.active]="star <= row.selfRating"
-                      (click)="updateRatingDirectly(row.skill, star)"
+                      (click)="updateRatingDirectly(row.skill, star); $event.stopPropagation()"
                       [attr.aria-label]="'Set ' + row.skill + ' rating to ' + star">
                       <i class="pi" [ngClass]="star <= row.selfRating ? 'pi-star-fill' : 'pi-star'"></i>
                     </button>
@@ -407,6 +472,7 @@
                 </div>
               </td>
 
+              <!-- Quiz Rating Column -->
               <td>
                 @if (row.quizRating > 0) {
                 <div class="rating-stars-badge quiz-badge">
@@ -423,46 +489,39 @@
                 }
               </td>
 
-              <!-- Rated By Column (System vs Self) -->
+              <!-- Attempts Column -->
               <td>
-                @if (row.ratingSource === 'SYSTEM') {
-                <span class="source-badge system-source" pTooltip="Auto-rated by AI resume parser. Click stars to switch to Self-rated.">
-                  <i class="pi pi-desktop"></i> System
+                <button type="button" class="attempts-pill interactive-attempts-btn" data-tour="skill-attempts-btn"
+                  [class.has-attempts]="row.attempts > 0"
+                  (click)="openAttemptsModal(row.skill)"
+                  [pTooltip]="row.attempts > 0 ? 'Click to view full attempt history & score trend' : 'No attempt history yet'">
+                  <i class="pi pi-history"></i>
+                  <span>{{ row.attempts }} attempt{{ row.attempts === 1 ? '' : 's' }}</span>
+                </button>
+              </td>
+
+              <!-- Skill Gap Status Column -->
+              <td>
+                @if (row.gapStatus === 'Goal Met') {
+                <span class="gap-badge gap-achieved" pTooltip="Target goal met">
+                  <i class="pi pi-check-circle"></i> Goal Met
                 </span>
-                } @else if (row.ratingSource === 'SELF') {
-                <span class="source-badge self-source" pTooltip="Rated or updated directly by you">
-                  <i class="pi pi-user"></i> Self
+                } @else if (row.gapStatus === 'Minor Gap') {
+                <span class="gap-badge gap-minor" pTooltip="1 star below target goal">
+                  <i class="pi pi-exclamation-triangle"></i> Minor (-1★)
                 </span>
                 } @else {
-                <span class="unrated-tag">Unrated</span>
+                <span class="gap-badge gap-critical" pTooltip="2+ stars below target goal">
+                  <i class="pi pi-times-circle"></i> Gap (-{{ row.gapScore }}★)
+                </span>
                 }
               </td>
 
-              <td>
-                <span class="attempts-pill">
-                  <i class="pi pi-history"></i> {{ row.attempts }} attempt{{ row.attempts === 1 ? '' : 's' }}
-                </span>
-              </td>
-
-              <td>
-                <span class="alignment-badge" [ngClass]="getAlignmentBadgeClass(row.alignment)">
-                  @if (row.alignment === 'High Match') {
-                  <i class="pi pi-check-circle"></i> High Match
-                  } @else if (row.alignment === 'Underestimating') {
-                  <i class="pi pi-arrow-up-right"></i> Underestimating
-                  } @else if (row.alignment === 'Overestimating') {
-                  <i class="pi pi-arrow-down-right"></i> Overestimating
-                  } @else {
-                  <i class="pi pi-minus-circle"></i> Needs Quiz
-                  }
-                </span>
-              </td>
-
-              <!-- Action Buttons: Edit, Take Quiz, Delete -->
-              <td>
+              <!-- Action Buttons -->
+              <td style="text-align: center;">
                 <div class="row-actions">
                   <button type="button" class="row-action-btn edit-btn" (click)="openEditModal(row)"
-                    pTooltip="Edit Skill Name & Rating">
+                    pTooltip="Edit Skill Name">
                     <i class="pi pi-pencil"></i>
                   </button>
                   <button type="button" class="row-action-btn quiz-btn" (click)="takeQuiz(row.skill)"
@@ -471,7 +530,7 @@
                     <span>Quiz</span>
                   </button>
                   <button type="button" class="row-action-btn delete-btn" (click)="confirmDelete(row.skill)"
-                    pTooltip="Delete Skill Rating">
+                    pTooltip="Delete Skill">
                     <i class="pi pi-trash"></i>
                   </button>
                 </div>
@@ -481,7 +540,7 @@
 
           <ng-template pTemplate="emptymessage">
             <tr>
-              <td colspan="7" class="empty-table-state">
+              <td colspan="8" class="empty-table-state">
                 <div class="empty-box">
                   <i class="pi pi-inbox empty-icon"></i>
                   <p>No skills found matching your current filter.</p>
@@ -492,6 +551,219 @@
         </p-table>
       </div>
     </section>
+
+    <!-- Previous Attempts History Modal -->
+    <p-dialog [(visible)]="showAttemptsModal" [modal]="true" [style]="{ width: '740px' }"
+      [header]="'Attempt History & Progression: ' + (selectedSkillForAttempts() || '')" [draggable]="false"
+      [resizable]="false" [dismissableMask]="true">
+      <div class="attempts-dialog-content">
+        @if (attemptsForSelectedSkill().length > 0) {
+        <!-- Attempts Summary KPI Grid -->
+        <div class="attempts-kpi-grid">
+          <div class="attempt-kpi-card">
+            <span class="attempt-kpi-label">Total Attempts</span>
+            <strong class="attempt-kpi-val">{{ attemptsSummary().total }}</strong>
+          </div>
+          <div class="attempt-kpi-card accent-green">
+            <span class="attempt-kpi-label">Best Score</span>
+            <strong class="attempt-kpi-val">{{ attemptsSummary().bestScore }}%</strong>
+          </div>
+          <div class="attempt-kpi-card accent-blue">
+            <span class="attempt-kpi-label">Average Accuracy</span>
+            <strong class="attempt-kpi-val">{{ attemptsSummary().accuracy }}%</strong>
+          </div>
+          <div class="attempt-kpi-card accent-amber">
+            <span class="attempt-kpi-label">Avg Duration</span>
+            <strong class="attempt-kpi-val">{{ formatDuration(attemptsSummary().avgTimeSec) }}</strong>
+          </div>
+        </div>
+
+        <!-- Score Trend Progression Chart -->
+        <div class="attempt-trend-section">
+          <div class="trend-header">
+            <h4><i class="pi pi-chart-line"></i> Score Progression Trend</h4>
+            <span class="trend-sub">Tracking your accuracy across quiz attempts</span>
+          </div>
+          <div class="trend-chart-box">
+            <p-chart type="line" [data]="attemptTrendChartData()" [options]="attemptTrendChartOptions" height="180px"></p-chart>
+          </div>
+        </div>
+
+        <!-- Detailed Attempts History Table -->
+        <div class="attempts-table-wrapper">
+          <h4 class="history-table-title"><i class="pi pi-list"></i> Past Attempt Logs</h4>
+          <table class="attempts-custom-table">
+            <thead>
+              <tr>
+                <th>Attempt #</th>
+                <th>Date & Time</th>
+                <th>Score</th>
+                <th>Rating</th>
+                <th>Questions</th>
+                <th>Time Taken</th>
+                <th>Coins</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (attempt of attemptsForSelectedSkill(); track $index) {
+              <tr>
+                <td>
+                  <span class="attempt-num-tag">#{{ attemptsForSelectedSkill().length - $index }}</span>
+                </td>
+                <td>
+                  <div class="date-time-cell">
+                    <span class="attempt-date">{{ attempt.attempedDate | date:'mediumDate' }}</span>
+                    <span class="attempt-time">{{ attempt.attempedDate | date:'shortTime' }}</span>
+                  </div>
+                </td>
+                <td>
+                  <span class="score-badge" [class.high-score]="attempt.totalScore >= 80">
+                    {{ attempt.totalScore || 0 }}%
+                  </span>
+                </td>
+                <td>
+                  <span class="stars-mini">
+                    @for (star of getStarArray(attempt.rating); track $index) {
+                    <i class="pi" [ngClass]="star === 1 ? 'pi-star-fill' : star === 0.5 ? 'pi-star-half-fill' : 'pi-star'"></i>
+                    }
+                  </span>
+                </td>
+                <td>
+                  <div class="questions-breakdown">
+                    <span class="correct-cnt" pTooltip="Correct Answers"><i class="pi pi-check"></i> {{ attempt.correctAnswerCount }}</span>
+                    <span class="wrong-cnt" pTooltip="Wrong Answers"><i class="pi pi-times"></i> {{ attempt.wrongAnswerCount }}</span>
+                    @if (attempt.skippedCount > 0) {
+                    <span class="skipped-cnt" pTooltip="Skipped"><i class="pi pi-minus"></i> {{ attempt.skippedCount }}</span>
+                    }
+                  </div>
+                </td>
+                <td>{{ formatDuration(attempt.totalTimeTakenInSeconds) }}</td>
+                <td>
+                  <span class="coins-earned">+{{ attempt.totalCoinsEarned || 0 }} 🪙</span>
+                </td>
+              </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+        } @else {
+        <!-- Empty Attempt State -->
+        <div class="attempts-empty-state">
+          <i class="pi pi-history empty-attempt-icon"></i>
+          <h3>No Quiz Attempts Recorded Yet</h3>
+          <p>You haven't completed any quizzes for <strong>{{ selectedSkillForAttempts() }}</strong>. Take a quiz now to evaluate your knowledge!</p>
+          <button type="button" class="action-btn primary-btn mt-3" (click)="takeQuiz(selectedSkillForAttempts() || '')">
+            <i class="pi pi-play"></i> Start Quiz Now
+          </button>
+        </div>
+        }
+      </div>
+      <ng-template pTemplate="footer">
+        <div class="dialog-footer-btns">
+          <button type="button" class="dialog-btn cancel-btn" (click)="closeAttemptsModal()">
+            Close
+          </button>
+          @if (selectedSkillForAttempts()) {
+          <button type="button" class="dialog-btn save-btn" (click)="takeQuiz(selectedSkillForAttempts() || '')">
+            <i class="pi pi-play"></i> Retake Quiz
+          </button>
+          }
+        </div>
+      </ng-template>
+    </p-dialog>
+
+    <!-- Head-to-Head Skill Comparison Modal -->
+    <p-dialog [(visible)]="showCompareModal" [modal]="true" [style]="{ width: '780px' }"
+      header="Head-to-Head Skill Comparison" [draggable]="false" [resizable]="false" [dismissableMask]="true">
+      <div class="compare-dialog-content">
+        <div class="compare-header-info">
+          <h4><i class="pi pi-sliders-h"></i> Side-by-Side Competency & Goal Analysis</h4>
+          <p>Comparing <strong>{{ compareRows().length }} selected skills</strong> against self-rating, quiz outcomes, target goals, and skill gap status.</p>
+        </div>
+
+        <div class="compare-radar-box mb-3">
+          <p-chart type="radar" [data]="compareRadarChartData()" [options]="radarChartOptions" height="260px"></p-chart>
+        </div>
+
+        <div class="compare-table-wrapper">
+          <table class="attempts-custom-table compare-table">
+            <thead>
+              <tr>
+                <th>Metric / Skill</th>
+                @for (col of compareRows(); track col.skill) {
+                <th style="text-align: center;">{{ col.skill }}</th>
+                }
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Mastery Tier</strong></td>
+                @for (col of compareRows(); track col.skill) {
+                <td style="text-align: center;">
+                  <span class="mastery-badge" [ngClass]="getMasteryBadgeClass(col.masteryTier)">
+                    <i [ngClass]="getMasteryBadgeIcon(col.masteryTier)"></i> {{ col.masteryTier }}
+                  </span>
+                </td>
+                }
+              </tr>
+              <tr>
+                <td><strong>Self Confidence</strong></td>
+                @for (col of compareRows(); track col.skill) {
+                <td style="text-align: center;">
+                  <span class="rating-val-badge">{{ col.selfRating > 0 ? col.selfRating + '/5 ⭐' : 'Unrated' }}</span>
+                </td>
+                }
+              </tr>
+              <tr>
+                <td><strong>Quiz Performance</strong></td>
+                @for (col of compareRows(); track col.skill) {
+                <td style="text-align: center;">
+                  <span class="rating-val-badge quiz-badge">{{ col.quizRating > 0 ? col.quizRating + '/5 🎯' : 'No Quiz' }}</span>
+                </td>
+                }
+              </tr>
+              <tr>
+                <td><strong>Target Goal</strong></td>
+                @for (col of compareRows(); track col.skill) {
+                <td style="text-align: center;">
+                  <span class="target-val-badge">Goal: {{ col.targetRating }}/5★</span>
+                </td>
+                }
+              </tr>
+              <tr>
+                <td><strong>Gap Status</strong></td>
+                @for (col of compareRows(); track col.skill) {
+                <td style="text-align: center;">
+                  @if (col.gapStatus === 'Goal Met') {
+                  <span class="gap-badge gap-achieved"><i class="pi pi-check-circle"></i> Goal Met</span>
+                  } @else if (col.gapStatus === 'Minor Gap') {
+                  <span class="gap-badge gap-minor"><i class="pi pi-exclamation-triangle"></i> Minor (-1★)</span>
+                  } @else {
+                  <span class="gap-badge gap-critical"><i class="pi pi-times-circle"></i> Critical (-{{ col.gapScore }}★)</span>
+                  }
+                </td>
+                }
+              </tr>
+              <tr>
+                <td><strong>Attempts History</strong></td>
+                @for (col of compareRows(); track col.skill) {
+                <td style="text-align: center;">
+                  <span class="attempts-pill">{{ col.attempts }} attempt{{ col.attempts === 1 ? '' : 's' }}</span>
+                </td>
+                }
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <ng-template pTemplate="footer">
+        <div class="dialog-footer-btns">
+          <button type="button" class="dialog-btn cancel-btn" (click)="closeCompareModal()">
+            Close
+          </button>
+        </div>
+      </ng-template>
+    </p-dialog>
 
     <!-- Edit Skill Dialog Modal -->
     <p-dialog [(visible)]="showEditModal" [modal]="true" [style]="{ width: '440px' }" header="Edit Skill Details"
@@ -508,7 +780,7 @@
           <div class="modal-star-picker">
             @for (star of [1,2,3,4,5]; track star) {
             <button type="button" class="star-pick-btn" [class.active]="star <= editingSkillRating()"
-              (click)="editingSkillRating.set(star)">
+              (click)="editingSkillRating.set(star); $event.stopPropagation()">
               <i class="pi" [ngClass]="star <= editingSkillRating() ? 'pi-star-fill' : 'pi-star'"></i>
             </button>
             }
