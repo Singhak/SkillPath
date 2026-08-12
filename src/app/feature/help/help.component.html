@@ -12,6 +12,13 @@
         tracking your career readiness.
       </p>
 
+      <div class="my-4 flex items-center justify-center gap-3">
+        <button type="button" class="px-5 py-2.5 rounded-full bg-linear-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold text-xs shadow-lg shadow-cyan-500/25 flex items-center gap-2 transition-all cursor-pointer" (click)="walkthroughService.openGuideModal()">
+          <i class="pi pi-compass text-base"></i>
+          <span>Launch Interactive Walkthrough Guide</span>
+        </button>
+      </div>
+
       <!-- Instant Search Bar -->
       <div class="search-box">
         <label for="helpSearchInput" class="sr-only">Search help center</label>

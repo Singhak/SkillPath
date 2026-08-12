@@ -13,7 +13,7 @@
     </div>
 
     <!-- Mode Selector Cards -->
-    <div class="mode-selector-grid">
+    <div class="mode-selector-grid" data-tour="quiz-cloze-demo">
       <div
         class="mode-card"
         [class.mode-card--active]="quizMode() === 'standard'"
@@ -42,7 +42,7 @@
 
     <!-- Form -->
     <div class="setup-form">
-      <div class="form-field">
+      <div class="form-field" data-tour="quiz-category-filter">
         <label class="field-label" for="category">
           <i class="pi pi-tag"></i> Category
         </label>
@@ -66,6 +66,7 @@
         <p-multiSelect
           class="field-select"
           inputId="subcategories"
+          data-tour="quiz-subcategory-filter"
           [options]="subCategories()"
           [(ngModel)]="selectedSubCategories"
           [filter]="true"
@@ -95,6 +96,7 @@
     <button
       type="button"
       class="start-btn"
+      data-tour="quiz-start-btn"
       [class.start-btn--disabled]="!selectedCategory() || isLoading()"
       [disabled]="!selectedCategory() || isLoading()"
       (click)="fetchQuiz()">
@@ -204,7 +206,7 @@
         </div>
       </div>
 
-      <div class="quiz-actions">
+      <div class="quiz-actions" data-tour="quiz-timer-coins">
         <div class="stat-pill stat-pill--timer" title="Time Elapsed">
           <div class="stat-pill-icon-wrap timer-icon-wrap">
             <i class="pi pi-clock stat-pill-icon"></i>
@@ -227,6 +229,7 @@
         <button
           type="button"
           class="action-btn action-btn--hint"
+          data-tour="quiz-hint-btn"
           (click)="onHintClick()"
           [disabled]="isSubmited() || availableHints() === 0"
           [class.action-btn--disabled]="isSubmited() || availableHints() === 0"
@@ -275,7 +278,7 @@
           <span class="inline-flex items-center gap-1 bg-slate-800 border border-slate-700 text-slate-300 px-1.5 py-0.5 rounded font-mono text-[10px] font-bold">↵ Enter</span> Submit / Next
         </div>
       </div>
-      <div class="footer-actions">
+      <div class="footer-actions" data-tour="quiz-submit-btn">
         <button
           type="button"
           class="footer-btn footer-btn--skip"

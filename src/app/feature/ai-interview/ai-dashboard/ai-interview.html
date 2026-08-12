@@ -43,7 +43,7 @@
 
   <div class="interview-cards-container">
     @for (card of interviewCards; track card; let i = $index) {
-    <a class="interview-card" [class]="'card-variant-' + i" [routerLink]="card.link">
+    <a class="interview-card" [class]="'card-variant-' + i" [routerLink]="card.link" [attr.data-tour]="i === 0 ? 'create-interview-btn' : (i === 1 ? 'star-story-bank-btn' : null)">
       <div class="card-glow"></div>
       <div class="card-icon-wrapper">
         <div class="card-icon-bg">

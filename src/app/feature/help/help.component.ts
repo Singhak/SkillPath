@@ -2,6 +2,7 @@ import { Component, computed, signal, AfterViewInit, OnDestroy, inject, PLATFORM
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
+import { WalkthroughService } from '../../core/services/walkthrough.service';
 
 export interface FeatureGuide {
   id: string;
@@ -37,6 +38,7 @@ export interface FaqItem {
 })
 export class HelpComponent implements AfterViewInit, OnDestroy {
   private readonly platformId = inject(PLATFORM_ID);
+  protected readonly walkthroughService = inject(WalkthroughService);
   private observer: IntersectionObserver | null = null;
 
   // Navigation & Search Signals

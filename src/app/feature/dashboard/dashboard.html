@@ -11,7 +11,7 @@
         <p class="hero-subtitle">
           Track attempt trends, accuracy rates, and skill mastery to level up your technical expertise.
         </p>
-        <div class="hero-actions">
+        <div class="hero-actions" data-tour="hero-actions">
           <button class="action-btn primary-btn" type="button" (click)="onNewQuiz()">
             <i class="pi pi-play-circle"></i>
             <span>Take New Quiz</span>
@@ -24,7 +24,7 @@
       </div>
 
       <div class="hero-widgets">
-        <div class="glass-widget credit-widget">
+        <div class="glass-widget credit-widget" data-tour="credit-widget">
           <div class="widget-main">
             <div class="widget-icon credit-icon">
               <i class="pi pi-microchip-ai"></i>
@@ -46,7 +46,7 @@
           </div>
         </div>
 
-        <div class="glass-widget coin-widget">
+        <div class="glass-widget coin-widget" data-tour="coin-widget">
           <div class="widget-main">
             <div class="widget-icon coin-icon">
               <i class="pi pi-bitcoin"></i>
@@ -64,7 +64,7 @@
           </div>
         </div>
 
-        <div class="glass-widget profile-widget" (click)="onGoToProfile()" role="button" tabindex="0" (keydown.enter)="onGoToProfile()">
+        <div class="glass-widget profile-widget" (click)="onGoToProfile()" role="button" tabindex="0" (keydown.enter)="onGoToProfile()" data-tour="profile-widget">
           <div class="widget-main">
             <div class="widget-icon profile-icon">
               <i class="pi pi-user-edit"></i>
@@ -101,16 +101,22 @@
     </section>
 
     <!-- Stage 3 Gamification, Streaks & PDF Evaluation Report Panel -->
-    <app-gamification-panel></app-gamification-panel>
+    <div data-tour="gamification-panel">
+      <app-gamification-panel></app-gamification-panel>
+    </div>
 
     <!-- Stage 2 Skill Gap & Spaced Repetition Review Deck Panel -->
-    <app-skill-gap-panel></app-skill-gap-panel>
+    <div data-tour="skill-gap-panel">
+      <app-skill-gap-panel></app-skill-gap-panel>
+    </div>
 
     <!-- Stage 1 AI Tools & Interview Enhancements Panel -->
-    <app-ai-tools-widget></app-ai-tools-widget>
+    <div data-tour="ai-tools-widget">
+      <app-ai-tools-widget></app-ai-tools-widget>
+    </div>
 
     <!-- Key Performance Metrics Grid -->
-    <section class="stats-grid">
+    <section class="stats-grid" data-tour="stats-grid">
       @for (card of summaryCards(); track card.label) {
       <div class="kpi-card">
         <div class="kpi-icon-box" [ngClass]="'accent-' + card.accent">
@@ -126,7 +132,7 @@
     </section>
 
     <!-- Analytics & Skill Breakdown -->
-    <div class="relative">
+    <div class="relative" data-tour="analytics-grid">
       <!-- Locked Overlay for Silver Plan -->
       @if (!authService.hasMinPlan('Copper')) {
       <div class="absolute inset-0 z-50 flex items-center justify-center rounded-3xl backdrop-blur-md bg-gray-900/40 border border-gray-700/50">
@@ -192,7 +198,7 @@
 
     <!-- Skill Mastery Breakdown Card -->
     @if (skillBreakdown().length) {
-    <section class="glass-card skill-card">
+    <section class="glass-card skill-card" data-tour="skill-mastery">
       <div class="card-header">
         <div>
           <div class="section-tag">
@@ -226,7 +232,7 @@
     }
 
     <!-- Recent Quiz Attempts Table -->
-    <section class="glass-card table-card">
+    <section class="glass-card table-card" data-tour="table-card">
       <div class="card-header table-header-flex">
         <div>
           <div class="section-tag">

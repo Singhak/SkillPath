@@ -28,6 +28,7 @@
         [class.text-white]="activeTab() === 'resume'"
         [class.text-slate-400]="activeTab() !== 'resume'"
         class="px-3.5 py-2 rounded-lg text-xs font-bold transition-all flex items-center space-x-1.5"
+        data-tour="tab-resume"
       >
         <span>📄</span> <span>Resume Parser</span>
       </button>
@@ -39,6 +40,7 @@
         [class.text-white]="activeTab() === 'speech'"
         [class.text-slate-400]="activeTab() !== 'speech'"
         class="px-3.5 py-2 rounded-lg text-xs font-bold transition-all flex items-center space-x-1.5"
+        data-tour="tab-speech"
       >
         <span>🎙️</span> <span>Speech Analytics</span>
       </button>
@@ -50,6 +52,7 @@
         [class.text-white]="activeTab() === 'star'"
         [class.text-slate-400]="activeTab() !== 'star'"
         class="px-3.5 py-2 rounded-lg text-xs font-bold transition-all flex items-center space-x-1.5"
+        data-tour="tab-star"
       >
         <span>⭐️</span> <span>STAR Coach</span>
       </button>
@@ -61,6 +64,7 @@
         [class.text-white]="activeTab() === 'storybank'"
         [class.text-slate-400]="activeTab() !== 'storybank'"
         class="px-3.5 py-2 rounded-lg text-xs font-bold transition-all flex items-center space-x-1.5"
+        data-tour="tab-storybank"
       >
         <span>📖</span> <span>STAR Story Bank</span>
       </button>
@@ -982,6 +986,7 @@
           <!-- Dual Mode Evaluation Selector -->
           <div
             class="bg-slate-800/60 p-3 rounded-xl border border-slate-700/60 flex items-center justify-between"
+            data-tour="star-mode-switcher"
           >
             <div>
               <span class="text-xs font-bold text-white block">Evaluation Engine Mode</span>
@@ -1024,7 +1029,7 @@
             </div>
           </div>
 
-          <div>
+          <div data-tour="star-question-input">
             <label for="behavioral_question" class="text-xs font-bold text-slate-300 block mb-1">Behavioral Question</label>
             <input
               id="behavioral_question"
@@ -1035,7 +1040,7 @@
             />
           </div>
 
-          <div>
+          <div data-tour="star-answer-input">
             <label for="answer_textarea" class="text-xs font-bold text-slate-300 block mb-1"
               >Your Answer Response:</label
             >
@@ -1054,6 +1059,7 @@
             (click)="evaluateStarResponse()"
             [disabled]="starCoachService.isEvaluatingWithAi()"
             class="w-full py-3 rounded-xl bg-linear-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold text-xs shadow-lg shadow-indigo-500/20 transition-all active:scale-95 disabled:opacity-50"
+            data-tour="star-grade-btn"
           >
             @if (!starCoachService.isEvaluatingWithAi()) {
               <span
@@ -1070,6 +1076,7 @@
         <!-- STAR Evaluation Output -->
         <div
           class="bg-slate-900/80 border border-slate-700/60 rounded-2xl p-5 backdrop-blur-md shadow-xl"
+          data-tour="star-breakdown-card"
         >
           <!-- Header -->
           <div class="flex items-center justify-between border-b border-slate-800 pb-3 mb-4">
@@ -1085,6 +1092,7 @@
                   type="button"
                   (click)="saveCurrentEvaluationToStoryBank()"
                   class="px-2.5 py-1 rounded-lg bg-indigo-600/30 hover:bg-indigo-600 border border-indigo-500/50 text-indigo-200 text-xs font-bold transition-all flex items-center space-x-1"
+                  data-tour="star-save-bank-btn"
                 >
                   @if (savedToBank()) {
                     <span class="text-emerald-300">✓ Saved to Bank!</span>
@@ -1171,6 +1179,7 @@
               <!-- Output Sub-Tabs Control -->
               <div
                 class="flex items-center gap-1 bg-slate-950/60 p-1 rounded-xl border border-slate-800 text-xs font-semibold"
+                data-tour="star-output-tabs"
               >
                 <button
                   type="button"
