@@ -52,6 +52,8 @@
           [options]="categories()"
           [(ngModel)]="selectedCategory"
           (onChange)="onCategoryChange()"
+          [filter]="true"
+          filterPlaceholder="Search category..."
           placeholder="Select a Category"
           appendTo="body">
         </p-select>
@@ -66,6 +68,8 @@
           inputId="subcategories"
           [options]="subCategories()"
           [(ngModel)]="selectedSubCategories"
+          [filter]="true"
+          filterPlaceholder="Search sub-categories..."
           placeholder="Select Sub-Categories"
           [style]="{ width: '100%' }"
           appendTo="body">
