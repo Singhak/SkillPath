@@ -1,0 +1,22 @@
+# Angular SPA routing (path-based URLs, base href "/")
+# Serve real files/directories as-is; send every other request to index.html so deep links
+# such as /pricing?provider=cashfree&order_id=... (payment gateway return URLs) and page refreshes work.
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /
+
+  RewriteRule ^index\.html$ - [L]
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteRule . /index.html [L]
+</IfModule>
+
+# Never cache the entry point so new deploys are picked up; hashed JS/CSS bundles can be cached long-term (images in public/ are not hashed, so they are left alone)
+<IfModule mod_headers.c>
+  <FilesMatch "index\.html$">
+    Header set Cache-Control "no-cache, no-store, must-revalidate"
+  </FilesMatch>
+  <FilesMatch "\.(js|css)$">
+    Header set Cache-Control "public, max-age=31536000, immutable"
+  </FilesMatch>
+</IfModule>
