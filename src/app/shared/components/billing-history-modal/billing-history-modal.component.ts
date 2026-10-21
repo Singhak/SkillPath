@@ -30,7 +30,7 @@ export interface PurchaseHistoryItem {
   amount: number;
   currency: string;
   creditsAdded: number;
-  status: 'SUCCESS' | 'FAILED' | 'PENDING';
+  status: 'SUCCESS' | 'FAILED' | 'PENDING' | 'EXPIRED';
   createdAt: string;
 }
 

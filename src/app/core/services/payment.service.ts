@@ -26,6 +26,20 @@ export class PaymentService {
   readonly isProcessingPayment = signal<boolean>(false);
 
   /**
+   * Set when more than one gateway is available; the pricing UI shows a chooser and calls selectProvider()
+   */
+  readonly providerChoice = signal<{ id: string; label: string }[] | null>(null);
+  private pendingPurchase: { credits: number; currency: string; plan?: string } | null = null;
+
+  private static readonly PROVIDER_LABELS: Record<string, string> = {
+    razorpay: 'Razorpay (UPI, Cards, NetBanking)',
+    cashfree: 'Cashfree (UPI, Cards, NetBanking)',
+    payu: 'PayU (UPI, Cards, NetBanking)',
+    stripe: 'Stripe (Cards)',
+    phonepe: 'PhonePe',
+  };
+
+  /**
    * Fetch active payment gateway configuration & supported providers list
    */
   public getPaymentConfig(): Observable<any> {
@@ -51,27 +65,92 @@ export class PaymentService {
         return;
       }
     }
-    //TODO on production mode, enable the below code
-    /* this.isProcessingPayment.set(true);
- 
-     // 1. Create order on backend (backend selects configured provider strategy)
-     this.http.post<any>(`${this.apiUrl}/create-order`, { amount, credits, currency, plan }).pipe(
-       takeUntilDestroyed(this.destroyRef)
-     ).subscribe({
-       next: (order) => {
-         this.processCheckout(order, amount, credits, currency, plan);
-       },
-       error: (err) => {
-         this.isProcessingPayment.set(false);
-         console.error('Error creating payment order', err);
-         this.notifyError('Order Failed', err.error?.message || err.error?.error || 'Failed to initialize payment process.');
-       }
-     });*/
-    // Payment Gateway registration is currently in progress
-    this.notifyInfo(
-      'Subscription and Credit Purchases Coming Soon',
-      ' Enjoy full platform features today with our extended 30-Day Free Trial'
-    );
+    this.isProcessingPayment.set(true);
+
+    // Ask the backend which providers are available for this currency
+    this.getPaymentConfig().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: (config) => {
+        const providers: { id: string; currencies: string[] }[] = (config.providers || [])
+          .filter((p: any) => p.currencies?.includes(currency));
+        this.pendingPurchase = { credits, currency, plan };
+
+        if (providers.length === 0) {
+          this.isProcessingPayment.set(false);
+          this.notifyError('Payments Unavailable', `No payment method is available for ${currency} right now.`);
+        } else if (providers.length === 1) {
+          this.createOrder(providers[0].id);
+        } else {
+          this.isProcessingPayment.set(false);
+          this.providerChoice.set(providers.map(p => ({
+            id: p.id,
+            label: PaymentService.PROVIDER_LABELS[p.id] || p.id
+          })));
+        }
+      },
+      error: () => {
+        this.isProcessingPayment.set(false);
+        this.notifyError('Payments Unavailable', 'Could not load payment options. Please try again.');
+      }
+    });
+  }
+
+  /** Called by the provider chooser UI */
+  public selectProvider(providerId: string): void {
+    this.providerChoice.set(null);
+    if (!this.pendingPurchase) { return; }
+    this.isProcessingPayment.set(true);
+    this.createOrder(providerId);
+  }
+
+  public cancelProviderSelection(): void {
+    this.providerChoice.set(null);
+    this.pendingPurchase = null;
+  }
+
+  private createOrder(provider: string): void {
+    const purchase = this.pendingPurchase;
+    if (!purchase) { this.isProcessingPayment.set(false); return; }
+    const { credits, currency, plan } = purchase;
+
+    // Amount is intentionally not sent: the server prices every order
+    this.http.post<any>(`${this.apiUrl}/create-order`, { credits, currency, plan, provider }).pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe({
+      next: (order) => this.processCheckout(order, order.amount, credits, currency, plan),
+      error: (err) => {
+        this.isProcessingPayment.set(false);
+        console.error('Error creating payment order', err);
+        this.notifyError('Order Failed', err.error?.message || err.error?.error || 'Failed to initialize payment process.');
+      }
+    });
+  }
+
+  /**
+   * Handle the redirect back from Cashfree / PayU (query: provider, order_id, status).
+   * Call from the pricing page on init. Fulfilment always goes through the server-side /verify.
+   */
+  public handlePaymentReturn(): void {
+    // Works for both path routing (/pricing?x) and hash routing (/#/pricing?x)
+    const hashQuery = window.location.hash.includes('?') ? window.location.hash.split('?')[1] : '';
+    const params = new URLSearchParams(window.location.search || hashQuery);
+    const provider = params.get('provider');
+    const orderId = params.get('order_id');
+    const status = (params.get('status') || '').toLowerCase();
+    if ((provider !== 'cashfree' && provider !== 'payu') || (!orderId && !status)) { return; }
+
+    window.history.replaceState({}, '', window.location.pathname + window.location.hash.split('?')[0]);
+
+    if (!orderId || ['invalid', 'error'].includes(status)) {
+      this.notifyError('Payment Failed', 'We could not confirm your payment. If money was debited, use Restore Purchase.');
+      return;
+    }
+    if (provider === 'payu' && status && status !== 'success') {
+      this.notifyError('Payment Failed', 'Your payment was not completed. You have not been charged.');
+      return;
+    }
+
+    this.isProcessingPayment.set(true);
+    this.verifyPayment({ provider, orderId });
   }
 
   private processCheckout(order: any, amount: number, credits: number, currency: string, plan?: string): void {
@@ -195,26 +274,42 @@ export class PaymentService {
   }
 
   private handleCashfreeCheckout(order: any, amount: number, credits: number, currency: string, plan?: string): void {
-    console.log('[Cashfree Checkout] Processing cashfree order:', order.orderId);
-    this.verifyPayment({
-      provider: 'cashfree',
-      orderId: order.orderId,
-      amount,
-      currency: order.currency || currency,
-      credits,
-      plan
+    const payload = order.checkoutPayload || {};
+    this.loadScript('https://sdk.cashfree.com/js/v3/cashfree.js').then(() => {
+      const cashfree = window.Cashfree({ mode: payload.env === 'production' ? 'production' : 'sandbox' });
+      // Redirects to Cashfree; user returns to /pricing?provider=cashfree&order_id=... (see handlePaymentReturn)
+      cashfree.checkout({ paymentSessionId: payload.paymentSessionId, redirectTarget: '_self' });
+    }).catch(() => {
+      this.isProcessingPayment.set(false);
+      this.notifyError('Cashfree Error', 'Could not load the payment SDK. Please try again.');
     });
   }
 
   private handlePayUCheckout(order: any, amount: number, credits: number, currency: string, plan?: string): void {
-    console.log('[PayU Checkout] Processing PayU transaction:', order.orderId);
-    this.verifyPayment({
-      provider: 'payu',
-      txnid: order.orderId,
-      amount,
-      currency: order.currency || currency,
-      credits,
-      plan
+    const payload = order.checkoutPayload || {};
+    // PayU requires a browser form POST; the result returns via the backend callback to /pricing
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = payload.actionUrl;
+    Object.entries(payload.fields || {}).forEach(([name, value]) => {
+      const input = document.createElement('input');
+      input.type = 'hidden';
+      input.name = name;
+      input.value = String(value);
+      form.appendChild(input);
+    });
+    document.body.appendChild(form);
+    form.submit();
+  }
+
+  private loadScript(src: string): Promise<void> {
+    return new Promise((resolve, reject) => {
+      if (document.querySelector(`script[src="${src}"]`)) { resolve(); return; }
+      const el = document.createElement('script');
+      el.src = src;
+      el.onload = () => resolve();
+      el.onerror = () => reject(new Error(`Failed to load ${src}`));
+      document.head.appendChild(el);
     });
   }
 
@@ -225,13 +320,13 @@ export class PaymentService {
       next: (res: any) => {
         this.isProcessingPayment.set(false);
         this.userResourceService.updateUserCredits({ paidCredits: res.paidCredits, refetch: true });
-        if (verificationPayload.plan && res.plan) {
+        if (res.plan) {
           this.authService.updateUserProfile({ plan: res.plan });
           this.userResourceService.fetchCreditsAndCoins().subscribe();
           this.notifySuccess('Subscription Activated!', `Success! You have subscribed to the ${res.plan} Plan.`);
         } else {
           this.userResourceService.fetchCreditsAndCoins().subscribe();
-          this.notifySuccess('Payment Successful!', `Success! ${verificationPayload.credits} AI Credits added to your account.`);
+          this.notifySuccess('Payment Successful!', 'Success! AI Credits have been added to your account.');
         }
       },
       error: (err: any) => {

@@ -532,6 +532,23 @@ type PaidPlan = 'Copper' | 'Gold';
       </div>
 
       <app-billing-history-modal [isOpen]="isBillingModalOpen" (close)="isBillingModalOpen = false" />
+
+      @if (paymentService.providerChoice(); as providers) {
+        <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4" (click)="paymentService.cancelProviderSelection()">
+          <div class="w-full max-w-sm rounded-2xl bg-gray-900 border border-white/10 p-6 shadow-2xl" (click)="$event.stopPropagation()">
+            <h3 class="text-xl font-bold mb-1">Choose payment method</h3>
+            <p class="text-sm text-gray-400 mb-5">Select how you'd like to pay.</p>
+            <div class="flex flex-col gap-3">
+              @for (p of providers; track p.id) {
+                <button (click)="paymentService.selectProvider(p.id)" class="w-full text-left px-4 py-3 rounded-xl bg-white/5 hover:bg-blue-600/30 border border-white/10 transition-colors cursor-pointer">
+                  {{ p.label }}
+                </button>
+              }
+            </div>
+            <button (click)="paymentService.cancelProviderSelection()" class="mt-4 w-full text-sm text-gray-400 hover:text-white cursor-pointer">Cancel</button>
+          </div>
+        </div>
+      }
     </div>
   `
 })
@@ -545,6 +562,11 @@ export class PricingComponent {
   selectedCurrency: Currency = 'INR';
   subscriptionPlan: PricingPlan = 'Silver';
   isBillingModalOpen = false;
+
+  constructor() {
+    // Finish Cashfree / PayU redirect flows (no-op unless returning from a gateway)
+    this.paymentService.handlePaymentReturn();
+  }
 
   setCurrency(currency: Currency): void {
     this.selectedCurrency = currency;
