@@ -13,9 +13,9 @@ import { GlobalErrorHandlerService } from './core/services/global-error-handler.
 
 export const appConfig: ApplicationConfig = {
   providers: [
+    provideRouter(routes),
     provideBrowserGlobalErrorListeners(),
     provideAnimationsAsync(),
-    provideRouter(routes),
     providePrimeNG({
       theme: {
         preset: Aura,
