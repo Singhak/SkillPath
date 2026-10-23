@@ -31,10 +31,10 @@ type PaidPlan = 'Copper' | 'Gold';
           Unlock the full potential of AI with our flexible pricing plans. Whether you're just starting out or scaling up, we have a plan for you.
         </p>
 
-        <!-- Payment Gateway Registration Notice Banner -->
+        <!-- Payments Notice Banner -->
         <div class="max-w-2xl mx-auto mb-8 p-4 rounded-2xl bg-amber-500/15 border border-amber-500/30 backdrop-blur-md text-center shadow-lg">
           <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/20 text-amber-300 text-xs font-bold uppercase tracking-wider mb-2">
-            <span>⚡ Subscription and Credit Purchases Coming Soon</span>
+            <span>⚡ Subscriptions and Credit Purchases Now Available</span>
           </div>
           <p class="text-gray-300 text-md mt-1">
             Enjoy full platform features today with our extended <strong>30-Day Free Trial</strong>!
@@ -158,7 +158,7 @@ type PaidPlan = 'Copper' | 'Gold';
                 <i class="pi pi-spin pi-spinner text-lg"></i>
                 <span>Processing...</span>
               } @else {
-                <span>Coming Soon</span>
+                <span>Subscribe Now</span>
               }
             </button>
           }
@@ -236,7 +236,7 @@ type PaidPlan = 'Copper' | 'Gold';
                 <i class="pi pi-spin pi-spinner text-lg"></i>
                 <span>Processing...</span>
               } @else {
-                <span>Coming Soon</span>
+                <span>Subscribe Now</span>
               }
             </button>
           }
@@ -306,7 +306,7 @@ type PaidPlan = 'Copper' | 'Gold';
                  <i class="pi pi-spin pi-spinner"></i>
                  <span>Processing...</span>
                } @else {
-                 <span>Coming Soon</span>
+                 <span>Buy Now</span>
                }
              </button>
           </div>
@@ -325,7 +325,7 @@ type PaidPlan = 'Copper' | 'Gold';
                  <i class="pi pi-spin pi-spinner"></i>
                  <span>Processing...</span>
                } @else {
-                 <span>Coming Soon</span>
+                 <span>Buy Now</span>
                }
              </button>
           </div>
@@ -344,7 +344,7 @@ type PaidPlan = 'Copper' | 'Gold';
                  <i class="pi pi-spin pi-spinner"></i>
                  <span>Processing...</span>
                } @else {
-                 <span>Coming Soon</span>
+                 <span>Buy Now</span>
                }
              </button>
           </div>
